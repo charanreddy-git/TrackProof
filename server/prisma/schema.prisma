@@ -1,0 +1,67 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+enum Role {
+  USER
+  CAPTAIN
+}
+
+enum TaskStatus {
+  OPEN
+  ACCEPTED
+  IN_PROGRESS
+  SUBMITTED
+  COMPLETED
+}
+
+model User {
+  id       String @id @default(cuid())
+  name     String
+  email    String @unique
+  password String
+  role     Role
+
+  createdTasks  Task[] @relation("CreatedTasks")
+  acceptedTasks Task[] @relation("AcceptedTasks")
+
+  createdAt DateTime @default(now())
+}
+
+model Task {
+  id          String     @id @default(cuid())
+  title       String
+  description String
+  targetLat   Float
+  targetLng   Float
+  status      TaskStatus @default(OPEN)
+
+  evidenceImage String?
+
+  createdById  String
+  acceptedById String?
+
+  createdBy  User  @relation("CreatedTasks", fields: [createdById], references: [id])
+  acceptedBy User? @relation("AcceptedTasks", fields: [acceptedById], references: [id])
+
+  locationLogs LocationLog[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model LocationLog {
+  id        String   @id @default(cuid())
+  latitude  Float
+  longitude Float
+  taskId    String
+  captainId String
+  task      Task     @relation(fields: [taskId], references: [id])
+  timestamp DateTime @default(now())
+}
