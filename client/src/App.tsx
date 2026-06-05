@@ -24,6 +24,7 @@ import { AvailableTasksPage } from "./pages/captain/AvailableTasksPage";
 import { AcceptedTasksPage } from "./pages/captain/AcceptedTasksPage";
 import { CaptainTaskDetail } from "./pages/captain/CaptainTaskDetail";
 import { UploadEvidencePage } from "./pages/captain/UploadEvidencePage";
+import { LandingPage } from "./pages/LandingPage";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -43,6 +44,7 @@ function App() {
           <ToastProvider>
             <Routes>
               {/* Public routes */}
+              <Route path="/" element={<LandingPage />} />
               <Route element={<AuthLayout />}>
                 <Route path="/login" element={<LoginPage />} />
                 <Route path="/register" element={<RegisterPage />} />
@@ -91,7 +93,7 @@ function App() {
               </Route>
 
               {/* Catch-all redirect */}
-              <Route path="*" element={<Navigate to="/login" replace />} />
+              <Route path="*" element={<Navigate to="/" replace />} />
             </Routes>
           </ToastProvider>
         </AuthProvider>

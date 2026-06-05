@@ -8,6 +8,7 @@ import { PageLoader } from "../../components/ui/Spinner";
 import { useTaskDetail, useStartTask } from "../../hooks/useTasks";
 import { useGeolocation } from "../../hooks/useLocation";
 import { useToast } from "../../components/ui/Toast";
+import { CompassIcon, CameraIcon } from "../../components/Icons";
 
 export function CaptainTaskDetail() {
   const { id } = useParams<{ id: string }>();
@@ -109,16 +110,16 @@ export function CaptainTaskDetail() {
                       addToast("info", "Location tracking enabled");
                     }}
                     variant="secondary"
-                    className="w-full"
+                    className="w-full flex items-center justify-center gap-2"
                   >
-                    📡 Enable Location Tracking
+                    <CompassIcon size={16} /> Enable Location Tracking
                   </Button>
                 )}
                 <Button
                   onClick={() => navigate(`/captain/tasks/${task.id}/upload`)}
-                  className="w-full"
+                  className="w-full flex items-center justify-center gap-2"
                 >
-                  📸 Capture Evidence
+                  <CameraIcon size={16} /> Capture Evidence
                 </Button>
               </>
             )}

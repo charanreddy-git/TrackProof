@@ -4,6 +4,7 @@ import { useAuth } from "../../contexts/AuthContext";
 import { Button } from "../../components/ui/Button";
 import { Input } from "../../components/ui/Input";
 import { useToast } from "../../components/ui/Toast";
+import { UserIcon, CompassIcon } from "../../components/Icons";
 import type { Role } from "../../types";
 
 export function RegisterPage() {
@@ -92,28 +93,28 @@ export function RegisterPage() {
             <button
               type="button"
               onClick={() => setRole("USER")}
-              className={`p-4 rounded-xl border-2 text-center transition-all duration-200 cursor-pointer ${
+              className={`p-4 rounded-xl border-2 text-center transition-all duration-200 cursor-pointer flex flex-col items-center justify-center ${
                 role === "USER"
                   ? "border-primary-500 bg-primary-50 text-primary-700"
                   : "border-surface-200 hover:border-surface-300 text-surface-600"
               }`}
             >
-              <div className="text-2xl mb-1">👤</div>
+              <UserIcon size={24} className="mb-1.5" />
               <div className="text-sm font-medium">User</div>
-              <div className="text-xs mt-0.5 opacity-70">Create tasks</div>
+              <div className="text-[10px] mt-0.5 opacity-70">Create tasks</div>
             </button>
             <button
               type="button"
               onClick={() => setRole("CAPTAIN")}
-              className={`p-4 rounded-xl border-2 text-center transition-all duration-200 cursor-pointer ${
+              className={`p-4 rounded-xl border-2 text-center transition-all duration-200 cursor-pointer flex flex-col items-center justify-center ${
                 role === "CAPTAIN"
                   ? "border-accent-500 bg-emerald-50 text-accent-600"
                   : "border-surface-200 hover:border-surface-300 text-surface-600"
               }`}
             >
-              <div className="text-2xl mb-1">🧭</div>
+              <CompassIcon size={24} className="mb-1.5" />
               <div className="text-sm font-medium">Captain</div>
-              <div className="text-xs mt-0.5 opacity-70">Complete tasks</div>
+              <div className="text-[10px] mt-0.5 opacity-70">Complete tasks</div>
             </button>
           </div>
         </div>
@@ -140,3 +141,4 @@ export function RegisterPage() {
     </div>
   );
 }
+

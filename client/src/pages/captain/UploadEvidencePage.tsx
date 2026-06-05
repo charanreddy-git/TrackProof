@@ -5,6 +5,14 @@ import { Button } from "../../components/ui/Button";
 import { PageLoader } from "../../components/ui/Spinner";
 import { useTaskDetail, useSubmitTask } from "../../hooks/useTasks";
 import { useToast } from "../../components/ui/Toast";
+import {
+  CompassIcon,
+  CameraIcon,
+  ClockIcon,
+  CheckCircleIcon,
+  AlertTriangleIcon,
+  RefreshCwIcon,
+} from "../../components/Icons";
 
 // Haversine formula to calculate distance on client side
 function calculateDistance(
@@ -337,7 +345,9 @@ export function UploadEvidencePage() {
             <div className="p-3 bg-surface-50 rounded-xl border border-surface-200">
               <span className="block text-xs text-surface-400 font-medium">Current Location</span>
               {locationError ? (
-                <span className="text-xs text-danger-500 font-medium line-clamp-2">⚠️ {locationError}</span>
+                <span className="text-xs text-danger-500 font-medium line-clamp-2 flex items-center gap-1">
+                  <AlertTriangleIcon size={12} /> {locationError}
+                </span>
               ) : currentLocation ? (
                 <span className="font-mono text-sm text-surface-700 block">
                   {currentLocation.latitude.toFixed(6)}, {currentLocation.longitude.toFixed(6)}
@@ -346,7 +356,9 @@ export function UploadEvidencePage() {
                   )}
                 </span>
               ) : (
-                <span className="text-xs text-surface-400 animate-pulse">📡 Acquiring GPS signal...</span>
+                <span className="text-xs text-surface-400 animate-pulse flex items-center gap-1.5">
+                  <CompassIcon size={12} className="animate-spin-slow" /> Acquiring GPS signal...
+                </span>
               )}
             </div>
           </div>
@@ -364,7 +376,13 @@ export function UploadEvidencePage() {
               `}
             >
               <div className="flex items-center gap-3">
-                <span className="text-2xl">{isInRange ? "✅" : "❌"}</span>
+                <span className="text-xl">
+                  {isInRange ? (
+                    <CheckCircleIcon size={20} className="text-success-500" />
+                  ) : (
+                    <AlertTriangleIcon size={20} className="text-danger-500" />
+                  )}
+                </span>
                 <div>
                   <span className="font-bold block text-sm">
                     {isInRange ? "In Proximity Range" : "Out of Proximity Range"}
@@ -389,7 +407,7 @@ export function UploadEvidencePage() {
             </div>
           ) : (
             <div className="p-4 rounded-xl bg-amber-500/10 border border-amber-500/30 text-amber-700 flex items-center gap-3">
-              <span className="text-2xl animate-spin">⏳</span>
+              <ClockIcon size={20} className="animate-spin text-amber-600" />
               <div>
                 <span className="font-bold text-sm block">Calculating GPS Distance</span>
                 <span className="text-xs opacity-90 block">
@@ -482,17 +500,17 @@ export function UploadEvidencePage() {
                     <button
                       type="button"
                       onClick={toggleCameraFacing}
-                      className="absolute top-3.5 right-3.5 bg-black/60 hover:bg-black/80 backdrop-blur-md text-white border border-white/10 p-2 rounded-full transition-all active:scale-95 shadow-md flex items-center justify-center cursor-pointer pointer-events-auto"
+                      className="absolute top-3.5 right-3.5 bg-black/60 hover:bg-black/80 backdrop-blur-md text-white border border-white/10 p-2.5 rounded-full transition-all active:scale-95 shadow-md flex items-center justify-center cursor-pointer pointer-events-auto"
                       title="Switch Camera"
                     >
-                      🔄
+                      <RefreshCwIcon size={16} />
                     </button>
                   )}
 
                   {/* Overlay for Camera Errors */}
                   {cameraError && (
                     <div className="absolute inset-0 bg-surface-900/95 backdrop-blur-sm flex flex-col items-center justify-center p-6 text-center text-white">
-                      <span className="text-3xl mb-3">📷🚫</span>
+                      <CameraIcon size={32} className="text-danger-500 mb-3" />
                       <p className="text-sm font-semibold mb-2 text-danger-500">Camera Access Blocked</p>
                       <p className="text-xs text-white/70 max-w-sm mb-4">
                         {cameraError}

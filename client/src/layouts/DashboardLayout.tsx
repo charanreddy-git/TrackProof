@@ -1,17 +1,24 @@
 import { useState } from "react";
 import { Outlet, NavLink, useNavigate } from "react-router-dom";
 import { useAuth } from "../contexts/AuthContext";
+import {
+  DashboardIcon,
+  PlusIcon,
+  ClipboardIcon,
+  SearchIcon,
+  LogOutIcon,
+} from "../components/Icons";
 
 const userNav = [
-  { to: "/user", label: "Dashboard", icon: "📊" },
-  { to: "/user/create-task", label: "Create Task", icon: "➕" },
-  { to: "/user/tasks", label: "My Tasks", icon: "📋" },
+  { to: "/user", label: "Dashboard", icon: DashboardIcon },
+  { to: "/user/create-task", label: "Create Task", icon: PlusIcon },
+  { to: "/user/tasks", label: "My Tasks", icon: ClipboardIcon },
 ];
 
 const captainNav = [
-  { to: "/captain", label: "Dashboard", icon: "📊" },
-  { to: "/captain/available", label: "Available Tasks", icon: "🔍" },
-  { to: "/captain/accepted", label: "My Tasks", icon: "📋" },
+  { to: "/captain", label: "Dashboard", icon: DashboardIcon },
+  { to: "/captain/available", label: "Available Tasks", icon: SearchIcon },
+  { to: "/captain/accepted", label: "My Tasks", icon: ClipboardIcon },
 ];
 
 export function DashboardLayout() {
@@ -64,24 +71,27 @@ export function DashboardLayout() {
 
           {/* Navigation */}
           <nav className="flex-1 px-3 py-4 space-y-1">
-            {navItems.map((item) => (
-              <NavLink
-                key={item.to}
-                to={item.to}
-                end={item.to === "/user" || item.to === "/captain"}
-                onClick={() => setSidebarOpen(false)}
-                className={({ isActive }) =>
-                  `flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-200 ${
-                    isActive
-                      ? "bg-primary-50 text-primary-700"
-                      : "text-surface-600 hover:text-surface-900 hover:bg-surface-50"
-                  }`
-                }
-              >
-                <span className="text-lg">{item.icon}</span>
-                {item.label}
-              </NavLink>
-            ))}
+            {navItems.map((item) => {
+              const Icon = item.icon;
+              return (
+                <NavLink
+                  key={item.to}
+                  to={item.to}
+                  end={item.to === "/user" || item.to === "/captain"}
+                  onClick={() => setSidebarOpen(false)}
+                  className={({ isActive }) =>
+                    `flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-200 ${
+                      isActive
+                        ? "bg-primary-50 text-primary-700 font-semibold"
+                        : "text-surface-600 hover:text-surface-900 hover:bg-surface-50"
+                    }`
+                  }
+                >
+                  <Icon size={18} />
+                  {item.label}
+                </NavLink>
+              );
+            })}
           </nav>
 
           {/* User section */}
@@ -103,9 +113,7 @@ export function DashboardLayout() {
               onClick={handleLogout}
               className="w-full flex items-center gap-2 px-3 py-2 text-sm text-surface-600 hover:text-danger-500 hover:bg-red-50 rounded-xl transition-colors cursor-pointer"
             >
-              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
-              </svg>
+              <LogOutIcon size={16} />
               Sign Out
             </button>
           </div>

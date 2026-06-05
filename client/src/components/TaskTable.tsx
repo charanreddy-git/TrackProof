@@ -1,5 +1,6 @@
 import { Link } from "react-router-dom";
 import { StatusBadge } from "./StatusBadge";
+import { ClipboardIcon } from "./Icons";
 import type { Task } from "../types";
 
 interface TaskTableProps {
@@ -17,9 +18,9 @@ export function TaskTable({
 }: TaskTableProps) {
   if (tasks.length === 0) {
     return (
-      <div className="text-center py-12">
-        <div className="text-4xl mb-3">📋</div>
-        <p className="text-surface-500 text-sm">No tasks found</p>
+      <div className="text-center py-12 flex flex-col items-center justify-center">
+        <ClipboardIcon size={40} className="text-surface-300 mb-3" />
+        <p className="text-surface-500 text-sm font-medium">No tasks found</p>
       </div>
     );
   }

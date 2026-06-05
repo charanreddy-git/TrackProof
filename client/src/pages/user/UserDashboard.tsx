@@ -3,6 +3,12 @@ import { Card } from "../../components/ui/Card";
 import { TaskTable } from "../../components/TaskTable";
 import { PageLoader } from "../../components/ui/Spinner";
 import { useTaskList } from "../../hooks/useTasks";
+import {
+  ClipboardIcon,
+  ZapIcon,
+  ClockIcon,
+  CheckCircleIcon,
+} from "../../components/Icons";
 
 export function UserDashboard() {
   const { data: tasks, isLoading } = useTaskList();
@@ -17,10 +23,10 @@ export function UserDashboard() {
   const completedTasks = allTasks.filter((t) => t.status === "COMPLETED");
 
   const stats = [
-    { label: "Total Tasks", value: allTasks.length, icon: "📋", color: "from-primary-500 to-primary-700" },
-    { label: "Active", value: activeTasks.length, icon: "⚡", color: "from-amber-500 to-orange-600" },
-    { label: "Pending Review", value: submittedTasks.length, icon: "👀", color: "from-blue-500 to-blue-700" },
-    { label: "Completed", value: completedTasks.length, icon: "✅", color: "from-emerald-500 to-emerald-700" },
+    { label: "Total Tasks", value: allTasks.length, icon: ClipboardIcon, color: "from-primary-500 to-primary-700 text-white" },
+    { label: "Active", value: activeTasks.length, icon: ZapIcon, color: "from-amber-500 to-orange-600 text-white" },
+    { label: "Pending Review", value: submittedTasks.length, icon: ClockIcon, color: "from-blue-500 to-blue-700 text-white" },
+    { label: "Completed", value: completedTasks.length, icon: CheckCircleIcon, color: "from-emerald-500 to-emerald-700 text-white" },
   ];
 
   return (
@@ -46,23 +52,26 @@ export function UserDashboard() {
 
       {/* Stats */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        {stats.map((stat) => (
-          <Card key={stat.label} padding="md" className="relative overflow-hidden">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-surface-500">{stat.label}</p>
-                <p className="text-3xl font-bold text-surface-900 mt-1">
-                  {stat.value}
-                </p>
+        {stats.map((stat) => {
+          const Icon = stat.icon;
+          return (
+            <Card key={stat.label} padding="md" className="relative overflow-hidden">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm text-surface-500">{stat.label}</p>
+                  <p className="text-3xl font-bold text-surface-900 mt-1">
+                    {stat.value}
+                  </p>
+                </div>
+                <div
+                  className={`w-12 h-12 rounded-xl bg-gradient-to-br ${stat.color} flex items-center justify-center shadow-sm`}
+                >
+                  <Icon size={20} />
+                </div>
               </div>
-              <div
-                className={`w-12 h-12 rounded-xl bg-gradient-to-br ${stat.color} flex items-center justify-center text-xl shadow-sm`}
-              >
-                {stat.icon}
-              </div>
-            </div>
-          </Card>
-        ))}
+            </Card>
+          );
+        })}
       </div>
 
       {/* Recent Tasks */}

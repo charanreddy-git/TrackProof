@@ -4,6 +4,7 @@ import { Button } from "../../components/ui/Button";
 import { PageLoader } from "../../components/ui/Spinner";
 import { useTaskList, useAcceptTask } from "../../hooks/useTasks";
 import { useToast } from "../../components/ui/Toast";
+import { SearchIcon } from "../../components/Icons";
 
 export function AvailableTasksPage() {
   const { data: tasks, isLoading } = useTaskList("available");
@@ -35,8 +36,8 @@ export function AvailableTasksPage() {
       </div>
 
       {availableTasks.length === 0 ? (
-        <Card className="text-center py-16">
-          <div className="text-5xl mb-4">🔍</div>
+        <Card className="text-center py-16 flex flex-col items-center justify-center">
+          <SearchIcon size={48} className="text-surface-300 mb-4" />
           <h3 className="text-lg font-semibold text-surface-700">
             No tasks available
           </h3>
