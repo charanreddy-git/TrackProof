@@ -27,9 +27,9 @@ export function RegisterPage() {
       await register(name, email, password, role);
       addToast("success", "Account created successfully!");
       navigate(role === "CAPTAIN" ? "/captain" : "/user");
-    } catch (err: any) {
-      const message =
-        err.response?.data?.message || "Registration failed. Please try again.";
+    } catch (err) {
+       const message =
+         (err as { response?: { data?: { message?: string } } }).response?.data?.message || "Registration failed. Please try again.";
       setError(message);
       addToast("error", message);
     } finally {

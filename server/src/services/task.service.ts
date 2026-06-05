@@ -94,7 +94,7 @@ export class TaskService {
   /**
    * Get a single task by ID with full relations
    */
-  static async getTaskById(taskId: string) {
+  static async getTaskById(taskId: string, userId: string, role: string) {
     const task = await prisma.task.findUnique({
       where: { id: taskId },
       include: {
@@ -113,6 +113,18 @@ export class TaskService {
 
     if (!task) {
       throw ApiError.notFound("Task not found");
+    }
+
+    // Access control checks
+    if (role === "USER") {
+      if (task.createdById !== userId) {
+        throw ApiError.forbidden("You do not have access to view this task");
+      }
+    } else if (role === "CAPTAIN") {
+      // Captains can view task if it is OPEN (available to accept) or assigned to them
+      if (task.status !== "OPEN" && task.acceptedById !== userId) {
+        throw ApiError.forbidden("You do not have access to view this task");
+      }
     }
 
     return task;

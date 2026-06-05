@@ -17,15 +17,4 @@ export class LocationService {
 
     return log;
   }
-
-  /**
-   * Get location history for a task, ordered by timestamp descending
-   */
-  static async getLocationHistory(taskId: string) {
-    return prisma.locationLog.findMany({
-      where: { taskId },
-      orderBy: { timestamp: "desc" },
-      take: 100,
-    });
-  }
 }

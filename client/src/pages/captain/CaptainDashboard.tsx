@@ -1,3 +1,4 @@
+import { Link } from "react-router-dom";
 import { Card } from "../../components/ui/Card";
 import { TaskTable } from "../../components/TaskTable";
 import { PageLoader } from "../../components/ui/Spinner";
@@ -18,76 +19,126 @@ export function CaptainDashboard() {
 
   const tasks = allTasks || [];
   const available = availableTasks || [];
-  const myAccepted = tasks.filter((t) => t.status === "ACCEPTED");
-  const myInProgress = tasks.filter((t) => t.status === "IN_PROGRESS");
+  const myInProgress = tasks.filter((t) =>
+    ["ACCEPTED", "IN_PROGRESS"].includes(t.status)
+  );
   const mySubmitted = tasks.filter((t) => t.status === "SUBMITTED");
   const myCompleted = tasks.filter((t) => t.status === "COMPLETED");
 
   const stats = [
-    { label: "Available", value: available.length, icon: SearchIcon, color: "from-blue-500 to-blue-700 text-white" },
-    { label: "In Progress", value: myAccepted.length + myInProgress.length, icon: ZapIcon, color: "from-amber-500 to-orange-600 text-white" },
-    { label: "Submitted", value: mySubmitted.length, icon: ClipboardIcon, color: "from-purple-500 to-purple-700 text-white" },
-    { label: "Completed", value: myCompleted.length, icon: CheckCircleIcon, color: "from-emerald-500 to-emerald-700 text-white" },
+    {
+      label: "Available",
+      value: available.length,
+      icon: SearchIcon,
+      iconColor: "text-blue-600",
+      iconBg: "bg-blue-50",
+      href: "/captain/available",
+      highlight: available.length > 0,
+    },
+    {
+      label: "Active",
+      value: myInProgress.length,
+      icon: ZapIcon,
+      iconColor: "text-amber-600",
+      iconBg: "bg-amber-50",
+      href: "/captain/accepted",
+      highlight: myInProgress.length > 0,
+    },
+    {
+      label: "Submitted",
+      value: mySubmitted.length,
+      icon: ClipboardIcon,
+      iconColor: "text-purple-600",
+      iconBg: "bg-purple-50",
+    },
+    {
+      label: "Completed",
+      value: myCompleted.length,
+      icon: CheckCircleIcon,
+      iconColor: "text-emerald-600",
+      iconBg: "bg-emerald-50",
+    },
   ];
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-6 max-w-5xl">
+      {/* Header */}
       <div>
-        <h1 className="text-2xl font-bold text-surface-900">
-          Captain Dashboard
-        </h1>
-        <p className="text-sm text-surface-500 mt-1">
-          Accept and complete verification tasks
+        <h1 className="text-xl font-bold text-surface-900 tracking-tight">Dashboard</h1>
+        <p className="text-sm text-surface-500 mt-0.5">
+          {available.length > 0
+            ? `${available.length} task${available.length !== 1 ? "s" : ""} available to accept`
+            : "No new tasks available right now"}
         </p>
       </div>
 
-      {/* Stats */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+      {/* Stat Cards */}
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
         {stats.map((stat) => {
           const Icon = stat.icon;
-          return (
-            <Card key={stat.label} padding="md" className="relative overflow-hidden">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm text-surface-500">{stat.label}</p>
-                  <p className="text-3xl font-bold text-surface-900 mt-1">
-                    {stat.value}
-                  </p>
+          const card = (
+            <Card key={stat.label} padding="sm" className={`relative ${stat.highlight ? "ring-1 ring-amber-200" : ""} h-full`}>
+              <div className="flex items-center justify-between mb-3">
+                <div className={`w-8 h-8 rounded-lg ${stat.iconBg} flex items-center justify-center`}>
+                  <Icon size={15} className={stat.iconColor} />
                 </div>
-                <div
-                  className={`w-12 h-12 rounded-xl bg-gradient-to-br ${stat.color} flex items-center justify-center shadow-sm`}
-                >
-                  <Icon size={20} />
-                </div>
+                {stat.highlight && (
+                  <span className="w-2 h-2 rounded-full bg-amber-500 animate-pulse-soft" />
+                )}
               </div>
+              <p className="text-2xl font-bold text-surface-900 tabular-nums leading-none">
+                {stat.value}
+              </p>
+              <p className="text-[12px] text-surface-500 mt-1 font-medium">{stat.label}</p>
             </Card>
+          );
+
+          return stat.href ? (
+            <Link key={stat.label} to={stat.href} className="block">
+              {card}
+            </Link>
+          ) : (
+            <div key={stat.label}>{card}</div>
           );
         })}
       </div>
 
       {/* Active Tasks */}
-      {(myAccepted.length > 0 || myInProgress.length > 0) && (
-        <Card>
-          <h2 className="text-lg font-semibold text-surface-900 mb-4">
-            Active Tasks
-          </h2>
+      {myInProgress.length > 0 && (
+        <Card padding="md">
+          <div className="flex items-center gap-2 mb-1">
+            <span className="w-2 h-2 rounded-full bg-amber-500 animate-pulse-soft" />
+            <h2 className="text-[14px] font-bold text-surface-900">Active Tasks</h2>
+          </div>
+          <p className="text-[12px] text-surface-400 mb-4">Tasks you're currently working on</p>
           <TaskTable
-            tasks={[...myInProgress, ...myAccepted]}
+            tasks={myInProgress}
             basePath="/captain/tasks"
             showCreatedBy
           />
         </Card>
       )}
 
-      {/* Available Tasks */}
-      <Card>
-        <h2 className="text-lg font-semibold text-surface-900 mb-4">
-          Available Tasks
-        </h2>
+      {/* Available Tasks Preview */}
+      <Card padding="md">
+        <div className="flex items-center justify-between mb-1">
+          <h2 className="text-[14px] font-bold text-surface-900">Available Tasks</h2>
+          {available.length > 5 && (
+            <Link
+              to="/captain/available"
+              className="text-[12.5px] text-primary-600 hover:text-primary-700 font-semibold"
+            >
+              View all
+            </Link>
+          )}
+        </div>
+        <p className="text-[12px] text-surface-400 mb-4">Browse and accept tasks near you</p>
         <TaskTable
           tasks={available.slice(0, 5)}
           basePath="/captain/tasks"
           showCreatedBy
+          emptyMessage="No available tasks"
+          emptyAction={{ label: "Browse all tasks", to: "/captain/available" }}
         />
       </Card>
     </div>

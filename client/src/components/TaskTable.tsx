@@ -8,96 +8,102 @@ interface TaskTableProps {
   basePath: string;
   showCreatedBy?: boolean;
   showAcceptedBy?: boolean;
+  emptyMessage?: string;
+  emptyAction?: { label: string; to: string };
 }
+
+function timeAgo(dateStr: string): string {
+  const diff = Date.now() - new Date(dateStr).getTime();
+  const minutes = Math.floor(diff / 60000);
+  if (minutes < 1) return "just now";
+  if (minutes < 60) return `${minutes}m ago`;
+  const hours = Math.floor(minutes / 60);
+  if (hours < 24) return `${hours}h ago`;
+  const days = Math.floor(hours / 24);
+  return `${days}d ago`;
+}
+
+const statusRowClass: Record<string, string> = {
+  OPEN: "task-row-open",
+  ACCEPTED: "task-row-accepted",
+  IN_PROGRESS: "task-row-in_progress",
+  SUBMITTED: "task-row-submitted",
+  COMPLETED: "task-row-completed",
+};
 
 export function TaskTable({
   tasks,
   basePath,
   showCreatedBy = false,
   showAcceptedBy = false,
+  emptyMessage = "No tasks yet",
+  emptyAction,
 }: TaskTableProps) {
   if (tasks.length === 0) {
     return (
-      <div className="text-center py-12 flex flex-col items-center justify-center">
-        <ClipboardIcon size={40} className="text-surface-300 mb-3" />
-        <p className="text-surface-500 text-sm font-medium">No tasks found</p>
+      <div className="text-center py-14 flex flex-col items-center justify-center gap-3">
+        <div className="w-12 h-12 rounded-2xl bg-surface-100 flex items-center justify-center">
+          <ClipboardIcon size={22} className="text-surface-400" />
+        </div>
+        <div className="space-y-1">
+          <p className="text-sm font-semibold text-surface-700">{emptyMessage}</p>
+          <p className="text-xs text-surface-400">Tasks will appear here once created</p>
+        </div>
+        {emptyAction && (
+          <Link
+            to={emptyAction.to}
+            className="mt-1 inline-flex items-center gap-1.5 px-4 py-2 bg-primary-600 text-white text-sm font-medium rounded-lg hover:bg-primary-700 transition-colors"
+          >
+            {emptyAction.label}
+          </Link>
+        )}
       </div>
     );
   }
 
   return (
-    <div className="overflow-x-auto">
-      <table className="w-full">
-        <thead>
-          <tr className="border-b border-surface-100">
-            <th className="text-left py-3 px-4 text-xs font-semibold text-surface-500 uppercase tracking-wider">
-              Task
-            </th>
-            <th className="text-left py-3 px-4 text-xs font-semibold text-surface-500 uppercase tracking-wider">
-              Status
-            </th>
-            {showCreatedBy && (
-              <th className="text-left py-3 px-4 text-xs font-semibold text-surface-500 uppercase tracking-wider">
-                Created By
-              </th>
-            )}
-            {showAcceptedBy && (
-              <th className="text-left py-3 px-4 text-xs font-semibold text-surface-500 uppercase tracking-wider">
-                Captain
-              </th>
-            )}
-            <th className="text-left py-3 px-4 text-xs font-semibold text-surface-500 uppercase tracking-wider">
-              Created
-            </th>
-            <th className="text-right py-3 px-4 text-xs font-semibold text-surface-500 uppercase tracking-wider">
-              Action
-            </th>
-          </tr>
-        </thead>
-        <tbody className="divide-y divide-surface-50">
-          {tasks.map((task) => (
-            <tr
-              key={task.id}
-              className="hover:bg-surface-50 transition-colors"
-            >
-              <td className="py-3.5 px-4">
-                <div>
-                  <p className="font-medium text-surface-900 text-sm">
-                    {task.title}
-                  </p>
-                  <p className="text-xs text-surface-500 mt-0.5 line-clamp-1">
-                    {task.description}
-                  </p>
-                </div>
-              </td>
-              <td className="py-3.5 px-4">
-                <StatusBadge status={task.status} />
-              </td>
+    <div className="divide-y divide-surface-50">
+      {tasks.map((task) => (
+        <Link
+          key={task.id}
+          to={`${basePath}/${task.id}`}
+          className={`
+            flex items-center gap-4 py-3.5 px-4 -mx-4 
+            hover:bg-surface-50 active:bg-surface-100
+            transition-colors duration-100 group
+            ${statusRowClass[task.status] || ""}
+          `}
+          style={{ paddingLeft: "calc(1rem + 3px)" }}
+        >
+          {/* Title + meta */}
+          <div className="flex-1 min-w-0">
+            <p className="text-[13.5px] font-semibold text-surface-900 truncate group-hover:text-primary-700 transition-colors">
+              {task.title}
+            </p>
+            <div className="flex items-center gap-2 mt-0.5 flex-wrap">
+              <StatusBadge status={task.status} />
               {showCreatedBy && (
-                <td className="py-3.5 px-4 text-sm text-surface-600">
-                  {task.createdBy.name}
-                </td>
+                <span className="text-[11px] text-surface-400">
+                  by {task.createdBy.name}
+                </span>
               )}
-              {showAcceptedBy && (
-                <td className="py-3.5 px-4 text-sm text-surface-600">
-                  {task.acceptedBy?.name || "—"}
-                </td>
+              {showAcceptedBy && task.acceptedBy && (
+                <span className="text-[11px] text-surface-400">
+                  · {task.acceptedBy.name}
+                </span>
               )}
-              <td className="py-3.5 px-4 text-sm text-surface-500">
-                {new Date(task.createdAt).toLocaleDateString()}
-              </td>
-              <td className="py-3.5 px-4 text-right">
-                <Link
-                  to={`${basePath}/${task.id}`}
-                  className="text-primary-600 hover:text-primary-700 text-sm font-medium hover:underline"
-                >
-                  View →
-                </Link>
-              </td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
+              <span className="text-[11px] text-surface-400">{timeAgo(task.createdAt)}</span>
+            </div>
+          </div>
+
+          {/* Arrow */}
+          <div className="flex-shrink-0 text-surface-300 group-hover:text-surface-500 transition-colors">
+            <svg className="w-4 h-4 rotate-180" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+            </svg>
+          </div>
+        </Link>
+      ))}
     </div>
   );
 }

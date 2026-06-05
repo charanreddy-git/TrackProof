@@ -39,7 +39,11 @@ export class TaskController {
 
   static async getTaskById(req: Request, res: Response, next: NextFunction) {
     try {
-      const task = await TaskService.getTaskById(getParamId(req));
+      const task = await TaskService.getTaskById(
+        getParamId(req),
+        req.user!.userId,
+        req.user!.role
+      );
       res.status(200).json({ success: true, data: task });
     } catch (error) {
       next(error);

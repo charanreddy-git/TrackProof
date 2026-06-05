@@ -14,10 +14,12 @@ const storage = multer.diskStorage({
 });
 
 const ALLOWED_TYPES = ["image/jpeg", "image/jpg", "image/png"];
+const ALLOWED_EXTS = [".jpg", ".jpeg", ".png"];
 const MAX_SIZE = 5 * 1024 * 1024; // 5MB
 
 const fileFilter: multer.Options["fileFilter"] = (_req, file, cb) => {
-  if (ALLOWED_TYPES.includes(file.mimetype)) {
+  const ext = path.extname(file.originalname).toLowerCase();
+  if (ALLOWED_TYPES.includes(file.mimetype) && ALLOWED_EXTS.includes(ext)) {
     cb(null, true);
   } else {
     cb(new ApiError(400, "Only JPG, JPEG, and PNG files are allowed"));

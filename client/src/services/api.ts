@@ -1,4 +1,5 @@
 import axios from "axios";
+import { disconnectSocket } from "../sockets/socket";
 
 const API_URL = import.meta.env.VITE_API_URL || "/api";
 
@@ -28,6 +29,8 @@ api.interceptors.response.use(
     if (error.response?.status === 401) {
       localStorage.removeItem("token");
       localStorage.removeItem("user");
+      disconnectSocket();
+      
       // Only redirect if not already on auth pages
       if (
         !window.location.pathname.includes("/login") &&

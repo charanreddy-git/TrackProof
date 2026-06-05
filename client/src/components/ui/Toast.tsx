@@ -1,3 +1,4 @@
+/* eslint-disable react-refresh/only-export-components */
 import { useState, useEffect, useCallback, createContext, useContext, type ReactNode } from "react";
 
 type ToastType = "success" | "error" | "info" | "warning";
@@ -35,7 +36,8 @@ export function ToastProvider({ children }: { children: ReactNode }) {
   return (
     <ToastContext.Provider value={{ addToast }}>
       {children}
-      <div className="fixed bottom-4 right-4 z-[100] space-y-2 max-w-sm">
+      {/* On mobile: above the bottom nav (bottom-20). On desktop: bottom-4 right-4 */}
+      <div className="fixed bottom-20 left-4 right-4 z-[100] space-y-2 lg:bottom-4 lg:left-auto lg:right-4 lg:max-w-sm lg:w-full pointer-events-none">
         {toasts.map((toast) => (
           <ToastItem
             key={toast.id}
@@ -54,43 +56,53 @@ function ToastItem({ toast, onRemove }: { toast: Toast; onRemove: () => void }) 
     return () => clearTimeout(timer);
   }, [onRemove]);
 
-  const icons: Record<ToastType, string> = {
-    success: "✓",
-    error: "✕",
-    info: "ℹ",
-    warning: "⚠",
+  const config: Record<ToastType, { icon: string; bg: string; iconBg: string; border: string }> = {
+    success: {
+      icon: "✓",
+      bg: "bg-white",
+      iconBg: "bg-emerald-500",
+      border: "border-l-emerald-500",
+    },
+    error: {
+      icon: "✕",
+      bg: "bg-white",
+      iconBg: "bg-red-500",
+      border: "border-l-red-500",
+    },
+    info: {
+      icon: "i",
+      bg: "bg-white",
+      iconBg: "bg-blue-500",
+      border: "border-l-blue-500",
+    },
+    warning: {
+      icon: "!",
+      bg: "bg-white",
+      iconBg: "bg-amber-500",
+      border: "border-l-amber-500",
+    },
   };
 
-  const colors: Record<ToastType, string> = {
-    success: "bg-emerald-50 border-emerald-200 text-emerald-800",
-    error: "bg-red-50 border-red-200 text-red-800",
-    info: "bg-blue-50 border-blue-200 text-blue-800",
-    warning: "bg-amber-50 border-amber-200 text-amber-800",
-  };
-
-  const iconBg: Record<ToastType, string> = {
-    success: "bg-emerald-500",
-    error: "bg-red-500",
-    info: "bg-blue-500",
-    warning: "bg-amber-500",
-  };
+  const c = config[toast.type];
 
   return (
     <div
       className={`
-        flex items-center gap-3 px-4 py-3 rounded-xl border shadow-card
-        toast-enter ${colors[toast.type]}
+        pointer-events-auto flex items-center gap-3 px-4 py-3 rounded-xl
+        border border-surface-100 border-l-4 ${c.border}
+        ${c.bg} shadow-elevated toast-enter
       `}
     >
       <span
-        className={`flex-shrink-0 w-6 h-6 rounded-full ${iconBg[toast.type]} text-white text-xs flex items-center justify-center font-bold`}
+        className={`flex-shrink-0 w-6 h-6 rounded-full ${c.iconBg} text-white text-xs flex items-center justify-center font-bold`}
       >
-        {icons[toast.type]}
+        {c.icon}
       </span>
-      <p className="text-sm font-medium flex-1">{toast.message}</p>
+      <p className="text-sm font-medium text-surface-900 flex-1 leading-snug">{toast.message}</p>
       <button
         onClick={onRemove}
-        className="text-current opacity-50 hover:opacity-100 transition-opacity cursor-pointer"
+        className="text-surface-400 hover:text-surface-600 transition-colors cursor-pointer flex-shrink-0"
+        aria-label="Dismiss"
       >
         <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />

@@ -1,5 +1,6 @@
 import { Request, Response, NextFunction } from "express";
 import { ZodError } from "zod";
+import { Prisma } from "@prisma/client";
 import { ApiError } from "../utils/api-error";
 
 export function errorHandler(
@@ -41,7 +42,7 @@ export function errorHandler(
   }
 
   // Prisma known errors
-  if ((err as any).code === "P2002") {
+  if (err instanceof Prisma.PrismaClientKnownRequestError && err.code === "P2002") {
     res.status(409).json({
       success: false,
       message: "A record with this value already exists",

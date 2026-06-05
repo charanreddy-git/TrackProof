@@ -1,3 +1,4 @@
+/* eslint-disable react-refresh/only-export-components */
 import {
   createContext,
   useContext,
@@ -40,15 +41,21 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     if (savedToken && savedUser) {
       try {
         const parsedUser = JSON.parse(savedUser) as User;
-        setToken(savedToken);
-        setUser(parsedUser);
-        connectSocket(savedToken);
+        setTimeout(() => {
+          setToken(savedToken);
+          setUser(parsedUser);
+          connectSocket(savedToken);
+          setIsLoading(false);
+        }, 0);
+        return;
       } catch {
         localStorage.removeItem("token");
         localStorage.removeItem("user");
       }
     }
-    setIsLoading(false);
+    setTimeout(() => {
+      setIsLoading(false);
+    }, 0);
   }, []);
 
   const login = useCallback(async (email: string, password: string) => {

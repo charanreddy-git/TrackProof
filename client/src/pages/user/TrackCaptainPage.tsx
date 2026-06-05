@@ -1,5 +1,4 @@
 import { useParams, Link } from "react-router-dom";
-import { Card } from "../../components/ui/Card";
 import { LiveTracker } from "../../components/LiveTracker";
 import { PageLoader } from "../../components/ui/Spinner";
 import { useTaskDetail } from "../../hooks/useTasks";
@@ -21,32 +20,35 @@ export function TrackCaptainPage() {
   if (isLoading || !task) return <PageLoader />;
 
   return (
-    <div className="max-w-4xl mx-auto space-y-6">
+    <div className="max-w-4xl mx-auto space-y-4">
+      {/* Back */}
       <Link
         to={`/user/tasks/${task.id}`}
-        className="inline-flex items-center gap-1 text-sm text-surface-500 hover:text-surface-700"
+        className="inline-flex items-center gap-1.5 text-[13px] text-surface-500 hover:text-surface-800 font-medium transition-colors"
       >
-        ← Back to Task
+        <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+        </svg>
+        Back to Task
       </Link>
 
+      {/* Header */}
       <div>
-        <h1 className="text-2xl font-bold text-surface-900">
-          Track Captain — {task.title}
-        </h1>
-        <p className="text-sm text-surface-500 mt-1">
-          Real-time tracking of captain{" "}
-          {task.acceptedBy?.name || "Unknown"}
+        <h1 className="text-xl font-bold text-surface-900 leading-tight">{task.title}</h1>
+        <p className="text-sm text-surface-500 mt-0.5">
+          Live tracking{task.acceptedBy?.name ? ` · ${task.acceptedBy.name}` : ""}
         </p>
       </div>
 
-      <Card padding="lg">
+      {/* Tracker — no card wrapper so map gets full real estate */}
+      <div className="bg-white rounded-2xl border border-surface-200 shadow-card overflow-hidden">
         <LiveTracker
           taskId={task.id}
           targetLat={task.targetLat}
           targetLng={task.targetLng}
-          height="500px"
+          height="calc(100vh - 280px)"
         />
-      </Card>
+      </div>
     </div>
   );
 }

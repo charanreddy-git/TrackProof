@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect, type FormEvent } from "react";
+import { useState, useRef, useEffect, useCallback, type FormEvent } from "react";
 import { useParams, Link, useNavigate } from "react-router-dom";
 import { Card } from "../../components/ui/Card";
 import { Button } from "../../components/ui/Button";
@@ -8,7 +8,6 @@ import { useToast } from "../../components/ui/Toast";
 import {
   CompassIcon,
   CameraIcon,
-  ClockIcon,
   CheckCircleIcon,
   AlertTriangleIcon,
   RefreshCwIcon,
@@ -21,16 +20,14 @@ function calculateDistance(
   lat2: number,
   lon2: number
 ): number {
-  const R = 6371e3; // Earth's mean radius in meters
+  const R = 6371e3;
   const φ1 = (lat1 * Math.PI) / 180;
   const φ2 = (lat2 * Math.PI) / 180;
   const Δφ = ((lat2 - lat1) * Math.PI) / 180;
   const Δλ = ((lon2 - lon1) * Math.PI) / 180;
-
   const a =
     Math.sin(Δφ / 2) * Math.sin(Δφ / 2) +
     Math.cos(φ1) * Math.cos(φ2) * Math.sin(Δλ / 2) * Math.sin(Δλ / 2);
-
   const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
   return R * c;
 }
@@ -42,19 +39,18 @@ export function UploadEvidencePage() {
   const navigate = useNavigate();
   const { addToast } = useToast();
 
-  // Media states
+  // Camera
   const videoRef = useRef<HTMLVideoElement | null>(null);
-  const [stream, setStream] = useState<MediaStream | null>(null);
   const [cameraFacingMode, setCameraFacingMode] = useState<"user" | "environment">("environment");
   const [cameraError, setCameraError] = useState<string | null>(null);
   const [isCameraActive, setIsCameraActive] = useState(false);
   const [useFallback, setUseFallback] = useState(false);
 
-  // File and preview states
+  // Photo
   const [file, setFile] = useState<File | null>(null);
   const [preview, setPreview] = useState<string | null>(null);
 
-  // Geolocation tracking states
+  // Location
   const [currentLocation, setCurrentLocation] = useState<{
     latitude: number;
     longitude: number;
@@ -68,13 +64,14 @@ export function UploadEvidencePage() {
 
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  // 1. Live Geolocation Watcher
+  // Live GPS watch
   useEffect(() => {
     if (!navigator.geolocation) {
-      setLocationError("Geolocation is not supported by this browser.");
+      setTimeout(() => {
+        setLocationError("Geolocation not supported by this browser.");
+      }, 0);
       return;
     }
-
     const watchId = navigator.geolocation.watchPosition(
       (position) => {
         setCurrentLocation({
@@ -85,542 +82,411 @@ export function UploadEvidencePage() {
         setLocationError(null);
       },
       (err) => {
-        console.error("GPS Watch Error:", err);
         setLocationError(
           err.code === 1
-            ? "Location permission denied. Please enable location access."
-            : err.message || "Failed to acquire location."
+            ? "Location permission denied. Please enable in settings."
+            : "Unable to get location. Move to an open area."
         );
       },
-      {
-        enableHighAccuracy: true,
-        timeout: 10000,
-        maximumAge: 0,
-      }
+      { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
     );
-
-    return () => {
-      navigator.geolocation.clearWatch(watchId);
-    };
+    return () => navigator.geolocation.clearWatch(watchId);
   }, []);
 
-  // 2. Camera Initializer / Stream manager
-  const startCamera = async (facing: "user" | "environment" = "environment") => {
+  const activeStreamRef = useRef<MediaStream | null>(null);
+
+  // Camera manager
+  const startCamera = useCallback(async (facing: "user" | "environment" = "environment") => {
     setCameraError(null);
     try {
-      // Clear previous stream if any
-      if (stream) {
-        stream.getTracks().forEach((track) => track.stop());
+      if (activeStreamRef.current) {
+        activeStreamRef.current.getTracks().forEach((t) => t.stop());
+        activeStreamRef.current = null;
       }
-
-      const constraints: MediaStreamConstraints = {
-        video: {
-          facingMode: facing,
-          width: { ideal: 1280 },
-          height: { ideal: 720 },
-        },
+      const mediaStream = await navigator.mediaDevices.getUserMedia({
+        video: { facingMode: facing, width: { ideal: 1280 }, height: { ideal: 720 } },
         audio: false,
-      };
-
-      const mediaStream = await navigator.mediaDevices.getUserMedia(constraints);
-      setStream(mediaStream);
+      });
+      activeStreamRef.current = mediaStream;
       setIsCameraActive(true);
-
-      if (videoRef.current) {
-        videoRef.current.srcObject = mediaStream;
-      }
-    } catch (err: any) {
-      console.error("Camera capture access error:", err);
-      let errorFriendly = "Failed to access camera.";
-      if (err.name === "NotAllowedError") {
-        errorFriendly = "Camera permission denied. Please allow camera access in your settings.";
-      } else if (err.name === "NotFoundError" || err.name === "DevicesNotFoundError") {
-        errorFriendly = "No camera hardware detected on this device.";
-      }
-      setCameraError(errorFriendly);
+      if (videoRef.current) videoRef.current.srcObject = mediaStream;
+    } catch (err) {
+      const errorName = err instanceof Error ? err.name : "";
+      let msg = "Failed to access camera.";
+      if (errorName === "NotAllowedError") msg = "Camera permission denied. Please allow camera access in settings.";
+      else if (errorName === "NotFoundError" || errorName === "DevicesNotFoundError") msg = "No camera found on this device.";
+      setCameraError(msg);
       setIsCameraActive(false);
-      // Auto-fallback if camera fails and we have no preview
-      if (!preview) {
-        setUseFallback(true);
-      }
+      if (!preview) setUseFallback(true);
     }
-  };
+  }, [preview]);
 
-  const stopCamera = () => {
-    if (stream) {
-      stream.getTracks().forEach((track) => track.stop());
-      setStream(null);
+  const stopCamera = useCallback(() => {
+    if (activeStreamRef.current) {
+      activeStreamRef.current.getTracks().forEach((t) => t.stop());
+      activeStreamRef.current = null;
     }
     setIsCameraActive(false);
-  };
+  }, []);
 
-  // Auto-start camera when on camera tab and no photo taken yet
   useEffect(() => {
+    let timer: ReturnType<typeof setTimeout> | undefined;
     if (!useFallback && !preview && task) {
-      startCamera(cameraFacingMode);
+      timer = setTimeout(() => {
+        startCamera(cameraFacingMode);
+      }, 0);
     }
     return () => {
+      if (timer) clearTimeout(timer);
       stopCamera();
     };
-  }, [useFallback, preview, cameraFacingMode, task]);
+  }, [useFallback, preview, cameraFacingMode, task, startCamera, stopCamera]);
 
   if (isLoading || !task) return <PageLoader />;
 
-  // Calculate distance in meters
   const distance =
     task && currentLocation
-      ? calculateDistance(
-          task.targetLat,
-          task.targetLng,
-          currentLocation.latitude,
-          currentLocation.longitude
-        )
+      ? calculateDistance(task.targetLat, task.targetLng, currentLocation.latitude, currentLocation.longitude)
       : null;
 
   const isInRange = distance !== null && distance <= 100;
+  // Proximity as a capped percentage (for progress bar)
+  const proximityPct = distance !== null ? Math.max(0, Math.min(100, (1 - distance / 200) * 100)) : 0;
 
-  // Handle manual file upload
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const selectedFile = e.target.files?.[0];
-    if (selectedFile) {
-      setFile(selectedFile);
+    const f = e.target.files?.[0];
+    if (f) {
+      setFile(f);
       const reader = new FileReader();
-      reader.onloadend = () => {
-        setPreview(reader.result as string);
-      };
-      reader.readAsDataURL(selectedFile);
-
-      // Lock current location if available, otherwise we will get it during submit
-      if (currentLocation) {
-        setLockedLocation({
-          latitude: currentLocation.latitude,
-          longitude: currentLocation.longitude,
-        });
-      }
+      reader.onloadend = () => setPreview(reader.result as string);
+      reader.readAsDataURL(f);
+      if (currentLocation) setLockedLocation({ latitude: currentLocation.latitude, longitude: currentLocation.longitude });
     }
   };
 
-  // Switch between User (Front) and Environment (Back) camera
   const toggleCameraFacing = () => {
-    const nextFacing = cameraFacingMode === "user" ? "environment" : "user";
-    setCameraFacingMode(nextFacing);
-    startCamera(nextFacing);
+    const next = cameraFacingMode === "user" ? "environment" : "user";
+    setCameraFacingMode(next);
+    startCamera(next);
   };
 
-  // Capture image frame from the video feed
   const capturePhoto = () => {
     if (!videoRef.current) return;
-    
-    // Warn if out of range, but allow capturing (submit button will enforce or alert)
-    if (!currentLocation) {
-      addToast("warning", "Waiting for GPS signal before capture.");
-      return;
-    }
-
+    if (!currentLocation) { addToast("warning", "Waiting for GPS signal."); return; }
     const video = videoRef.current;
     const canvas = document.createElement("canvas");
     canvas.width = video.videoWidth || 1280;
     canvas.height = video.videoHeight || 720;
-
     const ctx = canvas.getContext("2d");
     if (ctx) {
-      // Mirror canvas drawing if using front camera
-      if (cameraFacingMode === "user") {
-        ctx.translate(canvas.width, 0);
-        ctx.scale(-1, 1);
-      }
+      if (cameraFacingMode === "user") { ctx.translate(canvas.width, 0); ctx.scale(-1, 1); }
       ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
-      
-      const dataUrl = canvas.toDataURL("image/jpeg", 0.95);
-      setPreview(dataUrl);
-
-      // Convert canvas to Blob then File
-      canvas.toBlob(
-        (blob) => {
-          if (blob) {
-            const capturedFile = new File([blob], `evidence-${task.id}-${Date.now()}.jpg`, {
-              type: "image/jpeg",
-            });
-            setFile(capturedFile);
-          }
-        },
-        "image/jpeg",
-        0.95
-      );
-
-      // Lock current GPS coordinates
-      setLockedLocation({
-        latitude: currentLocation.latitude,
-        longitude: currentLocation.longitude,
-      });
-
-      // Turn off camera stream
+      setPreview(canvas.toDataURL("image/jpeg", 0.95));
+      canvas.toBlob((blob) => {
+        if (blob) setFile(new File([blob], `evidence-${task.id}-${Date.now()}.jpg`, { type: "image/jpeg" }));
+      }, "image/jpeg", 0.95);
+      setLockedLocation({ latitude: currentLocation.latitude, longitude: currentLocation.longitude });
       stopCamera();
-      addToast("info", "Photo captured and location locked!");
+      addToast("info", "Photo captured!");
     }
   };
 
-  // Reset captured state and restart camera
   const retakePhoto = () => {
     setPreview(null);
     setFile(null);
     setLockedLocation(null);
-    if (!useFallback) {
-      startCamera(cameraFacingMode);
-    }
+    if (!useFallback) startCamera(cameraFacingMode);
   };
 
-  // Handle final submission
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
-    
-    const finalLocation = lockedLocation || (currentLocation ? {
-      latitude: currentLocation.latitude,
-      longitude: currentLocation.longitude,
-    } : null);
-
-    if (!file) {
-      addToast("error", "No photo evidence available.");
-      return;
-    }
-
-    if (!finalLocation) {
-      addToast("error", "GPS location is required to submit verification.");
-      return;
-    }
-
+    const finalLocation = lockedLocation || (currentLocation ? { latitude: currentLocation.latitude, longitude: currentLocation.longitude } : null);
+    if (!file) { addToast("error", "No photo captured."); return; }
+    if (!finalLocation) { addToast("error", "GPS location required to submit."); return; }
     setIsSubmitting(true);
-
     try {
       const formData = new FormData();
       formData.append("image", file);
       formData.append("latitude", finalLocation.latitude.toString());
       formData.append("longitude", finalLocation.longitude.toString());
-
       await submitTask.mutateAsync({ id: task.id, formData });
-      addToast("success", "Evidence submitted successfully!");
+      addToast("success", "Evidence submitted!");
       navigate(`/captain/tasks/${task.id}`);
-    } catch (err: any) {
-      const message =
-        err.response?.data?.message || "Failed to submit evidence.";
-      addToast("error", message);
+    } catch (err) {
+      const errorMsg = (err as { response?: { data?: { message?: string } } }).response?.data?.message || "Submission failed.";
+      addToast("error", errorMsg);
     } finally {
       setIsSubmitting(false);
     }
   };
 
   return (
-    <div className="max-w-2xl mx-auto space-y-6">
+    <div className="max-w-xl mx-auto space-y-5">
+      {/* Back */}
       <Link
         to={`/captain/tasks/${task.id}`}
-        className="inline-flex items-center gap-1 text-sm text-surface-500 hover:text-surface-700"
+        className="inline-flex items-center gap-1.5 text-[13px] text-surface-500 hover:text-surface-800 font-medium transition-colors"
       >
-        ← Back to Task
+        <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+        </svg>
+        Back to Task
       </Link>
 
       <div>
-        <h1 className="text-2xl font-bold text-surface-900">
-          Submit Task Verification
-        </h1>
-        <p className="text-sm text-surface-500 mt-1">
-          Verify your physical presence at the location by taking a real-time photo.
+        <h1 className="text-xl font-bold text-surface-900">Submit Evidence</h1>
+        <p className="text-sm text-surface-500 mt-0.5">
+          Capture a photo at the target location to verify your presence
         </p>
       </div>
 
-      {/* Real-time GPS Proximity Alert Panel */}
-      <Card className="overflow-hidden border border-surface-200">
-        <div className="space-y-4">
-          <h3 className="text-sm font-semibold text-surface-800 uppercase tracking-wider">
-            GPS Telemetry & Proximity
-          </h3>
-
-          <div className="grid grid-cols-2 gap-4">
-            <div className="p-3 bg-surface-50 rounded-xl border border-surface-200">
-              <span className="block text-xs text-surface-400 font-medium">Target Coordinates</span>
-              <span className="font-mono text-sm text-surface-700">
-                {task.targetLat.toFixed(6)}, {task.targetLng.toFixed(6)}
-              </span>
-            </div>
-
-            <div className="p-3 bg-surface-50 rounded-xl border border-surface-200">
-              <span className="block text-xs text-surface-400 font-medium">Current Location</span>
-              {locationError ? (
-                <span className="text-xs text-danger-500 font-medium line-clamp-2 flex items-center gap-1">
-                  <AlertTriangleIcon size={12} /> {locationError}
-                </span>
-              ) : currentLocation ? (
-                <span className="font-mono text-sm text-surface-700 block">
-                  {currentLocation.latitude.toFixed(6)}, {currentLocation.longitude.toFixed(6)}
-                  {currentLocation.accuracy && (
-                    <span className="text-[10px] text-surface-400 block">±{Math.round(currentLocation.accuracy)}m accuracy</span>
-                  )}
-                </span>
-              ) : (
-                <span className="text-xs text-surface-400 animate-pulse flex items-center gap-1.5">
-                  <CompassIcon size={12} className="animate-spin-slow" /> Acquiring GPS signal...
-                </span>
-              )}
-            </div>
-          </div>
-
-          {/* Proximity Badge */}
-          {distance !== null ? (
-            <div
-              className={`
-                p-4 rounded-xl flex items-center justify-between transition-all duration-300
-                ${
-                  isInRange
-                    ? "bg-success-500/10 border border-success-500/30 text-success-700"
-                    : "bg-danger-500/10 border border-danger-500/30 text-danger-700"
-                }
-              `}
-            >
-              <div className="flex items-center gap-3">
-                <span className="text-xl">
-                  {isInRange ? (
-                    <CheckCircleIcon size={20} className="text-success-500" />
-                  ) : (
-                    <AlertTriangleIcon size={20} className="text-danger-500" />
-                  )}
-                </span>
-                <div>
-                  <span className="font-bold block text-sm">
-                    {isInRange ? "In Proximity Range" : "Out of Proximity Range"}
-                  </span>
-                  <span className="text-xs opacity-90 block">
-                    You are approximately <strong>{Math.round(distance)} meters</strong> away. (Required: &lt;= 100m)
-                  </span>
-                </div>
-              </div>
-              <div className="relative flex h-3 w-3">
-                <span
-                  className={`animate-ping absolute inline-flex h-full w-full rounded-full opacity-75 ${
-                    isInRange ? "bg-success-500" : "bg-danger-500"
-                  }`}
-                ></span>
-                <span
-                  className={`relative inline-flex rounded-full h-3 w-3 ${
-                    isInRange ? "bg-success-500" : "bg-danger-500"
-                  }`}
-                ></span>
-              </div>
-            </div>
-          ) : (
-            <div className="p-4 rounded-xl bg-amber-500/10 border border-amber-500/30 text-amber-700 flex items-center gap-3">
-              <ClockIcon size={20} className="animate-spin text-amber-600" />
-              <div>
-                <span className="font-bold text-sm block">Calculating GPS Distance</span>
-                <span className="text-xs opacity-90 block">
-                  Please enable location services and stand clear of obstructions.
-                </span>
-              </div>
-            </div>
+      {/* Location & Proximity Panel */}
+      <Card padding="md">
+        <div className="flex items-center justify-between mb-3">
+          <h3 className="text-[13px] font-bold text-surface-700 uppercase tracking-wider">Your Location</h3>
+          {currentLocation && (
+            <span className="inline-flex items-center gap-1.5 text-[11px] text-emerald-700 font-semibold">
+              <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse-soft" />
+              GPS Active
+            </span>
           )}
         </div>
+
+        {/* Location status */}
+        {locationError ? (
+          <div className="flex items-start gap-2 p-3 bg-red-50 rounded-xl mb-3">
+            <AlertTriangleIcon size={16} className="text-red-500 flex-shrink-0 mt-0.5" />
+            <p className="text-[12.5px] text-red-700 font-medium">{locationError}</p>
+          </div>
+        ) : !currentLocation ? (
+          <div className="flex items-center gap-2 p-3 bg-surface-50 rounded-xl mb-3">
+            <CompassIcon size={16} className="text-surface-400 animate-spin-slow flex-shrink-0" />
+            <p className="text-[12.5px] text-surface-500">Acquiring GPS signal…</p>
+          </div>
+        ) : null}
+
+        {/* Distance meter */}
+        {distance !== null ? (
+          <div className={`p-4 rounded-xl border transition-colors ${isInRange ? "bg-emerald-50 border-emerald-100" : "bg-red-50 border-red-100"}`}>
+            <div className="flex items-center justify-between mb-2">
+              <div className="flex items-center gap-2">
+                {isInRange ? (
+                  <CheckCircleIcon size={18} className="text-emerald-600" />
+                ) : (
+                  <AlertTriangleIcon size={18} className="text-red-500" />
+                )}
+                <span className={`text-[13px] font-bold ${isInRange ? "text-emerald-700" : "text-red-700"}`}>
+                  {isInRange ? "In range" : "Out of range"}
+                </span>
+              </div>
+              <div className="flex items-center gap-1">
+                <span className={`text-[22px] font-bold tabular-nums leading-none ${isInRange ? "text-emerald-700" : "text-red-600"}`}>
+                  {Math.round(distance)}
+                </span>
+                <span className={`text-[12px] font-medium ${isInRange ? "text-emerald-600" : "text-red-500"}`}>m</span>
+              </div>
+            </div>
+
+            {/* Progress bar — distance to target */}
+            <div className="h-1.5 bg-white rounded-full overflow-hidden">
+              <div
+                className={`h-full rounded-full transition-all duration-500 ${isInRange ? "bg-emerald-500" : "bg-red-400"}`}
+                style={{ width: `${proximityPct}%` }}
+              />
+            </div>
+            <div className="flex justify-between mt-1.5">
+              <span className="text-[10px] text-surface-400">Far</span>
+              <span className="text-[10px] text-surface-400">100m radius</span>
+              <span className="text-[10px] text-surface-400">At target</span>
+            </div>
+          </div>
+        ) : currentLocation ? (
+          <div className="flex items-center gap-2 p-3 bg-amber-50 rounded-xl">
+            <CompassIcon size={16} className="text-amber-500 flex-shrink-0" />
+            <p className="text-[12.5px] text-amber-700 font-medium">Calculating distance…</p>
+          </div>
+        ) : null}
       </Card>
 
-      {/* Main Camera Viewfinder or Fallback Upload */}
-      <Card className="relative overflow-hidden border border-surface-200">
-        <form onSubmit={handleSubmit} className="space-y-6">
+      {/* Camera / Upload Panel */}
+      <Card padding="md">
+        <form onSubmit={handleSubmit} className="space-y-4">
           {!useFallback ? (
             <div className="space-y-4">
+              {/* Tab switcher */}
               <div className="flex items-center justify-between">
-                <label className="block text-sm font-semibold text-surface-800">
-                  Evidence Capture
-                </label>
+                <h3 className="text-[13px] font-bold text-surface-700 uppercase tracking-wider">
+                  {preview ? "Photo Captured" : "Camera"}
+                </h3>
                 <button
                   type="button"
                   onClick={() => setUseFallback(true)}
-                  className="text-xs text-primary-500 hover:text-primary-600 font-medium underline"
+                  className="text-[12px] text-primary-600 hover:text-primary-700 font-semibold"
                 >
-                  Switch to Upload File
+                  Upload file instead
                 </button>
               </div>
 
               {preview ? (
-                /* Frozen Capture Preview Mode */
-                <div className="relative rounded-2xl overflow-hidden border border-surface-200 bg-black aspect-video max-h-80 flex items-center justify-center shadow-inner">
-                  <img
-                    src={preview}
-                    alt="Captured Evidence Preview"
-                    className="h-full object-contain"
-                  />
-                  <div className="absolute top-3 right-3 bg-black/60 backdrop-blur-md px-3 py-1.5 rounded-lg text-[10px] font-mono text-white flex items-center gap-1.5 border border-white/15">
-                    <span className="w-1.5 h-1.5 rounded-full bg-success-500 animate-pulse"></span>
-                    PHOTO CAPTURED & LOCKED
+                /* Captured photo preview */
+                <div className="relative rounded-xl overflow-hidden bg-black aspect-video flex items-center justify-center">
+                  <img src={preview} alt="Captured" className="h-full object-contain" />
+
+                  {/* Captured badge */}
+                  <div className="absolute top-3 left-3 flex items-center gap-1.5 bg-black/60 backdrop-blur-sm px-2.5 py-1.5 rounded-lg border border-white/10">
+                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
+                    <span className="text-[10.5px] font-semibold text-white">Photo locked</span>
                   </div>
+
+                  {/* GPS overlay */}
                   {lockedLocation && (
-                    <div className="absolute bottom-3 left-3 bg-black/60 backdrop-blur-md px-3 py-2 rounded-lg text-[10px] font-mono text-white/90 border border-white/10">
-                      <div>LAT: {lockedLocation.latitude.toFixed(6)}</div>
-                      <div>LNG: {lockedLocation.longitude.toFixed(6)}</div>
+                    <div className="absolute bottom-3 left-3 bg-black/60 backdrop-blur-sm px-2.5 py-1.5 rounded-lg border border-white/10">
+                      <p className="text-[10px] font-mono text-white/80">
+                        {lockedLocation.latitude.toFixed(5)}, {lockedLocation.longitude.toFixed(5)}
+                      </p>
                     </div>
                   )}
                 </div>
               ) : (
-                /* Active Viewfinder Mode */
-                <div className="relative rounded-2xl overflow-hidden border border-surface-800 bg-black aspect-video max-h-80 flex items-center justify-center shadow-lg group">
+                /* Live viewfinder */
+                <div className="relative rounded-xl overflow-hidden bg-surface-950 aspect-video flex items-center justify-center">
                   <video
                     ref={videoRef}
                     autoPlay
                     playsInline
                     className={`w-full h-full object-cover ${cameraFacingMode === "user" ? "scale-x-[-1]" : ""}`}
                   />
-                  
-                  {/* Camera overlay HUD details */}
-                  <div className="absolute inset-0 pointer-events-none border border-white/10 flex flex-col justify-between p-3.5">
-                    {/* HUD Top bar */}
-                    <div className="flex justify-between items-center w-full">
-                      <div className="bg-black/60 backdrop-blur-md px-2.5 py-1 rounded-md text-[10px] font-mono text-white/90 flex items-center gap-1.5 border border-white/10">
-                        <span className="w-2 h-2 rounded-full bg-danger-500 animate-ping"></span>
-                        <span className="font-semibold uppercase tracking-wider">LIVE FEED</span>
-                      </div>
-                      <div className="bg-black/60 backdrop-blur-md px-2 py-1 rounded-md text-[9px] font-mono text-white/70 border border-white/10">
-                        FPS: 30 | facing: {cameraFacingMode}
-                      </div>
+
+                  {/* Minimal HUD overlay */}
+                  <div className="absolute inset-0 pointer-events-none">
+                    {/* LIVE indicator */}
+                    <div className="absolute top-3 left-3 flex items-center gap-1.5 bg-black/50 backdrop-blur-sm px-2.5 py-1.5 rounded-lg border border-white/10">
+                      <span className="w-1.5 h-1.5 rounded-full bg-red-500 animate-ping absolute" />
+                      <span className="w-1.5 h-1.5 rounded-full bg-red-500 relative" />
+                      <span className="text-[10.5px] font-bold text-white tracking-wider">LIVE</span>
                     </div>
 
-                    {/* Target grid crosshair guide in center */}
-                    <div className="absolute inset-0 flex items-center justify-center opacity-25">
-                      <div className="w-10 h-0.5 bg-white"></div>
-                      <div className="h-10 w-0.5 bg-white absolute"></div>
-                      <div className="w-24 h-24 border border-dashed border-white rounded-full"></div>
-                    </div>
+                    {/* Camera switch button */}
+                    {isCameraActive && (
+                      <button
+                        type="button"
+                        onClick={toggleCameraFacing}
+                        className="absolute top-3 right-3 pointer-events-auto bg-black/50 hover:bg-black/70 backdrop-blur-sm text-white border border-white/10 p-2 rounded-full transition-all active:scale-90 cursor-pointer"
+                        title="Switch camera"
+                      >
+                        <RefreshCwIcon size={15} />
+                      </button>
+                    )}
 
-                    {/* HUD Bottom bar */}
-                    <div className="flex justify-between items-end w-full">
-                      <div className="bg-black/60 backdrop-blur-md px-2.5 py-1.5 rounded-md text-[9px] font-mono text-white/80 border border-white/10 flex flex-col">
-                        <span>SYS: INSTANTLOCATE v1.0</span>
-                        <span>AZIMUTH: N/A</span>
-                      </div>
+                    {/* Crosshair guide */}
+                    <div className="absolute inset-0 flex items-center justify-center opacity-20">
+                      <div className="w-8 h-px bg-white" />
+                      <div className="h-8 w-px bg-white absolute" />
                     </div>
                   </div>
 
-                  {/* Switch Camera Button Overlay */}
-                  {isCameraActive && (
-                    <button
-                      type="button"
-                      onClick={toggleCameraFacing}
-                      className="absolute top-3.5 right-3.5 bg-black/60 hover:bg-black/80 backdrop-blur-md text-white border border-white/10 p-2.5 rounded-full transition-all active:scale-95 shadow-md flex items-center justify-center cursor-pointer pointer-events-auto"
-                      title="Switch Camera"
-                    >
-                      <RefreshCwIcon size={16} />
-                    </button>
-                  )}
-
-                  {/* Overlay for Camera Errors */}
+                  {/* Camera error overlay */}
                   {cameraError && (
-                    <div className="absolute inset-0 bg-surface-900/95 backdrop-blur-sm flex flex-col items-center justify-center p-6 text-center text-white">
-                      <CameraIcon size={32} className="text-danger-500 mb-3" />
-                      <p className="text-sm font-semibold mb-2 text-danger-500">Camera Access Blocked</p>
-                      <p className="text-xs text-white/70 max-w-sm mb-4">
-                        {cameraError}
-                      </p>
-                      <Button
-                        type="button"
-                        size="sm"
-                        onClick={() => startCamera(cameraFacingMode)}
-                        variant="secondary"
-                      >
-                        Try Again
+                    <div className="absolute inset-0 bg-surface-900/95 flex flex-col items-center justify-center p-6 text-center">
+                      <CameraIcon size={28} className="text-red-400 mb-3" />
+                      <p className="text-[13px] font-semibold text-red-400 mb-1">Camera blocked</p>
+                      <p className="text-[12px] text-white/60 max-w-xs mb-4">{cameraError}</p>
+                      <Button type="button" size="sm" variant="secondary" onClick={() => startCamera(cameraFacingMode)}>
+                        Try again
                       </Button>
                     </div>
                   )}
                 </div>
               )}
 
-              {/* Action Buttons for Viewfinder */}
-              <div className="flex justify-center py-2">
+              {/* Shutter / Retake controls */}
+              <div className="flex justify-center py-1">
                 {preview ? (
-                  <Button
-                    type="button"
-                    variant="secondary"
-                    onClick={retakePhoto}
-                    className="flex items-center gap-1.5"
-                  >
-                    🔄 Retake Photo
+                  <Button type="button" variant="secondary" onClick={retakePhoto} size="sm">
+                    <RefreshCwIcon size={15} />
+                    Retake
                   </Button>
                 ) : (
+                  /* Shutter button */
                   <button
                     type="button"
                     onClick={capturePhoto}
                     disabled={!currentLocation}
+                    title={currentLocation ? "Capture" : "Waiting for GPS…"}
                     className={`
-                      relative rounded-full w-14 h-14 border-4 border-white shadow-lg flex items-center justify-center transition-all cursor-pointer active:scale-90
+                      w-16 h-16 rounded-full flex items-center justify-center
+                      border-4 border-white shadow-lg transition-all cursor-pointer
+                      active:scale-90 relative
                       ${currentLocation ? "bg-red-600 hover:bg-red-700" : "bg-surface-300 border-surface-200 cursor-not-allowed"}
                     `}
-                    title={currentLocation ? "Capture photo" : "Acquiring GPS signal..."}
                   >
-                    <span className="block w-6 h-6 rounded-full bg-white opacity-20 animate-ping absolute"></span>
-                    <span className="block w-9 h-9 rounded-full bg-white"></span>
+                    {currentLocation && (
+                      <span className="absolute inset-0 rounded-full bg-red-500 animate-ping opacity-25" />
+                    )}
+                    <span className="w-10 h-10 rounded-full bg-white block relative z-10" />
                   </button>
                 )}
               </div>
             </div>
           ) : (
-            /* Fallback Classic File Uploader */
+            /* File upload fallback */
             <div className="space-y-4">
               <div className="flex items-center justify-between">
-                <label className="block text-sm font-semibold text-surface-800">
-                  Upload Evidence File
-                </label>
+                <h3 className="text-[13px] font-bold text-surface-700 uppercase tracking-wider">
+                  Upload Photo
+                </h3>
                 <button
                   type="button"
                   onClick={() => setUseFallback(false)}
-                  className="text-xs text-primary-500 hover:text-primary-600 font-medium underline"
+                  className="text-[12px] text-primary-600 hover:text-primary-700 font-semibold"
                 >
-                  Switch to Live Camera
+                  Use live camera
                 </button>
               </div>
 
-              <div
+              <label
+                htmlFor="evidence-file"
                 className={`
-                  relative border-2 border-dashed rounded-xl p-8 text-center transition-colors
-                  ${preview ? "border-primary-300 bg-primary-50/50" : "border-surface-200 hover:border-surface-300"}
+                  relative flex flex-col items-center justify-center w-full
+                  border-2 border-dashed rounded-xl p-8 text-center cursor-pointer transition-colors
+                  ${preview ? "border-primary-200 bg-primary-50/30" : "border-surface-200 hover:border-primary-300 hover:bg-primary-50/20"}
                 `}
               >
                 <input
                   type="file"
                   accept="image/jpeg,image/jpg,image/png"
                   onChange={handleFileChange}
-                  className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                  className="sr-only"
                   id="evidence-file"
                 />
                 {preview ? (
-                  <div className="space-y-3">
-                    <img
-                      src={preview}
-                      alt="Uploaded Preview"
-                      className="max-h-64 mx-auto rounded-lg shadow-sm"
-                    />
-                    <p className="text-xs text-surface-500">{file?.name}</p>
-                    <Button type="button" size="sm" variant="secondary" onClick={retakePhoto}>
-                      Remove File
+                  <div className="space-y-3 w-full">
+                    <img src={preview} alt="Preview" className="max-h-48 mx-auto rounded-lg shadow-sm object-contain" />
+                    <p className="text-[12px] text-surface-500 truncate">{file?.name}</p>
+                    <Button type="button" size="sm" variant="secondary" onClick={(e) => { e.preventDefault(); retakePhoto(); }}>
+                      Remove
                     </Button>
                   </div>
                 ) : (
-                  <div>
-                    <div className="text-4xl mb-3">📁</div>
-                    <p className="text-sm text-surface-600 font-medium">
-                      Click to upload or drag & drop
-                    </p>
-                    <p className="text-xs text-surface-400 mt-1">
-                      JPG, JPEG, PNG up to 5MB
-                    </p>
-                  </div>
+                  <>
+                    <div className="w-12 h-12 rounded-xl bg-surface-100 flex items-center justify-center mb-3">
+                      <CameraIcon size={22} className="text-surface-400" />
+                    </div>
+                    <p className="text-[13px] font-medium text-surface-700">Tap to upload photo</p>
+                    <p className="text-[12px] text-surface-400 mt-1">JPG or PNG · max 5 MB</p>
+                  </>
                 )}
-              </div>
+              </label>
             </div>
           )}
 
-          {/* Submission button bar */}
-          <div className="flex gap-3 justify-end border-t border-surface-100 pt-4">
+          {/* Submit bar */}
+          <div className="flex gap-3 pt-2 border-t border-surface-100">
             <Button
               type="button"
               variant="secondary"
-              onClick={() => {
-                stopCamera();
-                navigate(`/captain/tasks/${task.id}`);
-              }}
+              className="flex-1"
+              onClick={() => { stopCamera(); navigate(`/captain/tasks/${task.id}`); }}
             >
               Cancel
             </Button>
@@ -628,17 +494,19 @@ export function UploadEvidencePage() {
               type="submit"
               isLoading={isSubmitting}
               disabled={!file || !isInRange}
+              className="flex-1"
             >
               Submit Evidence
             </Button>
           </div>
+
+          {!isInRange && file && (
+            <p className="text-center text-[12px] text-red-600 font-medium">
+              Move within 100m of the target to submit
+            </p>
+          )}
         </form>
       </Card>
-
-      <div className="text-center text-xs text-surface-400">
-        💡 <em>Testing note: Proximity validation requires being within 100 meters of the coordinates ({task.targetLat.toFixed(4)}, {task.targetLng.toFixed(4)}).</em>
-      </div>
     </div>
   );
 }
-

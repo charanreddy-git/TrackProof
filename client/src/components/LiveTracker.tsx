@@ -4,7 +4,6 @@ import L from "leaflet";
 import "leaflet/dist/leaflet.css";
 import markerShadow from "leaflet/dist/images/marker-shadow.png";
 import { useLiveLocation } from "../hooks/useSocket";
-import { Badge } from "./ui/Badge";
 
 const targetIcon = new L.Icon({
   iconUrl: "https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-red.png",
@@ -43,7 +42,7 @@ function FitBounds({
   useEffect(() => {
     if (captain) {
       const bounds = L.latLngBounds([target, captain]);
-      map.fitBounds(bounds, { padding: [50, 50] });
+      map.fitBounds(bounds, { padding: [60, 60] });
     }
   }, [captain, target, map]);
 
@@ -58,36 +57,60 @@ export function LiveTracker({
 }: LiveTrackerProps) {
   const liveLocation = useLiveLocation(taskId);
   const [captainPos, setCaptainPos] = useState<[number, number] | null>(null);
+  const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
 
   useEffect(() => {
     if (liveLocation) {
-      setCaptainPos([liveLocation.latitude, liveLocation.longitude]);
+      setTimeout(() => {
+        setCaptainPos([liveLocation.latitude, liveLocation.longitude]);
+        setLastUpdated(new Date());
+      }, 0);
     }
   }, [liveLocation]);
 
   const targetPos: [number, number] = [targetLat, targetLng];
 
   return (
-    <div className="space-y-3">
-      <div className="flex items-center gap-4 text-sm">
-        <div className="flex items-center gap-2">
-          <span className="w-3 h-3 rounded-full bg-red-500" />
-          <span className="text-surface-600">Target Location</span>
+    <div className="flex flex-col">
+      {/* Status bar */}
+      <div className="flex items-center justify-between px-4 py-3 border-b border-surface-100">
+        <div className="flex items-center gap-4 text-[12.5px]">
+          <div className="flex items-center gap-1.5">
+            <span className="w-2.5 h-2.5 rounded-full bg-red-500 flex-shrink-0" />
+            <span className="text-surface-600 font-medium">Target</span>
+          </div>
+          <div className="flex items-center gap-1.5">
+            <span className="w-2.5 h-2.5 rounded-full bg-blue-500 flex-shrink-0" />
+            <span className="text-surface-600 font-medium">Captain</span>
+          </div>
         </div>
+
         <div className="flex items-center gap-2">
-          <span className="w-3 h-3 rounded-full bg-blue-500" />
-          <span className="text-surface-600">Captain Location</span>
+          {captainPos ? (
+            <span className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-emerald-50 text-emerald-700 text-[11.5px] font-semibold rounded-full ring-1 ring-emerald-100">
+              <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse-soft" />
+              Live
+            </span>
+          ) : (
+            <span className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-surface-100 text-surface-500 text-[11.5px] font-medium rounded-full">
+              <span className="w-1.5 h-1.5 rounded-full bg-surface-400 animate-pulse-soft" />
+              Waiting
+            </span>
+          )}
+          {lastUpdated && (
+            <span className="text-[11px] text-surface-400">
+              {lastUpdated.toLocaleTimeString()}
+            </span>
+          )}
         </div>
-        {captainPos && (
-          <Badge variant="success" dot>Live</Badge>
-        )}
       </div>
 
+      {/* Map */}
       <MapContainer
         center={targetPos}
         zoom={15}
         style={{ height, width: "100%" }}
-        className="rounded-xl overflow-hidden border border-surface-200"
+        className="flex-1"
         scrollWheelZoom={true}
       >
         <TileLayer
@@ -95,7 +118,6 @@ export function LiveTracker({
           url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
         />
 
-        {/* Target location with 100m radius circle */}
         <Marker position={targetPos} icon={targetIcon}>
           <Popup>Target Location</Popup>
         </Marker>
@@ -105,24 +127,21 @@ export function LiveTracker({
           pathOptions={{
             color: "#ef4444",
             fillColor: "#ef4444",
-            fillOpacity: 0.1,
-            weight: 2,
-            dashArray: "5, 5",
+            fillOpacity: 0.08,
+            weight: 1.5,
+            dashArray: "6, 4",
           }}
         />
 
-        {/* Captain position (live) */}
         {captainPos && (
           <Marker position={captainPos} icon={captainIcon}>
             <Popup>
               Captain is here
-              <br />
-              <span className="text-xs text-gray-500">
-                Last update:{" "}
-                {liveLocation
-                  ? new Date(liveLocation.timestamp).toLocaleTimeString()
-                  : "N/A"}
-              </span>
+              {liveLocation && (
+                <span className="block text-[11px] text-gray-500 mt-1">
+                  Updated: {new Date(liveLocation.timestamp).toLocaleTimeString()}
+                </span>
+              )}
             </Popup>
           </Marker>
         )}
@@ -130,10 +149,12 @@ export function LiveTracker({
         <FitBounds target={targetPos} captain={captainPos} />
       </MapContainer>
 
+      {/* Waiting state */}
       {!captainPos && (
-        <div className="text-center py-4">
-          <p className="text-sm text-surface-500 animate-pulse-soft">
-            Waiting for captain's location updates...
+        <div className="px-4 py-3 border-t border-surface-100 flex items-center gap-2">
+          <span className="w-2 h-2 rounded-full bg-surface-300 animate-pulse-soft flex-shrink-0" />
+          <p className="text-[12.5px] text-surface-500">
+            Waiting for captain's location — updates appear automatically
           </p>
         </div>
       )}

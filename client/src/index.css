@@ -21,13 +21,20 @@
   --color-surface-50: oklch(0.98 0.005 250);
   --color-surface-100: oklch(0.96 0.008 250);
   --color-surface-200: oklch(0.93 0.01 250);
+  --color-surface-300: oklch(0.88 0.012 250);
+  --color-surface-400: oklch(0.7 0.015 250);
+  --color-surface-500: oklch(0.55 0.015 250);
+  --color-surface-600: oklch(0.45 0.015 250);
+  --color-surface-700: oklch(0.35 0.015 250);
   --color-surface-800: oklch(0.22 0.03 250);
   --color-surface-900: oklch(0.17 0.03 250);
   --color-surface-950: oklch(0.13 0.03 250);
 
   --color-danger-500: oklch(0.6 0.22 25);
+  --color-danger-600: oklch(0.52 0.22 25);
   --color-warning-500: oklch(0.75 0.15 70);
   --color-success-500: oklch(0.65 0.2 145);
+  --color-success-600: oklch(0.57 0.2 145);
   --color-info-500: oklch(0.65 0.15 240);
 
   /* Typography */
@@ -37,16 +44,18 @@
   /* Shadows */
   --shadow-glass: 0 8px 32px rgba(0, 0, 0, 0.08);
   --shadow-card: 0 1px 3px rgba(0, 0, 0, 0.06), 0 1px 2px rgba(0, 0, 0, 0.04);
-  --shadow-card-hover: 0 10px 40px rgba(0, 0, 0, 0.1);
+  --shadow-card-hover: 0 4px 16px rgba(0, 0, 0, 0.08);
   --shadow-elevated: 0 20px 60px rgba(0, 0, 0, 0.12);
+  --shadow-bottom-nav: 0 -1px 0 rgba(0, 0, 0, 0.06), 0 -4px 12px rgba(0, 0, 0, 0.04);
 
   /* Animations */
-  --animate-fade-in: fade-in 0.3s ease-out;
-  --animate-slide-up: slide-up 0.4s ease-out;
-  --animate-slide-in-right: slide-in-right 0.3s ease-out;
+  --animate-fade-in: fade-in 0.25s ease-out;
+  --animate-slide-up: slide-up 0.35s ease-out;
+  --animate-slide-in-right: slide-in-right 0.25s ease-out;
   --animate-scale-in: scale-in 0.2s ease-out;
   --animate-pulse-soft: pulse-soft 2s ease-in-out infinite;
   --animate-spin-slow: spin 3s linear infinite;
+  --animate-skeleton: skeleton 1.5s ease-in-out infinite;
 }
 
 @keyframes fade-in {
@@ -55,28 +64,35 @@
 }
 
 @keyframes slide-up {
-  from { opacity: 0; transform: translateY(16px); }
+  from { opacity: 0; transform: translateY(12px); }
   to { opacity: 1; transform: translateY(0); }
 }
 
 @keyframes slide-in-right {
-  from { opacity: 0; transform: translateX(16px); }
+  from { opacity: 0; transform: translateX(12px); }
   to { opacity: 1; transform: translateX(0); }
 }
 
 @keyframes scale-in {
-  from { opacity: 0; transform: scale(0.95); }
+  from { opacity: 0; transform: scale(0.96); }
   to { opacity: 1; transform: scale(1); }
 }
 
 @keyframes pulse-soft {
   0%, 100% { opacity: 1; }
-  50% { opacity: 0.7; }
+  50% { opacity: 0.6; }
+}
+
+@keyframes skeleton {
+  0% { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
 }
 
 /* Global styles */
 html {
   scroll-behavior: smooth;
+  /* Safe area support for notched phones */
+  padding-top: env(safe-area-inset-top);
 }
 
 body {
@@ -85,6 +101,7 @@ body {
   -moz-osx-font-smoothing: grayscale;
   background-color: var(--color-surface-50);
   color: var(--color-surface-900);
+  font-feature-settings: "cv02", "cv03", "cv04", "cv11";
 }
 
 /* Leaflet map overrides */
@@ -95,7 +112,8 @@ body {
 
 /* Scrollbar styling */
 ::-webkit-scrollbar {
-  width: 6px;
+  width: 5px;
+  height: 5px;
 }
 
 ::-webkit-scrollbar-track {
@@ -103,19 +121,56 @@ body {
 }
 
 ::-webkit-scrollbar-thumb {
-  background: var(--color-primary-200);
+  background: var(--color-surface-200);
   border-radius: 3px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: var(--color-primary-300);
+  background: var(--color-surface-300);
 }
 
 /* Toast animations */
 .toast-enter {
-  animation: slide-in-right 0.3s ease-out;
+  animation: slide-in-right 0.25s ease-out;
 }
 
 .toast-exit {
   animation: fade-in 0.2s ease-in reverse;
+}
+
+/* Skeleton loading shimmer */
+.skeleton {
+  background: linear-gradient(
+    90deg,
+    var(--color-surface-100) 25%,
+    var(--color-surface-50) 50%,
+    var(--color-surface-100) 75%
+  );
+  background-size: 400% 100%;
+  animation: skeleton 1.5s ease-in-out infinite;
+}
+
+/* Status left-border indicator utility */
+.task-row-open { border-left: 3px solid #60a5fa; }
+.task-row-accepted { border-left: 3px solid #818cf8; }
+.task-row-in_progress { border-left: 3px solid #f59e0b; }
+.task-row-submitted { border-left: 3px solid #34d399; }
+.task-row-completed { border-left: 3px solid #10b981; }
+
+/* Bottom nav safe area */
+.pb-safe {
+  padding-bottom: calc(env(safe-area-inset-bottom) + 0px);
+}
+.mb-bottom-nav {
+  margin-bottom: 64px;
+}
+@media (min-width: 1024px) {
+  .mb-bottom-nav {
+    margin-bottom: 0;
+  }
+}
+
+/* Number tabular font rendering */
+.tabular-nums {
+  font-variant-numeric: tabular-nums;
 }

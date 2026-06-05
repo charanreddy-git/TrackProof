@@ -3,7 +3,6 @@ import cors from "cors";
 import path from "path";
 import authRoutes from "./routes/auth.routes";
 import taskRoutes from "./routes/task.routes";
-import locationRoutes from "./routes/location.routes";
 import { errorHandler } from "./middleware/error.middleware";
 
 const app = express();
@@ -26,7 +25,6 @@ app.use("/uploads", express.static(path.join(__dirname, "../uploads")));
 // API routes
 app.use("/api/auth", authRoutes);
 app.use("/api/tasks", taskRoutes);
-app.use("/api/location", locationRoutes);
 
 // Health check
 app.get("/api/health", (_req, res) => {

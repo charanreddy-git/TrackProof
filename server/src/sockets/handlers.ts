@@ -1,5 +1,7 @@
 import { Server, Socket } from "socket.io";
 import { LocationService } from "../services/location.service";
+import { prisma } from "../lib/prisma";
+import { locationUpdateSchema } from "../validators/location.validator";
 import type {
   ServerToClientEvents,
   ClientToServerEvents,
@@ -47,18 +49,37 @@ export function registerSocketHandlers(
     }
 
     try {
-      // Save to database
-      await LocationService.updateLocation(socket.data.userId, {
-        taskId,
-        latitude,
-        longitude,
+      // Validate payload via zod schema
+      const parsed = locationUpdateSchema.parse({ taskId, latitude, longitude });
+
+      // Fetch task to verify assignee and state
+      const task = await prisma.task.findUnique({
+        where: { id: parsed.taskId },
       });
 
+      if (!task) {
+        console.warn(`[Socket] Task ${parsed.taskId} not found`);
+        return;
+      }
+
+      if (task.status !== "IN_PROGRESS") {
+        console.warn(`[Socket] Task ${parsed.taskId} is not in IN_PROGRESS state`);
+        return;
+      }
+
+      if (task.acceptedById !== socket.data.userId) {
+        console.warn(`[Socket] Unauthorized location update attempt by captain ${socket.data.userId} on task ${parsed.taskId}`);
+        return;
+      }
+
+      // Save to database
+      await LocationService.updateLocation(socket.data.userId, parsed);
+
       // Broadcast to everyone in the task room
-      io.to(`task:${taskId}`).emit("captain:location:updated", {
-        taskId,
-        latitude,
-        longitude,
+      io.to(`task:${parsed.taskId}`).emit("captain:location:updated", {
+        taskId: parsed.taskId,
+        latitude: parsed.latitude,
+        longitude: parsed.longitude,
         timestamp: new Date().toISOString(),
       });
     } catch (error) {

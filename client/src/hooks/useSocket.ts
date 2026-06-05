@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { getSocket, joinTaskRoom, leaveTaskRoom } from "../sockets/socket";
 
 interface LocationData {
@@ -49,16 +49,22 @@ export function useTaskUpdates(
   }
 ) {
   const { joinRoom, leaveRoom, socket } = useSocket();
+  const callbacksRef = useRef(callbacks);
+
+  // Sync callbacks ref on every render
+  useEffect(() => {
+    callbacksRef.current = callbacks;
+  });
 
   useEffect(() => {
     if (!taskId || !socket) return;
 
     joinRoom(taskId);
 
-    const handleAccepted = (data: TaskEvent) => callbacks?.onAccepted?.(data);
-    const handleStarted = (data: TaskEvent) => callbacks?.onStarted?.(data);
-    const handleSubmitted = (data: TaskEvent) => callbacks?.onSubmitted?.(data);
-    const handleCompleted = (data: TaskEvent) => callbacks?.onCompleted?.(data);
+    const handleAccepted = (data: TaskEvent) => callbacksRef.current?.onAccepted?.(data);
+    const handleStarted = (data: TaskEvent) => callbacksRef.current?.onStarted?.(data);
+    const handleSubmitted = (data: TaskEvent) => callbacksRef.current?.onSubmitted?.(data);
+    const handleCompleted = (data: TaskEvent) => callbacksRef.current?.onCompleted?.(data);
 
     socket.on("task:accepted", handleAccepted);
     socket.on("task:started", handleStarted);
@@ -72,7 +78,7 @@ export function useTaskUpdates(
       socket.off("task:submitted", handleSubmitted);
       socket.off("task:completed", handleCompleted);
     };
-  }, [taskId, socket, joinRoom, leaveRoom, callbacks]);
+  }, [taskId, socket, joinRoom, leaveRoom]);
 }
 
 export function useLiveLocation(taskId: string | undefined) {
