@@ -42,7 +42,7 @@ export function TaskTable({
   if (tasks.length === 0) {
     return (
       <div className="text-center py-14 flex flex-col items-center justify-center gap-3">
-        <div className="w-12 h-12 rounded-2xl bg-surface-100 flex items-center justify-center">
+        <div className="w-12 h-12 rounded-lg bg-surface-100 flex items-center justify-center">
           <ClipboardIcon size={22} className="text-surface-400" />
         </div>
         <div className="space-y-1">
@@ -98,8 +98,8 @@ export function TaskTable({
 
           {/* Arrow */}
           <div className="flex-shrink-0 text-surface-300 group-hover:text-surface-500 transition-colors">
-            <svg className="w-4 h-4 rotate-180" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
             </svg>
           </div>
         </Link>

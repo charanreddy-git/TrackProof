@@ -66,160 +66,164 @@ export function UserTaskDetail() {
   const currentStep = statusOrder[task.status];
 
   return (
-    <div className="max-w-4xl mx-auto space-y-5">
+    <div className="h-full flex flex-col max-w-7xl mx-auto space-y-4">
       {/* Back */}
-      <Link
-        to="/user"
-        className="inline-flex items-center gap-1.5 text-[13px] text-surface-500 hover:text-surface-800 font-medium transition-colors"
-      >
-        <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-        </svg>
-        Back to Dashboard
-      </Link>
-
-      {/* Header */}
-      <div className="flex items-start justify-between gap-4">
-        <div className="flex-1 min-w-0">
-          <h1 className="text-xl font-bold text-surface-900 leading-snug">{task.title}</h1>
-          <p className="text-sm text-surface-500 mt-1 line-clamp-2">{task.description}</p>
-        </div>
-        <StatusBadge status={task.status} size="md" />
+      <div>
+        <Link
+          to="/user"
+          className="inline-flex items-center gap-1.5 text-[13px] text-surface-500 hover:text-surface-800 font-medium transition-colors"
+        >
+          <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+          </svg>
+          Back to Dashboard
+        </Link>
       </div>
 
-      {/* Status Timeline */}
-      <Card padding="md">
-        <h2 className="text-[13px] font-bold text-surface-700 uppercase tracking-wider mb-4">
-          Task Progress
-        </h2>
-        <div className="flex items-start gap-0">
-          {TASK_STEPS.map((step, idx) => {
-            const done = statusOrder[step.status] < currentStep;
-            const active = step.status === task.status;
+      {/* Grid container: Split on lg screens */}
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 items-stretch flex-1">
+        {/* Left Column: Details Pane (Scrollable on lg) */}
+        <div className="lg:col-span-5 flex flex-col space-y-4 lg:max-h-[calc(100vh-180px)] lg:overflow-y-auto lg:pr-2">
+          {/* Header Card */}
+          <Card padding="md">
+            <div className="flex items-start justify-between gap-4">
+              <div className="flex-1 min-w-0">
+                <h1 className="text-lg font-bold text-surface-900 leading-snug tracking-tight">{task.title}</h1>
+                <p className="text-xs text-surface-500 mt-1.5 leading-relaxed">{task.description}</p>
+              </div>
+              <StatusBadge status={task.status} size="sm" />
+            </div>
+          </Card>
 
-
-            const isLast = idx === TASK_STEPS.length - 1;
-
-            return (
-              <div key={step.status} className="flex flex-1 items-start relative">
-                <div className="flex flex-col items-center w-full">
-                  {/* Dot */}
-                  <div
-                    className={`
-                      w-7 h-7 rounded-full flex items-center justify-center flex-shrink-0 z-10
-                      ${done ? "bg-emerald-500" : active ? "bg-primary-600 ring-4 ring-primary-100" : "bg-surface-100"}
-                    `}
-                  >
-                    {done ? (
-                      <svg className="w-3.5 h-3.5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
-                      </svg>
-                    ) : active ? (
-                      <span className="w-2.5 h-2.5 rounded-full bg-white animate-pulse-soft" />
-                    ) : (
-                      <span className="w-2 h-2 rounded-full bg-surface-300" />
-                    )}
-                  </div>
-
-                  {/* Line connector */}
-                  {!isLast && (
-                    <div className="absolute top-3.5 left-1/2 right-0 h-0.5 w-full -translate-y-1/2"
-                      style={{ left: "50%", width: "100%" }}
+          {/* Progress Card */}
+          <Card padding="md">
+            <h2 className="text-[11px] font-bold text-surface-400 uppercase tracking-wider mb-4">
+              Task Status
+            </h2>
+            <div className="relative pl-6 space-y-5">
+              <div className="absolute left-[9px] top-2 bottom-2 w-0.5 bg-surface-100" />
+              {TASK_STEPS.map((step) => {
+                const done = statusOrder[step.status] < currentStep;
+                const active = step.status === task.status;
+                return (
+                  <div key={step.status} className="relative flex gap-3.5 items-start">
+                    <div
+                      className={`
+                        absolute -left-[22px] w-5 h-5 rounded-full flex items-center justify-center z-10 text-[10px] font-bold border transition-all duration-200
+                        ${done ? "bg-emerald-500 border-emerald-500 text-white" : active ? "bg-primary-600 border-primary-600 ring-4 ring-primary-100 text-white" : "bg-white border-surface-200 text-surface-400"}
+                      `}
                     >
-                      <div className={`h-full ${done || active ? "bg-primary-200" : "bg-surface-100"}`} />
+                      {done ? (
+                        <svg className="w-2.5 h-2.5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
+                        </svg>
+                      ) : active ? (
+                        <span className="w-1.5 h-1.5 rounded-full bg-white animate-pulse-soft" />
+                      ) : (
+                        <span className="w-1.5 h-1.5 rounded-full bg-surface-300" />
+                      )}
                     </div>
-                  )}
-
-                  {/* Label */}
-                  <div className="mt-2 text-center px-0.5">
-                    <p className={`text-[11px] font-semibold leading-tight ${active ? "text-primary-700" : done ? "text-emerald-700" : "text-surface-400"}`}>
-                      {step.label}
-                    </p>
-                    <p className="text-[10px] text-surface-400 leading-tight mt-0.5 hidden sm:block">
-                      {step.desc}
-                    </p>
+                    <div className="flex-1 min-w-0">
+                      <p className={`text-[12.5px] font-semibold ${active ? "text-primary-700" : done ? "text-emerald-700" : "text-surface-500"}`}>
+                        {step.label}
+                      </p>
+                      <p className="text-[11px] text-surface-400 mt-0.5">
+                        {step.desc}
+                      </p>
+                    </div>
                   </div>
-                </div>
+                );
+              })}
+            </div>
+          </Card>
+
+          {/* Task Info Card */}
+          <Card padding="md">
+            <h2 className="text-[11px] font-bold text-surface-400 uppercase tracking-wider mb-3">
+              Task Details
+            </h2>
+            <div className="divide-y divide-surface-100 text-xs">
+              <div className="flex justify-between py-2">
+                <span className="text-surface-500">Created</span>
+                <span className="font-semibold text-surface-800">
+                  {new Date(task.createdAt).toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" })}
+                </span>
               </div>
-            );
-          })}
-        </div>
-      </Card>
-
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
-        {/* Task Details + Actions */}
-        <Card padding="md">
-          <h2 className="text-[13px] font-bold text-surface-700 uppercase tracking-wider mb-4">
-            Task Info
-          </h2>
-          <div className="space-y-0">
-            <div className="flex justify-between items-center py-2.5 border-b border-surface-50">
-              <span className="text-[13px] text-surface-500">Created</span>
-              <span className="text-[13px] font-medium text-surface-800">
-                {new Date(task.createdAt).toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" })}
-              </span>
+              <div className="flex justify-between py-2">
+                <span className="text-surface-500">Captain Assigned</span>
+                <span className="font-semibold text-surface-800">
+                  {task.acceptedBy?.name || (
+                    <span className="text-surface-400 font-normal">Unassigned</span>
+                  )}
+                </span>
+              </div>
+              <div className="flex justify-between py-2">
+                <span className="text-surface-500">Coordinates</span>
+                <span className="font-mono text-surface-600">
+                  {task.targetLat.toFixed(6)}, {task.targetLng.toFixed(6)}
+                </span>
+              </div>
             </div>
-            <div className="flex justify-between items-center py-2.5 border-b border-surface-50">
-              <span className="text-[13px] text-surface-500">Captain</span>
-              <span className="text-[13px] font-medium text-surface-800">
-                {task.acceptedBy?.name || (
-                  <span className="text-surface-400">Not assigned yet</span>
-                )}
-              </span>
-            </div>
-            <div className="flex justify-between items-center py-2.5">
-              <span className="text-[13px] text-surface-500">Coordinates</span>
-              <span className="text-[12px] font-mono text-surface-600">
-                {task.targetLat.toFixed(4)}, {task.targetLng.toFixed(4)}
-              </span>
-            </div>
-          </div>
 
-          {/* Actions */}
-          <div className="mt-5 space-y-2.5">
-            {task.status === "SUBMITTED" && (
-              <Button
-                onClick={handleComplete}
-                isLoading={completeTask.isPending}
-                className="w-full"
-                size="lg"
-              >
-                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" />
-                </svg>
-                Mark as Completed
-              </Button>
-            )}
-
-            {["ACCEPTED", "IN_PROGRESS"].includes(task.status) && (
-              <Link to={`/user/track/${task.id}`}>
-                <Button variant="secondary" className="w-full" size="lg">
-                  <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+            {/* Actions block */}
+            <div className="mt-4 pt-3 border-t border-surface-100 space-y-2">
+              {task.status === "SUBMITTED" && (
+                <Button
+                  onClick={handleComplete}
+                  isLoading={completeTask.isPending}
+                  className="w-full"
+                  size="md"
+                >
+                  <svg className="w-4 h-4 mr-1.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" />
                   </svg>
-                  Track Captain Live
+                  Mark as Completed
                 </Button>
-              </Link>
-            )}
+              )}
 
-            {task.status === "OPEN" && (
-              <div className="flex items-center gap-2 p-3 bg-blue-50 rounded-xl">
-                <span className="w-2 h-2 rounded-full bg-blue-500 animate-pulse-soft flex-shrink-0" />
-                <p className="text-[12.5px] text-blue-700 font-medium">
-                  Waiting for a captain to accept this task
-                </p>
+              {["ACCEPTED", "IN_PROGRESS"].includes(task.status) && (
+                <Link to={`/user/track/${task.id}`} className="block">
+                  <Button variant="secondary" className="w-full" size="md">
+                    <svg className="w-4 h-4 mr-1.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                    </svg>
+                    Track Live Location
+                  </Button>
+                </Link>
+              )}
+
+              {task.status === "OPEN" && (
+                <div className="flex items-center gap-2 p-2.5 bg-blue-50 border border-blue-100 rounded-lg">
+                  <span className="w-1.5 h-1.5 rounded-full bg-blue-500 animate-pulse-soft flex-shrink-0" />
+                  <p className="text-[11.5px] text-blue-700 font-semibold">
+                    Awaiting captain assignment...
+                  </p>
+                </div>
+              )}
+            </div>
+          </Card>
+
+          {/* Evidence Image Card */}
+          {task.evidenceImage && (
+            <Card padding="md">
+              <h2 className="text-[11px] font-bold text-surface-400 uppercase tracking-wider mb-3">
+                Evidence Photo
+              </h2>
+              <div className="rounded-lg overflow-hidden border border-surface-200 bg-surface-50">
+                <img
+                  src={`${baseUrl}${task.evidenceImage}`}
+                  alt="Verification Evidence"
+                  className="w-full max-h-64 object-cover"
+                />
               </div>
-            )}
-          </div>
-        </Card>
+            </Card>
+          )}
+        </div>
 
-        {/* Map */}
-        <Card padding="sm">
-          <h2 className="text-[13px] font-bold text-surface-700 uppercase tracking-wider mb-3 px-2 pt-2">
-            Target Location
-          </h2>
-          <div className="rounded-xl overflow-hidden">
+        {/* Right Column: Prominent Map Pane */}
+        <div className="lg:col-span-7 flex flex-col h-[350px] lg:h-auto min-h-[300px]">
+          <div className="border border-surface-200 rounded-xl overflow-hidden shadow-sm h-full flex-1 relative bg-white">
             <MapView
               center={[task.targetLat, task.targetLng]}
               zoom={16}
@@ -230,27 +234,11 @@ export function UserTaskDetail() {
                   icon: targetIcon,
                 },
               ]}
-              height="320px"
+              height="100%"
             />
           </div>
-        </Card>
+        </div>
       </div>
-
-      {/* Evidence Image */}
-      {task.evidenceImage && (
-        <Card padding="md">
-          <h2 className="text-[13px] font-bold text-surface-700 uppercase tracking-wider mb-4">
-            Evidence Photo
-          </h2>
-          <div className="rounded-xl overflow-hidden border border-surface-100">
-            <img
-              src={`${baseUrl}${task.evidenceImage}`}
-              alt="Verification Evidence"
-              className="w-full max-h-96 object-cover"
-            />
-          </div>
-        </Card>
-      )}
     </div>
   );
 }

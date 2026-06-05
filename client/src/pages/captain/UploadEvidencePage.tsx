@@ -234,7 +234,7 @@ export function UploadEvidencePage() {
       </Link>
 
       <div>
-        <h1 className="text-xl font-bold text-surface-900">Submit Evidence</h1>
+        <h1 className="text-xl font-bold text-surface-900 tracking-tight">Submit Evidence</h1>
         <p className="text-sm text-surface-500 mt-0.5">
           Capture a photo at the target location to verify your presence
         </p>
@@ -243,7 +243,7 @@ export function UploadEvidencePage() {
       {/* Location & Proximity Panel */}
       <Card padding="md">
         <div className="flex items-center justify-between mb-3">
-          <h3 className="text-[13px] font-bold text-surface-700 uppercase tracking-wider">Your Location</h3>
+          <h3 className="text-[11px] font-bold text-surface-400 uppercase tracking-wider">Your Location</h3>
           {currentLocation && (
             <span className="inline-flex items-center gap-1.5 text-[11px] text-emerald-700 font-semibold">
               <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse-soft" />
@@ -254,12 +254,12 @@ export function UploadEvidencePage() {
 
         {/* Location status */}
         {locationError ? (
-          <div className="flex items-start gap-2 p-3 bg-red-50 rounded-xl mb-3">
+          <div className="flex items-start gap-2 p-3 bg-red-50 border border-red-100 rounded-lg mb-3">
             <AlertTriangleIcon size={16} className="text-red-500 flex-shrink-0 mt-0.5" />
             <p className="text-[12.5px] text-red-700 font-medium">{locationError}</p>
           </div>
         ) : !currentLocation ? (
-          <div className="flex items-center gap-2 p-3 bg-surface-50 rounded-xl mb-3">
+          <div className="flex items-center gap-2 p-3 bg-surface-50 border border-surface-100 rounded-lg mb-3">
             <CompassIcon size={16} className="text-surface-400 animate-spin-slow flex-shrink-0" />
             <p className="text-[12.5px] text-surface-500">Acquiring GPS signal…</p>
           </div>
@@ -267,7 +267,7 @@ export function UploadEvidencePage() {
 
         {/* Distance meter */}
         {distance !== null ? (
-          <div className={`p-4 rounded-xl border transition-colors ${isInRange ? "bg-emerald-50 border-emerald-100" : "bg-red-50 border-red-100"}`}>
+          <div className={`p-4 rounded-lg border transition-colors ${isInRange ? "bg-emerald-50 border-emerald-100" : "bg-red-50 border-red-100"}`}>
             <div className="flex items-center justify-between mb-2">
               <div className="flex items-center gap-2">
                 {isInRange ? (
@@ -288,9 +288,9 @@ export function UploadEvidencePage() {
             </div>
 
             {/* Progress bar — distance to target */}
-            <div className="h-1.5 bg-white rounded-full overflow-hidden">
+            <div className="h-1.5 bg-white/60 rounded-full overflow-hidden">
               <div
-                className={`h-full rounded-full transition-all duration-500 ${isInRange ? "bg-emerald-500" : "bg-red-400"}`}
+                className={`h-full rounded-full transition-all duration-500 ${isInRange ? "bg-emerald-500" : "bg-red-500"}`}
                 style={{ width: `${proximityPct}%` }}
               />
             </div>
@@ -301,7 +301,7 @@ export function UploadEvidencePage() {
             </div>
           </div>
         ) : currentLocation ? (
-          <div className="flex items-center gap-2 p-3 bg-amber-50 rounded-xl">
+          <div className="flex items-center gap-2 p-3 bg-amber-50 border border-amber-100 rounded-lg">
             <CompassIcon size={16} className="text-amber-500 flex-shrink-0" />
             <p className="text-[12.5px] text-amber-700 font-medium">Calculating distance…</p>
           </div>
@@ -315,13 +315,13 @@ export function UploadEvidencePage() {
             <div className="space-y-4">
               {/* Tab switcher */}
               <div className="flex items-center justify-between">
-                <h3 className="text-[13px] font-bold text-surface-700 uppercase tracking-wider">
-                  {preview ? "Photo Captured" : "Camera"}
+                <h3 className="text-[11px] font-bold text-surface-400 uppercase tracking-wider">
+                  {preview ? "Photo Captured" : "Camera Viewfinder"}
                 </h3>
                 <button
                   type="button"
                   onClick={() => setUseFallback(true)}
-                  className="text-[12px] text-primary-600 hover:text-primary-700 font-semibold"
+                  className="text-[12px] text-primary-600 hover:text-primary-700 font-semibold cursor-pointer"
                 >
                   Upload file instead
                 </button>
@@ -329,7 +329,7 @@ export function UploadEvidencePage() {
 
               {preview ? (
                 /* Captured photo preview */
-                <div className="relative rounded-xl overflow-hidden bg-black aspect-video flex items-center justify-center">
+                <div className="relative rounded-lg overflow-hidden bg-black aspect-video flex items-center justify-center border border-surface-200">
                   <img src={preview} alt="Captured" className="h-full object-contain" />
 
                   {/* Captured badge */}
@@ -349,7 +349,7 @@ export function UploadEvidencePage() {
                 </div>
               ) : (
                 /* Live viewfinder */
-                <div className="relative rounded-xl overflow-hidden bg-surface-950 aspect-video flex items-center justify-center">
+                <div className="relative rounded-lg overflow-hidden bg-surface-950 aspect-video flex items-center justify-center border border-surface-900">
                   <video
                     ref={videoRef}
                     autoPlay
@@ -378,10 +378,18 @@ export function UploadEvidencePage() {
                       </button>
                     )}
 
+                    {/* Scanning bracket overlays */}
+                    <div className="absolute inset-5 border border-white/5 pointer-events-none">
+                      <div className="absolute top-0 left-0 w-3 h-3 border-t border-l border-white/40" />
+                      <div className="absolute top-0 right-0 w-3 h-3 border-t border-r border-white/40" />
+                      <div className="absolute bottom-0 left-0 w-3 h-3 border-b border-l border-white/40" />
+                      <div className="absolute bottom-0 right-0 w-3 h-3 border-b border-r border-white/40" />
+                    </div>
+
                     {/* Crosshair guide */}
-                    <div className="absolute inset-0 flex items-center justify-center opacity-20">
-                      <div className="w-8 h-px bg-white" />
-                      <div className="h-8 w-px bg-white absolute" />
+                    <div className="absolute inset-0 flex items-center justify-center opacity-15">
+                      <div className="w-6 h-px bg-white" />
+                      <div className="h-6 w-px bg-white absolute" />
                     </div>
                   </div>
 
@@ -403,8 +411,8 @@ export function UploadEvidencePage() {
               <div className="flex justify-center py-1">
                 {preview ? (
                   <Button type="button" variant="secondary" onClick={retakePhoto} size="sm">
-                    <RefreshCwIcon size={15} />
-                    Retake
+                    <RefreshCwIcon size={14} className="mr-1.5 animate-spin-slow" />
+                    Retake Photo
                   </Button>
                 ) : (
                   /* Shutter button */
@@ -416,8 +424,8 @@ export function UploadEvidencePage() {
                     className={`
                       w-16 h-16 rounded-full flex items-center justify-center
                       border-4 border-white shadow-lg transition-all cursor-pointer
-                      active:scale-90 relative
-                      ${currentLocation ? "bg-red-600 hover:bg-red-700" : "bg-surface-300 border-surface-200 cursor-not-allowed"}
+                      active:scale-95 relative
+                      ${currentLocation ? "bg-red-600 hover:bg-red-700" : "bg-surface-300 border-surface-250 cursor-not-allowed"}
                     `}
                   >
                     {currentLocation && (
@@ -432,13 +440,13 @@ export function UploadEvidencePage() {
             /* File upload fallback */
             <div className="space-y-4">
               <div className="flex items-center justify-between">
-                <h3 className="text-[13px] font-bold text-surface-700 uppercase tracking-wider">
+                <h3 className="text-[11px] font-bold text-surface-400 uppercase tracking-wider">
                   Upload Photo
                 </h3>
                 <button
                   type="button"
                   onClick={() => setUseFallback(false)}
-                  className="text-[12px] text-primary-600 hover:text-primary-700 font-semibold"
+                  className="text-[12px] text-primary-600 hover:text-primary-700 font-semibold cursor-pointer"
                 >
                   Use live camera
                 </button>
@@ -448,8 +456,8 @@ export function UploadEvidencePage() {
                 htmlFor="evidence-file"
                 className={`
                   relative flex flex-col items-center justify-center w-full
-                  border-2 border-dashed rounded-xl p-8 text-center cursor-pointer transition-colors
-                  ${preview ? "border-primary-200 bg-primary-50/30" : "border-surface-200 hover:border-primary-300 hover:bg-primary-50/20"}
+                  border border-dashed rounded-lg p-8 text-center cursor-pointer transition-colors
+                  ${preview ? "border-primary-200 bg-primary-50/10" : "border-surface-200 hover:border-primary-300 hover:bg-primary-50/10"}
                 `}
               >
                 <input
@@ -469,11 +477,11 @@ export function UploadEvidencePage() {
                   </div>
                 ) : (
                   <>
-                    <div className="w-12 h-12 rounded-xl bg-surface-100 flex items-center justify-center mb-3">
-                      <CameraIcon size={22} className="text-surface-400" />
+                    <div className="w-10 h-10 rounded-lg bg-surface-100 flex items-center justify-center mb-3">
+                      <CameraIcon size={20} className="text-surface-450" />
                     </div>
-                    <p className="text-[13px] font-medium text-surface-700">Tap to upload photo</p>
-                    <p className="text-[12px] text-surface-400 mt-1">JPG or PNG · max 5 MB</p>
+                    <p className="text-[13px] font-semibold text-surface-700">Tap to upload photo</p>
+                    <p className="text-[11px] text-surface-400 mt-1">JPG or PNG · max 5 MB</p>
                   </>
                 )}
               </label>
@@ -501,7 +509,7 @@ export function UploadEvidencePage() {
           </div>
 
           {!isInRange && file && (
-            <p className="text-center text-[12px] text-red-600 font-medium">
+            <p className="text-center text-[12px] text-red-655 font-semibold">
               Move within 100m of the target to submit
             </p>
           )}
@@ -510,3 +518,14 @@ export function UploadEvidencePage() {
     </div>
   );
 }
+
+
+
+
+
+
+
+
+
+
+

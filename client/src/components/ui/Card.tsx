@@ -23,7 +23,7 @@ export function Card({
   return (
     <div
       className={`
-        bg-white rounded-2xl border border-surface-100
+        bg-white rounded-xl border border-surface-100
         shadow-card
         ${hover ? "hover:shadow-card-hover hover:border-surface-200 transition-all duration-200 cursor-pointer" : ""}
         ${paddingClasses[padding]}

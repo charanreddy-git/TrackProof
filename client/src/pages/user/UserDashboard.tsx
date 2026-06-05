@@ -24,34 +24,30 @@ export function UserDashboard() {
 
   const stats = [
     {
-      label: "Total",
+      label: "Total Tasks",
       value: allTasks.length,
       icon: ClipboardIcon,
-      iconColor: "text-primary-600",
-      iconBg: "bg-primary-50",
     },
     {
-      label: "Active",
+      label: "Active Tasks",
       value: activeTasks.length,
       icon: ZapIcon,
-      iconColor: "text-amber-600",
-      iconBg: "bg-amber-50",
       highlight: activeTasks.length > 0,
+      highlightLabel: "Active",
+      highlightColor: "bg-amber-50 text-amber-700 border-amber-200",
     },
     {
-      label: "Review",
+      label: "Pending Review",
       value: submittedTasks.length,
       icon: ClockIcon,
-      iconColor: "text-blue-600",
-      iconBg: "bg-blue-50",
       highlight: submittedTasks.length > 0,
+      highlightLabel: "Review",
+      highlightColor: "bg-blue-50 text-blue-700 border-blue-200",
     },
     {
-      label: "Done",
+      label: "Completed",
       value: completedTasks.length,
       icon: CheckCircleIcon,
-      iconColor: "text-emerald-600",
-      iconBg: "bg-emerald-50",
     },
   ];
 
@@ -68,7 +64,7 @@ export function UserDashboard() {
         <Link
           to="/user/create-task"
           id="create-task-btn"
-          className="inline-flex items-center gap-2 px-4 py-2.5 bg-primary-600 text-white text-[13px] font-semibold rounded-xl hover:bg-primary-700 active:scale-95 transition-all shadow-sm"
+          className="inline-flex items-center gap-2 px-4 py-2.5 bg-primary-600 text-white text-[13px] font-semibold rounded-lg hover:bg-primary-700 active:scale-95 transition-all shadow-sm"
         >
           <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M12 4v16m8-8H4" />
@@ -83,19 +79,23 @@ export function UserDashboard() {
         {stats.map((stat) => {
           const Icon = stat.icon;
           return (
-            <Card key={stat.label} padding="sm" className={`relative ${stat.highlight ? "ring-1 ring-amber-200" : ""}`}>
-              <div className="flex items-center justify-between mb-3">
-                <div className={`w-8 h-8 rounded-lg ${stat.iconBg} flex items-center justify-center`}>
-                  <Icon size={15} className={stat.iconColor} />
-                </div>
+            <Card key={stat.label} padding="sm" className="relative flex flex-col justify-between min-h-[96px]">
+              <div className="flex items-center justify-between">
+                <span className="text-[12px] text-surface-500 font-medium">{stat.label}</span>
+                <span className="text-surface-400">
+                  <Icon size={16} />
+                </span>
+              </div>
+              <div className="flex items-baseline gap-2 mt-4">
+                <span className="text-2xl font-bold text-surface-900 tabular-nums leading-none">
+                  {stat.value}
+                </span>
                 {stat.highlight && (
-                  <span className="w-2 h-2 rounded-full bg-amber-500 animate-pulse-soft" />
+                  <span className={`inline-flex items-center px-1.5 py-0.5 rounded-full text-[9px] font-bold border uppercase tracking-wider ${stat.highlightColor}`}>
+                    {stat.highlightLabel}
+                  </span>
                 )}
               </div>
-              <p className="text-2xl font-bold text-surface-900 tabular-nums leading-none">
-                {stat.value}
-              </p>
-              <p className="text-[12px] text-surface-500 mt-1 font-medium">{stat.label}</p>
             </Card>
           );
         })}

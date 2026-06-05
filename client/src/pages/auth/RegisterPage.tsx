@@ -46,7 +46,7 @@ export function RegisterPage() {
 
       <form onSubmit={handleSubmit} className="space-y-4">
         {error && (
-          <div className="p-3 bg-red-50 border border-red-200 rounded-xl text-sm text-red-700">
+          <div className="p-3 bg-red-50 border border-red-200 rounded-lg text-sm text-red-700">
             {error}
           </div>
         )}
@@ -93,28 +93,28 @@ export function RegisterPage() {
             <button
               type="button"
               onClick={() => setRole("USER")}
-              className={`p-4 rounded-xl border-2 text-center transition-all duration-200 cursor-pointer flex flex-col items-center justify-center ${
+              className={`p-4 rounded-lg border text-center transition-all duration-200 cursor-pointer flex flex-col items-center justify-center ${
                 role === "USER"
-                  ? "border-primary-500 bg-primary-50 text-primary-700"
-                  : "border-surface-200 hover:border-surface-300 text-surface-600"
+                  ? "border-primary-600 bg-primary-50/30 text-primary-900 ring-1 ring-primary-600 shadow-sm"
+                  : "border-surface-200 bg-white hover:border-surface-300 text-surface-600 hover:text-surface-900 shadow-sm"
               }`}
             >
-              <UserIcon size={24} className="mb-1.5" />
+              <UserIcon size={24} className={`mb-1.5 ${role === "USER" ? "text-primary-600" : "text-surface-400"}`} />
               <div className="text-sm font-medium">User</div>
-              <div className="text-[10px] mt-0.5 opacity-70">Create tasks</div>
+              <div className="text-[10px] mt-0.5 opacity-80">Create tasks</div>
             </button>
             <button
               type="button"
               onClick={() => setRole("CAPTAIN")}
-              className={`p-4 rounded-xl border-2 text-center transition-all duration-200 cursor-pointer flex flex-col items-center justify-center ${
+              className={`p-4 rounded-lg border text-center transition-all duration-200 cursor-pointer flex flex-col items-center justify-center ${
                 role === "CAPTAIN"
-                  ? "border-accent-500 bg-emerald-50 text-accent-600"
-                  : "border-surface-200 hover:border-surface-300 text-surface-600"
+                  ? "border-accent-600 bg-accent-50/30 text-accent-900 ring-1 ring-accent-600 shadow-sm"
+                  : "border-surface-200 bg-white hover:border-surface-300 text-surface-600 hover:text-surface-900 shadow-sm"
               }`}
             >
-              <CompassIcon size={24} className="mb-1.5" />
+              <CompassIcon size={24} className={`mb-1.5 ${role === "CAPTAIN" ? "text-accent-600" : "text-surface-400"}`} />
               <div className="text-sm font-medium">Captain</div>
-              <div className="text-[10px] mt-0.5 opacity-70">Complete tasks</div>
+              <div className="text-[10px] mt-0.5 opacity-80">Complete tasks</div>
             </button>
           </div>
         </div>
