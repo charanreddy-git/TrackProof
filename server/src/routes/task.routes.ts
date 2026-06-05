@@ -9,6 +9,9 @@ const router = Router();
 // All routes require authentication
 router.use(authenticate);
 
+// Resolve Google Maps URL (USER only)
+router.post("/resolve-url", authorize(["USER"]), TaskController.resolveUrl);
+
 // Create task (USER only)
 router.post("/", authorize(["USER"]), TaskController.createTask);
 

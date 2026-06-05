@@ -6,6 +6,7 @@ import {
 } from "../validators/task.validator";
 import { ApiError } from "../utils/api-error";
 import { getIO } from "../sockets";
+import { parseCoordinates, followRedirects } from "../utils/url-resolver";
 
 function getParamId(req: Request): string {
   const id = req.params.id;
@@ -18,6 +19,44 @@ export class TaskController {
       const input = createTaskSchema.parse(req.body);
       const task = await TaskService.createTask(req.user!.userId, input);
       res.status(201).json({ success: true, data: task });
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  static async resolveUrl(req: Request, res: Response, next: NextFunction) {
+    try {
+      const { url } = req.body;
+      if (!url || typeof url !== "string") {
+        throw ApiError.badRequest("A valid URL string is required");
+      }
+
+      const isGoogleMaps =
+        url.includes("maps.google.com") ||
+        url.includes("google.com/maps") ||
+        url.includes("goo.gl/maps") ||
+        url.includes("maps.app.goo.gl");
+
+      if (!isGoogleMaps) {
+        throw ApiError.badRequest("Invalid location URL. Only Google Maps URLs are supported.");
+      }
+
+      let coords = parseCoordinates(url);
+
+      if (!coords) {
+        try {
+          const resolvedUrl = await followRedirects(url);
+          coords = parseCoordinates(resolvedUrl);
+        } catch (err) {
+          throw ApiError.badRequest("Unable to resolve Google Maps link. Please verify the link is accessible.");
+        }
+      }
+
+      if (!coords) {
+        throw ApiError.badRequest("Could not extract latitude and longitude from the provided Google Maps link.");
+      }
+
+      res.status(200).json({ success: true, data: coords });
     } catch (error) {
       next(error);
     }
