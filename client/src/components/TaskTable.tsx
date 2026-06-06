@@ -80,7 +80,7 @@ export function TaskTable({
             <p className="text-[13.5px] font-semibold text-surface-900 truncate group-hover:text-primary-700 transition-colors">
               {task.title}
             </p>
-            <div className="flex items-center gap-2 mt-0.5 flex-wrap">
+            <div className="flex items-center gap-2 mt-0.5">
               <StatusBadge status={task.status} />
               {showCreatedBy && (
                 <span className="text-[11px] text-surface-400">
@@ -92,13 +92,13 @@ export function TaskTable({
                   · {task.acceptedBy.name}
                 </span>
               )}
-              <span className="text-[11px] text-surface-400">{timeAgo(task.createdAt)}</span>
             </div>
           </div>
 
-          {/* Arrow */}
-          <div className="flex-shrink-0 text-surface-300 group-hover:text-surface-500 transition-colors">
-            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          {/* Time + Arrow */}
+          <div className="flex-shrink-0 flex flex-col items-end gap-1.5">
+            <span className="text-[11px] text-surface-400 tabular-nums">{timeAgo(task.createdAt)}</span>
+            <svg className="w-3.5 h-3.5 text-surface-300 group-hover:text-surface-500 transition-colors" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
             </svg>
           </div>

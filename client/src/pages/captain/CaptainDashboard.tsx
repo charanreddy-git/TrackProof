@@ -31,18 +31,14 @@ export function CaptainDashboard() {
       value: available.length,
       icon: SearchIcon,
       href: "/captain/available",
-      highlight: available.length > 0,
-      highlightLabel: "New",
-      highlightColor: "bg-blue-50 text-blue-700 border-blue-200",
+      urgent: available.length > 0,
     },
     {
       label: "Active",
       value: myInProgress.length,
       icon: ZapIcon,
       href: "/captain/accepted",
-      highlight: myInProgress.length > 0,
-      highlightLabel: "Active",
-      highlightColor: "bg-amber-50 text-amber-700 border-amber-200",
+      urgent: myInProgress.length > 0,
     },
     {
       label: "Submitted",
@@ -56,16 +52,24 @@ export function CaptainDashboard() {
     },
   ];
 
+  const contextTitle = (() => {
+    if (myInProgress.length > 0) return `${myInProgress.length} active task${myInProgress.length > 1 ? "s" : ""}`;
+    if (available.length > 0) return `${available.length} task${available.length !== 1 ? "s" : ""} available`;
+    return "No new tasks";
+  })();
+
+  const contextSub = (() => {
+    if (myInProgress.length > 0) return "Head to the location and submit evidence";
+    if (available.length > 0) return "Accept a task to get started";
+    return "Check back shortly for new verification tasks";
+  })();
+
   return (
     <div className="space-y-6 max-w-5xl">
       {/* Header */}
       <div>
-        <h1 className="text-xl font-bold text-surface-900 tracking-tight">Dashboard</h1>
-        <p className="text-sm text-surface-500 mt-0.5">
-          {available.length > 0
-            ? `${available.length} task${available.length !== 1 ? "s" : ""} available to accept`
-            : "No new tasks available right now"}
-        </p>
+        <h1 className="text-xl font-bold text-surface-900 tracking-tight">{contextTitle}</h1>
+        <p className="text-sm text-surface-500 mt-0.5">{contextSub}</p>
       </div>
 
       {/* Stat Cards */}
@@ -73,23 +77,16 @@ export function CaptainDashboard() {
         {stats.map((stat) => {
           const Icon = stat.icon;
           const card = (
-            <Card key={stat.label} padding="sm" className="relative flex flex-col justify-between min-h-[96px] h-full">
+            <Card key={stat.label} padding="sm" className={`relative flex flex-col justify-between min-h-[96px] h-full ${stat.urgent ? "border-l-2 border-l-amber-400" : ""}`}>
               <div className="flex items-center justify-between">
                 <span className="text-[12px] text-surface-500 font-medium">{stat.label}</span>
-                <span className="text-surface-400">
-                  <Icon size={16} />
+                <span className={stat.urgent ? "text-amber-400" : "text-surface-300"}>
+                  <Icon size={18} />
                 </span>
               </div>
-              <div className="flex items-baseline gap-2 mt-4">
-                <span className="text-2xl font-bold text-surface-900 tabular-nums leading-none">
-                  {stat.value}
-                </span>
-                {stat.highlight && (
-                  <span className={`inline-flex items-center px-1.5 py-0.5 rounded-full text-[9px] font-bold border uppercase tracking-wider ${stat.highlightColor}`}>
-                    {stat.highlightLabel}
-                  </span>
-                )}
-              </div>
+              <span className="text-2xl font-bold text-surface-900 tabular-nums leading-none mt-4 block">
+                {stat.value}
+              </span>
             </Card>
           );
 

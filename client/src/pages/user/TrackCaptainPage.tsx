@@ -20,33 +20,33 @@ export function TrackCaptainPage() {
   if (isLoading || !task) return <PageLoader />;
 
   return (
-    <div className="max-w-4xl mx-auto space-y-4">
-      {/* Back */}
-      <Link
-        to={`/user/tasks/${task.id}`}
-        className="inline-flex items-center gap-1.5 text-[13px] text-surface-500 hover:text-surface-800 font-medium transition-colors"
-      >
-        <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-        </svg>
-        Back to Task
-      </Link>
-
-      {/* Header */}
-      <div>
-        <h1 className="text-xl font-bold text-surface-900 leading-tight">{task.title}</h1>
-        <p className="text-sm text-surface-500 mt-0.5">
-          Live tracking{task.acceptedBy?.name ? ` · ${task.acceptedBy.name}` : ""}
-        </p>
+    <div className="max-w-4xl mx-auto space-y-3">
+      {/* Compact header: back + title in one row */}
+      <div className="flex items-center gap-3">
+        <Link
+          to={`/user/tasks/${task.id}`}
+          className="flex-shrink-0 p-1.5 -ml-1.5 rounded-lg hover:bg-surface-100 transition-colors text-surface-500 hover:text-surface-800"
+          aria-label="Back to task"
+        >
+          <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+          </svg>
+        </Link>
+        <div className="min-w-0">
+          <h1 className="text-[15px] font-bold text-surface-900 leading-tight truncate">{task.title}</h1>
+          <p className="text-xs text-surface-500 mt-0">
+            Live tracking{task.acceptedBy?.name ? ` · ${task.acceptedBy.name}` : ""}
+          </p>
+        </div>
       </div>
 
-      {/* Tracker — no card wrapper so map gets full real estate */}
+      {/* Tracker — minimal chrome, map gets maximum height */}
       <div className="bg-white rounded-2xl border border-surface-200 shadow-card overflow-hidden">
         <LiveTracker
           taskId={task.id}
           targetLat={task.targetLat}
           targetLng={task.targetLng}
-          height="calc(100vh - 280px)"
+          height="calc(100vh - 220px)"
         />
       </div>
     </div>

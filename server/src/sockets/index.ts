@@ -2,6 +2,7 @@ import { Server as HttpServer } from "http";
 import { Server } from "socket.io";
 import { verifyToken } from "../utils/jwt";
 import { registerSocketHandlers } from "./handlers";
+import { logger } from "../utils/logger";
 import type {
   ServerToClientEvents,
   ClientToServerEvents,
@@ -9,14 +10,16 @@ import type {
   SocketData,
 } from "../types/socket.types";
 
-let io: Server<
+type TypedIO = Server<
   ClientToServerEvents,
   ServerToClientEvents,
   InterServerEvents,
   SocketData
 >;
 
-export function initializeSocket(httpServer: HttpServer): Server {
+let io: TypedIO;
+
+export function initializeSocket(httpServer: HttpServer): void {
   io = new Server<
     ClientToServerEvents,
     ServerToClientEvents,
@@ -29,14 +32,11 @@ export function initializeSocket(httpServer: HttpServer): Server {
     },
   });
 
-  // JWT Authentication Middleware
   io.use((socket, next) => {
     const token = socket.handshake.auth.token;
-
     if (!token) {
       return next(new Error("Authentication required"));
     }
-
     try {
       const decoded = verifyToken(token);
       socket.data.userId = decoded.userId;
@@ -49,26 +49,15 @@ export function initializeSocket(httpServer: HttpServer): Server {
   });
 
   io.on("connection", (socket) => {
-    console.log(
-      `[Socket] Connected: ${socket.data.email} (${socket.data.role})`
-    );
-
+    logger.debug(`Socket connected: ${socket.data.email} (${socket.data.role})`);
     registerSocketHandlers(io, socket);
-
     socket.on("disconnect", () => {
-      console.log(`[Socket] Disconnected: ${socket.data.email}`);
+      logger.debug(`Socket disconnected: ${socket.data.email}`);
     });
   });
-
-  return io;
 }
 
-export function getIO(): Server<
-  ClientToServerEvents,
-  ServerToClientEvents,
-  InterServerEvents,
-  SocketData
-> {
+export function getIO(): TypedIO {
   if (!io) {
     throw new Error("Socket.IO has not been initialized");
   }

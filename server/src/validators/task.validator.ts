@@ -12,5 +12,10 @@ export const submitTaskSchema = z.object({
   longitude: z.coerce.number().min(-180).max(180),
 });
 
+export const taskFilterSchema = z
+  .enum(["available", "accepted"])
+  .optional();
+
 export type CreateTaskInput = z.infer<typeof createTaskSchema>;
 export type SubmitTaskInput = z.infer<typeof submitTaskSchema>;
+export type TaskFilter = z.infer<typeof taskFilterSchema>;

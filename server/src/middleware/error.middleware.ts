@@ -2,6 +2,7 @@ import { Request, Response, NextFunction } from "express";
 import { ZodError } from "zod";
 import { Prisma } from "@prisma/client";
 import { ApiError } from "../utils/api-error";
+import { logger } from "../utils/logger";
 
 export function errorHandler(
   err: Error,
@@ -15,34 +16,27 @@ export function errorHandler(
       field: e.path.join("."),
       message: e.message,
     }));
-    res.status(400).json({
-      success: false,
-      message: "Validation failed",
-      errors,
-    });
+    res.status(400).json({ success: false, message: "Validation failed", errors });
     return;
   }
 
   // Custom API errors
   if (err instanceof ApiError) {
-    res.status(err.statusCode).json({
-      success: false,
-      message: err.message,
-    });
+    res.status(err.statusCode).json({ success: false, message: err.message });
     return;
   }
 
-  // Multer errors
+  // Multer file upload errors
   if (err.name === "MulterError") {
-    res.status(400).json({
-      success: false,
-      message: err.message,
-    });
+    res.status(400).json({ success: false, message: err.message });
     return;
   }
 
-  // Prisma known errors
-  if (err instanceof Prisma.PrismaClientKnownRequestError && err.code === "P2002") {
+  // Prisma unique constraint violation
+  if (
+    err instanceof Prisma.PrismaClientKnownRequestError &&
+    err.code === "P2002"
+  ) {
     res.status(409).json({
       success: false,
       message: "A record with this value already exists",
@@ -50,13 +44,11 @@ export function errorHandler(
     return;
   }
 
-  // Unknown errors
-  console.error("Unhandled error:", err);
+  // Unexpected errors — log with full context, return safe message in production
+  logger.error("Unhandled error", err);
   res.status(500).json({
     success: false,
     message:
-      process.env.NODE_ENV === "development"
-        ? err.message
-        : "Internal server error",
+      process.env.NODE_ENV === "development" ? err.message : "Internal server error",
   });
 }

@@ -24,42 +24,50 @@ export function UserDashboard() {
 
   const stats = [
     {
-      label: "Total Tasks",
+      label: "Total",
       value: allTasks.length,
       icon: ClipboardIcon,
     },
     {
-      label: "Active Tasks",
+      label: "Active",
       value: activeTasks.length,
       icon: ZapIcon,
-      highlight: activeTasks.length > 0,
-      highlightLabel: "Active",
-      highlightColor: "bg-amber-50 text-amber-700 border-amber-200",
+      urgent: activeTasks.length > 0,
     },
     {
-      label: "Pending Review",
+      label: "Review",
       value: submittedTasks.length,
       icon: ClockIcon,
-      highlight: submittedTasks.length > 0,
-      highlightLabel: "Review",
-      highlightColor: "bg-blue-50 text-blue-700 border-blue-200",
+      urgent: submittedTasks.length > 0,
     },
     {
-      label: "Completed",
+      label: "Done",
       value: completedTasks.length,
       icon: CheckCircleIcon,
     },
   ];
+
+  const contextTitle = (() => {
+    if (allTasks.length === 0) return "No tasks yet";
+    if (submittedTasks.length > 0) return `${submittedTasks.length} task${submittedTasks.length > 1 ? "s" : ""} awaiting review`;
+    if (activeTasks.length > 0) return `${activeTasks.length} active task${activeTasks.length > 1 ? "s" : ""}`;
+    return `${completedTasks.length} task${completedTasks.length !== 1 ? "s" : ""} completed`;
+  })();
+
+  const contextSub = (() => {
+    if (allTasks.length === 0) return "Create a verification task to get started";
+    if (submittedTasks.length > 0) return "Evidence uploaded — review and mark as completed";
+    if (activeTasks.length > 0) return "Captains are travelling to your locations";
+    return "All tasks resolved";
+  })();
 
   return (
     <div className="space-y-6 max-w-5xl">
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-xl font-bold text-surface-900 tracking-tight">Dashboard</h1>
-          <p className="text-sm text-surface-500 mt-0.5">
-            {allTasks.length === 0 ? "No tasks yet" : `${allTasks.length} task${allTasks.length !== 1 ? "s" : ""} total`}
-          </p>
+          <h1 className="text-xl font-bold text-surface-900 tracking-tight">{contextTitle}</h1>
+          <p className="text-sm text-surface-500 mt-0.5">{contextSub}</p>
         </div>
         <Link
           to="/user/create-task"
@@ -79,23 +87,16 @@ export function UserDashboard() {
         {stats.map((stat) => {
           const Icon = stat.icon;
           return (
-            <Card key={stat.label} padding="sm" className="relative flex flex-col justify-between min-h-[96px]">
+            <Card key={stat.label} padding="sm" className={`relative flex flex-col justify-between min-h-[96px] ${stat.urgent ? "border-l-2 border-l-amber-400" : ""}`}>
               <div className="flex items-center justify-between">
                 <span className="text-[12px] text-surface-500 font-medium">{stat.label}</span>
-                <span className="text-surface-400">
-                  <Icon size={16} />
+                <span className={stat.urgent ? "text-amber-400" : "text-surface-300"}>
+                  <Icon size={18} />
                 </span>
               </div>
-              <div className="flex items-baseline gap-2 mt-4">
-                <span className="text-2xl font-bold text-surface-900 tabular-nums leading-none">
-                  {stat.value}
-                </span>
-                {stat.highlight && (
-                  <span className={`inline-flex items-center px-1.5 py-0.5 rounded-full text-[9px] font-bold border uppercase tracking-wider ${stat.highlightColor}`}>
-                    {stat.highlightLabel}
-                  </span>
-                )}
-              </div>
+              <span className="text-2xl font-bold text-surface-900 tabular-nums leading-none mt-4 block">
+                {stat.value}
+              </span>
             </Card>
           );
         })}

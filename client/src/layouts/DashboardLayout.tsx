@@ -89,7 +89,7 @@ export function DashboardLayout() {
                   end={item.end}
                   onClick={() => setSidebarOpen(false)}
                   className={({ isActive }) =>
-                    `flex items-center gap-3 px-3 py-2.5 rounded-lg text-[13.5px] font-medium transition-all duration-150 group ${
+                    `relative flex items-center gap-3 px-3 py-2.5 rounded-lg text-[13.5px] font-medium transition-all duration-150 group ${
                       isActive
                         ? "bg-primary-50 text-primary-700"
                         : "text-surface-600 hover:text-surface-900 hover:bg-surface-50"
@@ -155,11 +155,8 @@ export function DashboardLayout() {
               </svg>
             </button>
 
-            {/* Mobile page title */}
-            <span className="lg:hidden text-[15px] font-semibold text-surface-900">{pageTitle}</span>
-
-            {/* Desktop spacer */}
-            <div className="hidden lg:block flex-1" />
+            {/* Page title — mobile prominent, desktop subtle */}
+            <span className="flex-1 text-[15px] font-semibold text-surface-900 lg:text-[13.5px] lg:font-medium lg:text-surface-500">{pageTitle}</span>
 
             {/* Role badge */}
             <div className="flex items-center gap-2 ml-auto">
@@ -197,7 +194,7 @@ export function DashboardLayout() {
                 key={item.to}
                 to={item.to}
                 end={item.end}
-                className="flex-1 flex flex-col items-center justify-center gap-0.5 transition-colors"
+                className="relative flex-1 flex flex-col items-center justify-center gap-0.5 transition-colors"
               >
                 <div
                   className={`p-1.5 rounded-lg transition-all duration-150 ${

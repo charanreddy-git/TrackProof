@@ -3,12 +3,14 @@ import { TaskService } from "../services/task.service";
 import {
   createTaskSchema,
   submitTaskSchema,
+  taskFilterSchema,
 } from "../validators/task.validator";
 import { ApiError } from "../utils/api-error";
 import { getIO } from "../sockets";
-import { parseCoordinates, followRedirects } from "../utils/url-resolver";
+import { resolveGoogleMapsUrl } from "../utils/url-resolver";
 
-function getParamId(req: Request): string {
+/** Express 5 types `req.params` values as `string | string[]`; named route params are always strings at runtime. */
+function paramId(req: Request): string {
   const id = req.params.id;
   return Array.isArray(id) ? id[0] : id;
 }
@@ -30,32 +32,7 @@ export class TaskController {
       if (!url || typeof url !== "string") {
         throw ApiError.badRequest("A valid URL string is required");
       }
-
-      const isGoogleMaps =
-        url.includes("maps.google.com") ||
-        url.includes("google.com/maps") ||
-        url.includes("goo.gl/maps") ||
-        url.includes("maps.app.goo.gl");
-
-      if (!isGoogleMaps) {
-        throw ApiError.badRequest("Invalid location URL. Only Google Maps URLs are supported.");
-      }
-
-      let coords = parseCoordinates(url);
-
-      if (!coords) {
-        try {
-          const resolvedUrl = await followRedirects(url);
-          coords = parseCoordinates(resolvedUrl);
-        } catch (err) {
-          throw ApiError.badRequest("Unable to resolve Google Maps link. Please verify the link is accessible.");
-        }
-      }
-
-      if (!coords) {
-        throw ApiError.badRequest("Could not extract latitude and longitude from the provided Google Maps link.");
-      }
-
+      const coords = await resolveGoogleMapsUrl(url);
       res.status(200).json({ success: true, data: coords });
     } catch (error) {
       next(error);
@@ -64,7 +41,7 @@ export class TaskController {
 
   static async getTasks(req: Request, res: Response, next: NextFunction) {
     try {
-      const filter = req.query.filter as string | undefined;
+      const filter = taskFilterSchema.parse(req.query.filter);
       const tasks = await TaskService.getTasks(
         req.user!.userId,
         req.user!.role,
@@ -79,7 +56,7 @@ export class TaskController {
   static async getTaskById(req: Request, res: Response, next: NextFunction) {
     try {
       const task = await TaskService.getTaskById(
-        getParamId(req),
+        paramId(req),
         req.user!.userId,
         req.user!.role
       );
@@ -92,17 +69,17 @@ export class TaskController {
   static async acceptTask(req: Request, res: Response, next: NextFunction) {
     try {
       const task = await TaskService.acceptTask(
-        getParamId(req),
+        paramId(req),
         req.user!.userId
       );
 
-      // Emit real-time event to task room
-      const io = getIO();
-      io.to(`task:${task.id}`).emit("task:accepted", {
-        taskId: task.id,
-        captainId: req.user!.userId,
-        captainName: task.acceptedBy!.name,
-      });
+      getIO()
+        .to(`task:${task.id}`)
+        .emit("task:accepted", {
+          taskId: task.id,
+          captainId: req.user!.userId,
+          captainName: task.acceptedBy!.name,
+        });
 
       res.status(200).json({ success: true, data: task });
     } catch (error) {
@@ -113,13 +90,13 @@ export class TaskController {
   static async startTask(req: Request, res: Response, next: NextFunction) {
     try {
       const task = await TaskService.startTask(
-        getParamId(req),
+        paramId(req),
         req.user!.userId
       );
 
-      // Emit real-time event
-      const io = getIO();
-      io.to(`task:${task.id}`).emit("task:started", { taskId: task.id });
+      getIO()
+        .to(`task:${task.id}`)
+        .emit("task:started", { taskId: task.id });
 
       res.status(200).json({ success: true, data: task });
     } catch (error) {
@@ -137,18 +114,18 @@ export class TaskController {
       const imagePath = `/uploads/${req.file.filename}`;
 
       const task = await TaskService.submitTask(
-        getParamId(req),
+        paramId(req),
         req.user!.userId,
         input,
         imagePath
       );
 
-      // Emit real-time event
-      const io = getIO();
-      io.to(`task:${task.id}`).emit("task:submitted", {
-        taskId: task.id,
-        evidenceImage: imagePath,
-      });
+      getIO()
+        .to(`task:${task.id}`)
+        .emit("task:submitted", {
+          taskId: task.id,
+          evidenceImage: imagePath,
+        });
 
       res.status(200).json({ success: true, data: task });
     } catch (error) {
@@ -159,13 +136,13 @@ export class TaskController {
   static async completeTask(req: Request, res: Response, next: NextFunction) {
     try {
       const task = await TaskService.completeTask(
-        getParamId(req),
+        paramId(req),
         req.user!.userId
       );
 
-      // Emit real-time event
-      const io = getIO();
-      io.to(`task:${task.id}`).emit("task:completed", { taskId: task.id });
+      getIO()
+        .to(`task:${task.id}`)
+        .emit("task:completed", { taskId: task.id });
 
       res.status(200).json({ success: true, data: task });
     } catch (error) {

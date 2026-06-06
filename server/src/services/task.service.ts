@@ -4,12 +4,25 @@ import { haversineDistance, MAX_DISTANCE_METERS } from "../utils/haversine";
 import { CreateTaskInput, SubmitTaskInput } from "../validators/task.validator";
 import { TaskStatus } from "@prisma/client";
 
+/** Reusable select shape for user relations on task responses */
+const userSelect = {
+  select: { id: true, name: true, email: true, role: true },
+} as const;
+
+/** Standard include block — attaches creator and assignee to task queries */
+const taskWithUsers = {
+  createdBy: userSelect,
+  acceptedBy: userSelect,
+} as const;
+
+export type TaskFilter = "available" | "accepted";
+
 export class TaskService {
   /**
    * Create a new task (USER only)
    */
   static async createTask(userId: string, input: CreateTaskInput) {
-    const task = await prisma.task.create({
+    return prisma.task.create({
       data: {
         title: input.title,
         description: input.description,
@@ -18,46 +31,34 @@ export class TaskService {
         status: TaskStatus.OPEN,
         createdById: userId,
       },
-      include: {
-        createdBy: {
-          select: { id: true, name: true, email: true, role: true },
-        },
-      },
+      include: taskWithUsers,
     });
-
-    return task;
   }
 
   /**
    * Get tasks filtered by role:
    * - USER: own created tasks
-   * - CAPTAIN: OPEN tasks (available) or own accepted tasks
+   * - CAPTAIN "available": all OPEN tasks
+   * - CAPTAIN "accepted": own accepted tasks
+   * - CAPTAIN (no filter): OPEN tasks + own accepted tasks
    */
-  static async getTasks(userId: string, role: string, filter?: string) {
+  static async getTasks(
+    userId: string,
+    role: "USER" | "CAPTAIN",
+    filter?: TaskFilter
+  ) {
     if (role === "USER") {
       return prisma.task.findMany({
         where: { createdById: userId },
-        include: {
-          createdBy: {
-            select: { id: true, name: true, email: true, role: true },
-          },
-          acceptedBy: {
-            select: { id: true, name: true, email: true, role: true },
-          },
-        },
+        include: taskWithUsers,
         orderBy: { createdAt: "desc" },
       });
     }
 
-    // CAPTAIN
     if (filter === "available") {
       return prisma.task.findMany({
         where: { status: TaskStatus.OPEN },
-        include: {
-          createdBy: {
-            select: { id: true, name: true, email: true, role: true },
-          },
-        },
+        include: { createdBy: userSelect },
         orderBy: { createdAt: "desc" },
       });
     }
@@ -65,74 +66,58 @@ export class TaskService {
     if (filter === "accepted") {
       return prisma.task.findMany({
         where: { acceptedById: userId },
-        include: {
-          createdBy: {
-            select: { id: true, name: true, email: true, role: true },
-          },
-        },
+        include: { createdBy: userSelect },
         orderBy: { updatedAt: "desc" },
       });
     }
 
-    // Default: both available and accepted
+    // Default: OPEN tasks + own accepted tasks
     return prisma.task.findMany({
       where: {
         OR: [{ status: TaskStatus.OPEN }, { acceptedById: userId }],
       },
-      include: {
-        createdBy: {
-          select: { id: true, name: true, email: true, role: true },
-        },
-        acceptedBy: {
-          select: { id: true, name: true, email: true, role: true },
-        },
-      },
+      include: taskWithUsers,
       orderBy: { createdAt: "desc" },
     });
   }
 
   /**
-   * Get a single task by ID with full relations
+   * Get a single task by ID with access control.
+   * - USER: must be the task creator
+   * - CAPTAIN: task must be OPEN or assigned to them
    */
-  static async getTaskById(taskId: string, userId: string, role: string) {
+  static async getTaskById(
+    taskId: string,
+    userId: string,
+    role: "USER" | "CAPTAIN"
+  ) {
     const task = await prisma.task.findUnique({
       where: { id: taskId },
-      include: {
-        createdBy: {
-          select: { id: true, name: true, email: true, role: true },
-        },
-        acceptedBy: {
-          select: { id: true, name: true, email: true, role: true },
-        },
-        locationLogs: {
-          orderBy: { timestamp: "desc" },
-          take: 20,
-        },
-      },
+      include: taskWithUsers,
     });
 
     if (!task) {
       throw ApiError.notFound("Task not found");
     }
 
-    // Access control checks
-    if (role === "USER") {
-      if (task.createdById !== userId) {
-        throw ApiError.forbidden("You do not have access to view this task");
-      }
-    } else if (role === "CAPTAIN") {
-      // Captains can view task if it is OPEN (available to accept) or assigned to them
-      if (task.status !== "OPEN" && task.acceptedById !== userId) {
-        throw ApiError.forbidden("You do not have access to view this task");
-      }
+    if (role === "USER" && task.createdById !== userId) {
+      throw ApiError.forbidden("You do not have access to this task");
+    }
+
+    if (
+      role === "CAPTAIN" &&
+      task.status !== "OPEN" &&
+      task.acceptedById !== userId
+    ) {
+      throw ApiError.forbidden("You do not have access to this task");
     }
 
     return task;
   }
 
   /**
-   * Captain accepts a task (OPEN → ACCEPTED)
-   * Uses atomic transaction to prevent race conditions
+   * Captain accepts a task (OPEN → ACCEPTED).
+   * Uses a transaction to prevent two captains accepting the same task simultaneously.
    */
   static async acceptTask(taskId: string, captainId: string) {
     return prisma.$transaction(async (tx) => {
@@ -143,57 +128,44 @@ export class TaskService {
         throw ApiError.badRequest("Task is no longer available");
       }
 
-      const updatedTask = await tx.task.update({
+      return tx.task.update({
         where: { id: taskId },
         data: {
           status: TaskStatus.ACCEPTED,
           acceptedById: captainId,
         },
-        include: {
-          createdBy: {
-            select: { id: true, name: true, email: true, role: true },
-          },
-          acceptedBy: {
-            select: { id: true, name: true, email: true, role: true },
-          },
-        },
+        include: taskWithUsers,
       });
-
-      return updatedTask;
     });
   }
 
   /**
-   * Captain starts a task (ACCEPTED → IN_PROGRESS)
+   * Captain starts a task (ACCEPTED → IN_PROGRESS).
+   * Wrapped in a transaction to guard against duplicate start requests.
    */
   static async startTask(taskId: string, captainId: string) {
-    const task = await prisma.task.findUnique({ where: { id: taskId } });
+    return prisma.$transaction(async (tx) => {
+      const task = await tx.task.findUnique({ where: { id: taskId } });
 
-    if (!task) throw ApiError.notFound("Task not found");
-    if (task.acceptedById !== captainId) {
-      throw ApiError.forbidden("You are not assigned to this task");
-    }
-    if (task.status !== TaskStatus.ACCEPTED) {
-      throw ApiError.badRequest("Task must be in ACCEPTED status to start");
-    }
+      if (!task) throw ApiError.notFound("Task not found");
+      if (task.acceptedById !== captainId) {
+        throw ApiError.forbidden("You are not assigned to this task");
+      }
+      if (task.status !== TaskStatus.ACCEPTED) {
+        throw ApiError.badRequest("Task must be in ACCEPTED status to start");
+      }
 
-    return prisma.task.update({
-      where: { id: taskId },
-      data: { status: TaskStatus.IN_PROGRESS },
-      include: {
-        createdBy: {
-          select: { id: true, name: true, email: true, role: true },
-        },
-        acceptedBy: {
-          select: { id: true, name: true, email: true, role: true },
-        },
-      },
+      return tx.task.update({
+        where: { id: taskId },
+        data: { status: TaskStatus.IN_PROGRESS },
+        include: taskWithUsers,
+      });
     });
   }
 
   /**
-   * Captain submits evidence (IN_PROGRESS → SUBMITTED)
-   * Validates GPS proximity using Haversine formula
+   * Captain submits evidence (IN_PROGRESS → SUBMITTED).
+   * Validates GPS proximity via Haversine formula before accepting submission.
    */
   static async submitTask(
     taskId: string,
@@ -208,12 +180,9 @@ export class TaskService {
       throw ApiError.forbidden("You are not assigned to this task");
     }
     if (task.status !== TaskStatus.IN_PROGRESS) {
-      throw ApiError.badRequest(
-        "Task must be IN_PROGRESS to submit evidence"
-      );
+      throw ApiError.badRequest("Task must be IN_PROGRESS to submit evidence");
     }
 
-    // GPS validation via Haversine
     const distance = haversineDistance(
       task.targetLat,
       task.targetLng,
@@ -223,7 +192,7 @@ export class TaskService {
 
     if (distance > MAX_DISTANCE_METERS) {
       throw ApiError.badRequest(
-        `Too far from target location. Distance: ${Math.round(distance)}m, Maximum allowed: ${MAX_DISTANCE_METERS}m`
+        `Too far from target. Distance: ${Math.round(distance)}m, maximum allowed: ${MAX_DISTANCE_METERS}m`
       );
     }
 
@@ -233,42 +202,31 @@ export class TaskService {
         status: TaskStatus.SUBMITTED,
         evidenceImage: imagePath,
       },
-      include: {
-        createdBy: {
-          select: { id: true, name: true, email: true, role: true },
-        },
-        acceptedBy: {
-          select: { id: true, name: true, email: true, role: true },
-        },
-      },
+      include: taskWithUsers,
     });
   }
 
   /**
-   * User marks task as complete (SUBMITTED → COMPLETED)
+   * User marks a task as completed (SUBMITTED → COMPLETED).
+   * Wrapped in a transaction to guard against duplicate complete requests.
    */
   static async completeTask(taskId: string, userId: string) {
-    const task = await prisma.task.findUnique({ where: { id: taskId } });
+    return prisma.$transaction(async (tx) => {
+      const task = await tx.task.findUnique({ where: { id: taskId } });
 
-    if (!task) throw ApiError.notFound("Task not found");
-    if (task.createdById !== userId) {
-      throw ApiError.forbidden("Only the task creator can complete a task");
-    }
-    if (task.status !== TaskStatus.SUBMITTED) {
-      throw ApiError.badRequest("Task must be SUBMITTED to complete");
-    }
+      if (!task) throw ApiError.notFound("Task not found");
+      if (task.createdById !== userId) {
+        throw ApiError.forbidden("Only the task creator can mark it as completed");
+      }
+      if (task.status !== TaskStatus.SUBMITTED) {
+        throw ApiError.badRequest("Task must be SUBMITTED to complete");
+      }
 
-    return prisma.task.update({
-      where: { id: taskId },
-      data: { status: TaskStatus.COMPLETED },
-      include: {
-        createdBy: {
-          select: { id: true, name: true, email: true, role: true },
-        },
-        acceptedBy: {
-          select: { id: true, name: true, email: true, role: true },
-        },
-      },
+      return tx.task.update({
+        where: { id: taskId },
+        data: { status: TaskStatus.COMPLETED },
+        include: taskWithUsers,
+      });
     });
   }
 }

@@ -137,36 +137,9 @@ export function UserTaskDetail() {
             </div>
           </Card>
 
-          {/* Task Info Card */}
+          {/* Actions — elevated for immediate access */}
           <Card padding="md">
-            <h2 className="text-[11px] font-bold text-surface-400 uppercase tracking-wider mb-3">
-              Task Details
-            </h2>
-            <div className="divide-y divide-surface-100 text-xs">
-              <div className="flex justify-between py-2">
-                <span className="text-surface-500">Created</span>
-                <span className="font-semibold text-surface-800">
-                  {new Date(task.createdAt).toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" })}
-                </span>
-              </div>
-              <div className="flex justify-between py-2">
-                <span className="text-surface-500">Captain Assigned</span>
-                <span className="font-semibold text-surface-800">
-                  {task.acceptedBy?.name || (
-                    <span className="text-surface-400 font-normal">Unassigned</span>
-                  )}
-                </span>
-              </div>
-              <div className="flex justify-between py-2">
-                <span className="text-surface-500">Coordinates</span>
-                <span className="font-mono text-surface-600">
-                  {task.targetLat.toFixed(6)}, {task.targetLng.toFixed(6)}
-                </span>
-              </div>
-            </div>
-
-            {/* Actions block */}
-            <div className="mt-4 pt-3 border-t border-surface-100 space-y-2">
+            <div className="space-y-2">
               {task.status === "SUBMITTED" && (
                 <Button
                   onClick={handleComplete}
@@ -197,14 +170,23 @@ export function UserTaskDetail() {
                 <div className="flex items-center gap-2 p-2.5 bg-blue-50 border border-blue-100 rounded-lg">
                   <span className="w-1.5 h-1.5 rounded-full bg-blue-500 animate-pulse-soft flex-shrink-0" />
                   <p className="text-[11.5px] text-blue-700 font-semibold">
-                    Awaiting captain assignment...
+                    Awaiting captain assignment
                   </p>
+                </div>
+              )}
+
+              {task.status === "COMPLETED" && (
+                <div className="flex items-center gap-2 p-2.5 bg-emerald-50 border border-emerald-100 rounded-lg">
+                  <svg className="w-4 h-4 text-emerald-600 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                  </svg>
+                  <p className="text-[11px] text-emerald-700 font-semibold">Verification complete</p>
                 </div>
               )}
             </div>
           </Card>
 
-          {/* Evidence Image Card */}
+          {/* Evidence Image — shown prominently when available for review */}
           {task.evidenceImage && (
             <Card padding="md">
               <h2 className="text-[11px] font-bold text-surface-400 uppercase tracking-wider mb-3">
@@ -219,6 +201,35 @@ export function UserTaskDetail() {
               </div>
             </Card>
           )}
+
+          {/* Task Info Card */}
+          <Card padding="md">
+            <h2 className="text-[11px] font-bold text-surface-400 uppercase tracking-wider mb-3">
+              Task Details
+            </h2>
+            <div className="divide-y divide-surface-100 text-xs">
+              <div className="flex justify-between py-2">
+                <span className="text-surface-500">Created</span>
+                <span className="font-semibold text-surface-800">
+                  {new Date(task.createdAt).toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" })}
+                </span>
+              </div>
+              <div className="flex justify-between py-2">
+                <span className="text-surface-500">Captain Assigned</span>
+                <span className="font-semibold text-surface-800">
+                  {task.acceptedBy?.name || (
+                    <span className="text-surface-400 font-normal">Unassigned</span>
+                  )}
+                </span>
+              </div>
+              <div className="flex justify-between py-2">
+                <span className="text-surface-500">Coordinates</span>
+                <span className="font-mono text-surface-600">
+                  {task.targetLat.toFixed(6)}, {task.targetLng.toFixed(6)}
+                </span>
+              </div>
+            </div>
+          </Card>
         </div>
 
         {/* Right Column: Prominent Map Pane */}

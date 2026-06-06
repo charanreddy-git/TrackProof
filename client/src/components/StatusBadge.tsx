@@ -20,9 +20,9 @@ const statusConfig: Record<
     dot: true,
   },
   SUBMITTED: {
-    label: "Submitted",
-    classes: "bg-emerald-50 text-emerald-700 ring-1 ring-emerald-100",
-    dot: false,
+    label: "Review",
+    classes: "bg-violet-50 text-violet-700 ring-1 ring-violet-100",
+    dot: true,
   },
   COMPLETED: {
     label: "Completed",
@@ -35,7 +35,7 @@ const dotColors: Record<TaskStatus, string> = {
   OPEN: "bg-blue-500",
   ACCEPTED: "bg-indigo-500",
   IN_PROGRESS: "bg-amber-500",
-  SUBMITTED: "bg-emerald-500",
+  SUBMITTED: "bg-violet-500",
   COMPLETED: "bg-emerald-500",
 };
 

@@ -72,7 +72,93 @@ export function CaptainTaskDetail() {
             </div>
           </Card>
 
-          {/* Task Info + Actions */}
+          {/* Actions — shown immediately for quick access */}
+          {(task.status === "ACCEPTED" || task.status === "IN_PROGRESS" || task.status === "SUBMITTED" || task.status === "COMPLETED") && (
+            <Card padding="md">
+              <div className="space-y-2">
+                {task.status === "ACCEPTED" && (
+                  <Button
+                    onClick={handleStart}
+                    isLoading={startTask.isPending}
+                    className="w-full bg-emerald-600 hover:bg-emerald-700 focus:ring-emerald-500"
+                    size="md"
+                  >
+                    <svg className="w-4 h-4 mr-1.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z" />
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                    Start Task
+                  </Button>
+                )}
+
+                {task.status === "IN_PROGRESS" && (
+                  <>
+                    {!isTracking && (
+                      <Button
+                        onClick={() => {
+                          cleanupRef.current = startTracking(task.id);
+                          addToast("info", "Location tracking enabled");
+                        }}
+                        variant="secondary"
+                        className="w-full"
+                        size="md"
+                      >
+                        <CompassIcon size={15} className="mr-1.5" />
+                        Enable Location Tracking
+                      </Button>
+                    )}
+                    {isTracking && (
+                      <div className="flex items-center gap-2 p-2.5 bg-emerald-50 border border-emerald-100 rounded-lg">
+                        <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse-soft flex-shrink-0" />
+                        <p className="text-[11px] text-emerald-700 font-semibold">Location tracking active</p>
+                      </div>
+                    )}
+                    <Button
+                      onClick={() => navigate(`/captain/tasks/${task.id}/upload`)}
+                      className="w-full"
+                      size="md"
+                    >
+                      <CameraIcon size={15} className="mr-1.5" />
+                      Capture Evidence
+                    </Button>
+                    <div className="flex items-start gap-2 pt-1">
+                      <svg className="w-3.5 h-3.5 text-amber-500 flex-shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                      </svg>
+                      <p className="text-[11.5px] text-surface-500 leading-snug">
+                        Must be within <strong className="text-surface-700">100m</strong> of target to submit
+                      </p>
+                    </div>
+                  </>
+                )}
+
+                {task.status === "SUBMITTED" && (
+                  <div className="flex items-center gap-2 p-2.5 bg-blue-50 border border-blue-100 rounded-lg">
+                    <svg className="w-4 h-4 text-blue-600 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                    <p className="text-[11px] text-blue-700 font-semibold">
+                      Evidence submitted — awaiting user verification
+                    </p>
+                  </div>
+                )}
+
+                {task.status === "COMPLETED" && (
+                  <div className="flex items-center gap-2 p-2.5 bg-emerald-50 border border-emerald-100 rounded-lg">
+                    <svg className="w-4 h-4 text-emerald-600 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                    </svg>
+                    <p className="text-[11px] text-emerald-700 font-semibold">
+                      Task completed successfully
+                    </p>
+                  </div>
+                )}
+              </div>
+            </Card>
+          )}
+
+          {/* Task Info */}
           <Card padding="md">
             <h2 className="text-[11px] font-bold text-surface-400 uppercase tracking-wider mb-3">
               Task Details
@@ -95,93 +181,7 @@ export function CaptainTaskDetail() {
                 </span>
               </div>
             </div>
-
-            {/* Actions */}
-            <div className="mt-4 pt-3 border-t border-surface-100 space-y-2">
-              {task.status === "ACCEPTED" && (
-                <Button
-                  onClick={handleStart}
-                  isLoading={startTask.isPending}
-                  className="w-full bg-emerald-600 hover:bg-emerald-700 focus:ring-emerald-500"
-                  size="md"
-                >
-                  <svg className="w-4 h-4 mr-1.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z" />
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                  </svg>
-                  Start Task
-                </Button>
-              )}
-
-              {task.status === "IN_PROGRESS" && (
-                <>
-                  {!isTracking && (
-                    <Button
-                      onClick={() => {
-                        cleanupRef.current = startTracking(task.id);
-                        addToast("info", "Location tracking enabled");
-                      }}
-                      variant="secondary"
-                      className="w-full"
-                      size="md"
-                    >
-                      <CompassIcon size={15} className="mr-1.5" />
-                      Enable Location Tracking
-                    </Button>
-                  )}
-                  {isTracking && (
-                    <div className="flex items-center gap-2 p-2.5 bg-emerald-50 border border-emerald-100 rounded-lg">
-                      <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse-soft flex-shrink-0" />
-                      <p className="text-[11px] text-emerald-700 font-semibold">Location tracking active</p>
-                    </div>
-                  )}
-                  <Button
-                    onClick={() => navigate(`/captain/tasks/${task.id}/upload`)}
-                    className="w-full"
-                    size="md"
-                  >
-                    <CameraIcon size={15} className="mr-1.5" />
-                    Capture Evidence
-                  </Button>
-                </>
-              )}
-
-              {task.status === "SUBMITTED" && (
-                <div className="flex items-center gap-2 p-2.5 bg-blue-50 border border-blue-100 rounded-lg">
-                  <svg className="w-4 h-4 text-blue-600 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                  </svg>
-                  <p className="text-[11px] text-blue-700 font-semibold">
-                    Evidence submitted — awaiting user verification
-                  </p>
-                </div>
-              )}
-
-              {task.status === "COMPLETED" && (
-                <div className="flex items-center gap-2 p-2.5 bg-emerald-50 border border-emerald-100 rounded-lg">
-                  <svg className="w-4 h-4 text-emerald-600 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                  </svg>
-                  <p className="text-[11px] text-emerald-700 font-semibold">
-                    Task completed successfully
-                  </p>
-                </div>
-              )}
-            </div>
           </Card>
-
-          {/* Proximity Warning Card */}
-          {task.status === "IN_PROGRESS" && (
-            <div className="flex items-start gap-2.5 p-3 bg-amber-50 rounded-lg border border-amber-100">
-              <svg className="w-4 h-4 text-amber-600 flex-shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
-              </svg>
-              <p className="text-xs text-amber-800 leading-normal">
-                You must be within <strong className="font-semibold">100 meters</strong> of this location to submit evidence.
-              </p>
-            </div>
-          )}
 
           {/* Evidence Image Card */}
           {task.evidenceImage && (

@@ -113,7 +113,7 @@ export function CreateTaskPage() {
       <form onSubmit={handleSubmit} className="space-y-5">
         {/* Task Details */}
         <Card padding="md">
-          <h2 className="text-[13px] font-bold text-surface-700 uppercase tracking-wider mb-4">
+          <h2 className="text-[11px] font-bold text-surface-400 uppercase tracking-wider mb-4">
             Task Details
           </h2>
           <div className="space-y-4">
@@ -150,7 +150,7 @@ export function CreateTaskPage() {
 
         {/* Location Selector */}
         <Card padding="md">
-          <h2 className="text-[13px] font-bold text-surface-700 uppercase tracking-wider mb-4">
+          <h2 className="text-[11px] font-bold text-surface-400 uppercase tracking-wider mb-4">
             Task Location
           </h2>
 
@@ -248,7 +248,7 @@ export function CreateTaskPage() {
                     Location verified
                   </span>
                   <span className="font-mono text-surface-500">
-                    📍 {latitude.toFixed(6)}, {longitude.toFixed(6)}
+                    {latitude.toFixed(6)}, {longitude.toFixed(6)}
                   </span>
                 </div>
               ) : (

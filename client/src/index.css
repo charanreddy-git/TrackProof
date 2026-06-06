@@ -154,7 +154,7 @@ body {
 .task-row-open { border-left: 3px solid #60a5fa; }
 .task-row-accepted { border-left: 3px solid #818cf8; }
 .task-row-in_progress { border-left: 3px solid #f59e0b; }
-.task-row-submitted { border-left: 3px solid #34d399; }
+.task-row-submitted { border-left: 3px solid #8b5cf6; }
 .task-row-completed { border-left: 3px solid #10b981; }
 
 /* Bottom nav safe area */
