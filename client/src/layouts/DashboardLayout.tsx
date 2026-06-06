@@ -5,7 +5,6 @@ import {
   DashboardIcon,
   PlusIcon,
   ClipboardIcon,
-  SearchIcon,
   LogOutIcon,
 } from "../components/Icons";
 
@@ -16,8 +15,7 @@ const userNav = [
 ];
 
 const captainNav = [
-  { to: "/captain", label: "Dashboard", icon: DashboardIcon, end: true },
-  { to: "/captain/available", label: "Available", icon: SearchIcon, end: true },
+  { to: "/captain/dashboard", label: "Dashboard", icon: DashboardIcon, end: true },
   { to: "/captain/accepted", label: "My Tasks", icon: ClipboardIcon, end: true },
 ];
 

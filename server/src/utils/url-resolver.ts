@@ -12,7 +12,7 @@ import { ApiError } from "./api-error";
  * - https://www.google.com/maps/place/12.9716,77.5946
  * - https://www.google.com/maps/...!3d12.9715987!4d77.5945627
  */
-export function parseCoordinates(
+function parseCoordinates(
   url: string
 ): { latitude: number; longitude: number } | null {
   const patterns: RegExp[] = [
@@ -40,7 +40,7 @@ export function parseCoordinates(
  * Follows HTTP redirects recursively using Node's native HTTP/HTTPS modules.
  * Stops after maxRedirects to prevent infinite redirect loops.
  */
-export async function followRedirects(
+async function followRedirects(
   urlStr: string,
   maxRedirects = 6
 ): Promise<string> {

@@ -24,7 +24,7 @@ export function ProtectedRoute({
 
   if (allowedRoles && user && !allowedRoles.includes(user.role)) {
     // Redirect to the correct dashboard
-    const redirectPath = user.role === "CAPTAIN" ? "/captain" : "/user";
+    const redirectPath = user.role === "CAPTAIN" ? "/captain/dashboard" : "/user";
     return <Navigate to={redirectPath} replace />;
   }
 

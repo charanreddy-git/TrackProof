@@ -6,10 +6,14 @@ import { Input } from "../../components/ui/Input";
 import { useToast } from "../../components/ui/Toast";
 import type { Role } from "../../types";
 
-export function RegisterPage() {
+interface RegisterPageProps {
+  forcedRole?: Role;
+}
+
+export function RegisterPage({ forcedRole }: RegisterPageProps = {}) {
   const [searchParams] = useSearchParams();
   const roleParam = searchParams.get("role");
-  const initialRole: Role = (roleParam?.toUpperCase() === "CAPTAIN") ? "CAPTAIN" : "USER";
+  const initialRole: Role = forcedRole ?? ((roleParam?.toUpperCase() === "CAPTAIN") ? "CAPTAIN" : "USER");
 
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
@@ -29,7 +33,7 @@ export function RegisterPage() {
     try {
       await register(name, email, password, role);
       addToast("success", "Account created successfully!");
-      navigate(role === "CAPTAIN" ? "/captain" : "/user");
+      navigate(role === "CAPTAIN" ? "/captain/dashboard" : "/user");
     } catch (err) {
        const message =
          (err as { response?: { data?: { message?: string } } }).response?.data?.message || "Registration failed. Please try again.";

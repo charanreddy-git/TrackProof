@@ -31,7 +31,29 @@ model User {
   createdTasks  Task[] @relation("CreatedTasks")
   acceptedTasks Task[] @relation("AcceptedTasks")
 
+  captainProfile  CaptainProfile?
+  requesterProfile RequesterProfile?
+
   createdAt DateTime @default(now())
+}
+
+model CaptainProfile {
+  id                String   @id @default(cuid())
+  userId            String   @unique
+  user              User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  serviceRadius     Float    @default(5.0)
+  verificationCount Int      @default(0)
+  completionRate    Float    @default(100.0)
+  earningsTotal     Float    @default(0.0)
+  averageRating     Float    @default(5.0)
+}
+
+model RequesterProfile {
+  id               String  @id @default(cuid())
+  userId           String  @unique
+  user             User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  organizationName String?
+  totalRequests    Int     @default(0)
 }
 
 model Task {

@@ -32,7 +32,7 @@ export interface Task {
   updatedAt: string;
 }
 
-export interface LocationLog {
+interface LocationLog {
   id: string;
   latitude: number;
   longitude: number;

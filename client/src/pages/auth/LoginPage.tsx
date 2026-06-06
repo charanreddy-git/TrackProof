@@ -24,7 +24,7 @@ export function LoginPage() {
       addToast("success", "Welcome back!");
       // Auth context will set user, then we redirect based on role
       const user = JSON.parse(localStorage.getItem("user") || "{}");
-      navigate(user.role === "CAPTAIN" ? "/captain" : "/user");
+      navigate(user.role === "CAPTAIN" ? "/captain/dashboard" : "/user");
     } catch (err) {
       const message =
         (err as { response?: { data?: { message?: string } } }).response?.data?.message || "Login failed. Please try again.";
@@ -84,7 +84,7 @@ export function LoginPage() {
       <p className="text-center text-sm text-surface-500 mt-6">
         Don't have an account?{" "}
         <Link
-          to="/register"
+          to="/"
           className="text-primary-600 hover:text-primary-700 font-medium"
         >
           Create one

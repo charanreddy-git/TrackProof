@@ -20,11 +20,12 @@ import { TrackCaptainPage } from "./pages/user/TrackCaptainPage";
 
 // Captain Pages
 import { CaptainDashboard } from "./pages/captain/CaptainDashboard";
-import { AvailableTasksPage } from "./pages/captain/AvailableTasksPage";
 import { AcceptedTasksPage } from "./pages/captain/AcceptedTasksPage";
 import { CaptainTaskDetail } from "./pages/captain/CaptainTaskDetail";
 import { UploadEvidencePage } from "./pages/captain/UploadEvidencePage";
 import { LandingPage } from "./pages/LandingPage";
+import { RequesterLandingPage } from "./pages/verify/RequesterLandingPage";
+import { CaptainLandingPage } from "./pages/captain/CaptainLandingPage";
 import { PricingPage } from "./pages/PricingPage";
 
 const queryClient = new QueryClient({
@@ -46,10 +47,14 @@ function App() {
             <Routes>
               {/* Public routes */}
               <Route path="/" element={<LandingPage />} />
+              <Route path="/verify" element={<RequesterLandingPage />} />
+              <Route path="/captain" element={<CaptainLandingPage />} />
               <Route path="/pricing" element={<PricingPage />} />
               <Route element={<AuthLayout />}>
                 <Route path="/login" element={<LoginPage />} />
                 <Route path="/register" element={<RegisterPage />} />
+                <Route path="/verify/signup" element={<RegisterPage forcedRole="USER" />} />
+                <Route path="/captain/signup" element={<RegisterPage forcedRole="CAPTAIN" />} />
               </Route>
 
               {/* User routes */}
@@ -75,11 +80,7 @@ function App() {
                   </ProtectedRoute>
                 }
               >
-                <Route path="/captain" element={<CaptainDashboard />} />
-                <Route
-                  path="/captain/available"
-                  element={<AvailableTasksPage />}
-                />
+                <Route path="/captain/dashboard" element={<CaptainDashboard />} />
                 <Route
                   path="/captain/accepted"
                   element={<AcceptedTasksPage />}

@@ -18,4 +18,4 @@ export const taskFilterSchema = z
 
 export type CreateTaskInput = z.infer<typeof createTaskSchema>;
 export type SubmitTaskInput = z.infer<typeof submitTaskSchema>;
-export type TaskFilter = z.infer<typeof taskFilterSchema>;
+

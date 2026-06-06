@@ -3,7 +3,6 @@ import {
   fetchTasks,
   fetchTaskById,
   createTask,
-  acceptTask,
   startTask,
   submitTask,
   completeTask,
@@ -36,47 +35,36 @@ export function useCreateTask() {
   });
 }
 
-export function useAcceptTask() {
+// Helper for invalidating tasks
+function useTaskInvalidation() {
   const queryClient = useQueryClient();
-  return useMutation({
-    mutationFn: (id: string) => acceptTask(id),
-    onSuccess: (_, id) => {
-      queryClient.invalidateQueries({ queryKey: ["tasks"] });
-      queryClient.invalidateQueries({ queryKey: ["task", id] });
-    },
-  });
+  return (id: string) => {
+    queryClient.invalidateQueries({ queryKey: ["tasks"] });
+    queryClient.invalidateQueries({ queryKey: ["task", id] });
+  };
 }
 
 export function useStartTask() {
-  const queryClient = useQueryClient();
+  const invalidate = useTaskInvalidation();
   return useMutation({
     mutationFn: (id: string) => startTask(id),
-    onSuccess: (_, id) => {
-      queryClient.invalidateQueries({ queryKey: ["tasks"] });
-      queryClient.invalidateQueries({ queryKey: ["task", id] });
-    },
+    onSuccess: (_, id) => invalidate(id),
   });
 }
 
 export function useSubmitTask() {
-  const queryClient = useQueryClient();
+  const invalidate = useTaskInvalidation();
   return useMutation({
     mutationFn: ({ id, formData }: { id: string; formData: FormData }) =>
       submitTask(id, formData),
-    onSuccess: (_, { id }) => {
-      queryClient.invalidateQueries({ queryKey: ["tasks"] });
-      queryClient.invalidateQueries({ queryKey: ["task", id] });
-    },
+    onSuccess: (_, { id }) => invalidate(id),
   });
 }
 
 export function useCompleteTask() {
-  const queryClient = useQueryClient();
+  const invalidate = useTaskInvalidation();
   return useMutation({
     mutationFn: (id: string) => completeTask(id),
-    onSuccess: (_, id) => {
-      queryClient.invalidateQueries({ queryKey: ["tasks"] });
-      queryClient.invalidateQueries({ queryKey: ["task", id] });
-    },
+    onSuccess: (_, id) => invalidate(id),
   });
 }

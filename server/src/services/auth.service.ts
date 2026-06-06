@@ -24,6 +24,8 @@ export class AuthService {
         email: input.email,
         password: hashedPassword,
         role: input.role,
+        captainProfile: input.role === "CAPTAIN" ? { create: {} } : undefined,
+        requesterProfile: input.role === "USER" ? { create: {} } : undefined,
       },
       select: {
         id: true,
