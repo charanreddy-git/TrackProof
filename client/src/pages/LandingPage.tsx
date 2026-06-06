@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import {
   CompassIcon,
@@ -13,12 +13,10 @@ import {
 export function LandingPage() {
   const [activeFaq, setActiveFaq] = useState<number | null>(null);
   
-  // Redesigned Simulator State
   const [simStep, setSimStep] = useState<number>(0);
   const [isPlaying, setIsPlaying] = useState<boolean>(true);
   const [progress, setProgress] = useState<number>(0);
   const [shutterFlash, setShutterFlash] = useState<boolean>(false);
-  const terminalContainerRef = useRef<HTMLDivElement | null>(null);
 
   const toggleFaq = (index: number) => {
     setActiveFaq(activeFaq === index ? null : index);
@@ -44,12 +42,42 @@ export function LandingPage() {
   ];
 
   const SIM_STEPS = [
-    { label: "1. Created", desc: "Request placed, property coordinates locked." },
-    { label: "2. Assigned", desc: "Local captain assigned to visit the site." },
-    { label: "3. En Route", desc: "Watch the captain travel to the site live." },
-    { label: "4. Arrived", desc: "Arrival verified at property boundary." },
-    { label: "5. Capture", desc: "Camera captures secure on-site photo." },
-    { label: "6. Verified", desc: "Verified proof sealed and delivered." }
+    {
+      label: "Request Created",
+      desc: "Property coordinates locked and inspection instructions pinned.",
+      badge: "✓ GPS coordinates locked",
+      icon: MapPinIcon
+    },
+    {
+      label: "Captain Assigned",
+      desc: "Nearby captain John S. accepts the request and profile is verified.",
+      badge: "✓ Captain identity verified",
+      icon: UserIcon
+    },
+    {
+      label: "Traveling to Location",
+      desc: "Live route progress tracking on your personal dashboard.",
+      badge: "✓ Live route progress active",
+      icon: ZapIcon
+    },
+    {
+      label: "Location Reached",
+      desc: "Inspector enters the target property's 100m geofence boundary.",
+      badge: "✓ Boundary entry confirmed",
+      icon: CompassIcon
+    },
+    {
+      label: "Photos Captured",
+      desc: "Inspector snaps a live, location-guaranteed photo on-site.",
+      badge: "✓ In-app photo verified",
+      icon: CameraIcon
+    },
+    {
+      label: "Verification Complete",
+      desc: "Verified proof package compiled and delivered to your inbox.",
+      badge: "✓ Trust package delivered",
+      icon: ClipboardIcon
+    }
   ];
 
   // Auto-play / simulation controller
@@ -96,19 +124,9 @@ export function LandingPage() {
     };
   }, [isPlaying, simStep]);
 
-  // Scroll terminal logs container internally (prevents page jump/scroll)
-  useEffect(() => {
-    if (terminalContainerRef.current) {
-      terminalContainerRef.current.scrollTop = terminalContainerRef.current.scrollHeight;
-    }
-  }, [simStep, progress]);
-
   // Compute Telemetry values dynamically based on simStep and progress
   let distanceVal: string;
   let coordVal: string;
-  let socketStatus: string;
-  let cameraStatus: string;
-  let hashVal: string;
   let activeBadge: string;
   let badgeLabel: string;
   
@@ -119,17 +137,11 @@ export function LandingPage() {
   if (simStep === 0) {
     distanceVal = "---";
     coordVal = "---";
-    socketStatus = "Idle";
-    cameraStatus = "Locked";
-    hashVal = "Pending";
     badgeLabel = "Request Created";
     activeBadge = "bg-surface-150 text-surface-600 border-surface-300";
   } else if (simStep === 1) {
     distanceVal = "450m";
     coordVal = "12.9750° N, 77.5910° E";
-    socketStatus = "Active";
-    cameraStatus = "Locked";
-    hashVal = "Pending";
     badgeLabel = "Captain Assigned";
     activeBadge = "bg-blue-50 text-blue-700 border-blue-200 animate-pulse-soft";
     cx = 80;
@@ -140,9 +152,6 @@ export function LandingPage() {
     const lat = (12.9750 - progress * 0.0034).toFixed(4);
     const lng = (77.5910 + progress * 0.0036).toFixed(4);
     coordVal = `${lat}° N, ${lng}° E`;
-    socketStatus = "Live";
-    cameraStatus = "Locked";
-    hashVal = "Generating...";
     badgeLabel = `En Route (${distanceVal})`;
     activeBadge = "bg-amber-50 text-amber-700 border-amber-200 animate-pulse-soft";
     
@@ -162,82 +171,22 @@ export function LandingPage() {
   } else {
     distanceVal = "12m";
     coordVal = "12.9716° N, 77.5946° E";
-    socketStatus = "Active";
-    hashVal = simStep === 5 ? "0x3e18a...f8a2" : "Generating...";
     badgeLabel = simStep === 3 ? "Location Reached" : simStep === 4 ? "Capturing Evidence" : "Verification Complete";
     cx = 368;
     cy = 220;
     
     if (simStep === 3) {
-      cameraStatus = "Ready";
       activeBadge = "bg-emerald-50 text-emerald-700 border-emerald-200 animate-pulse-soft";
     } else if (simStep === 4) {
-      cameraStatus = "Capturing...";
       activeBadge = "bg-emerald-500 text-white border-emerald-600";
     } else {
-      cameraStatus = "Verified";
       activeBadge = "bg-emerald-600 text-white border-emerald-700";
     }
   }
 
-  // Get terminal logs dynamically
-  const getLogs = () => {
-    const entries = [
-      { t: "14:02:10", type: "INFO", msg: "Inspection request #9821 created." },
-      { t: "14:02:11", type: "INFO", msg: "Target location locked: 12.9716° N, 77.5946° E." },
-      { t: "14:02:12", type: "INFO", msg: "Geofence active: 100-meter verification radius." }
-    ];
 
-    if (simStep >= 1) {
-      entries.push(
-        { t: "14:02:13", type: "CONN", msg: "Local inspector John Smith accepted the request." },
-        { t: "14:02:14", type: "CONN", msg: "Inspector profile verified. Live feed active." },
-        { t: "14:02:14", type: "INFO", msg: "Inspector en route to the property." }
-      );
-    }
 
-    if (simStep >= 2) {
-      entries.push(
-        { t: "14:02:15", type: "MAP", msg: "Tracking live inspector location." }
-      );
-      if (progress > 0.25) {
-        entries.push({ t: "14:02:17", type: "MAP", msg: "Distance: 310m | Route: Inner Ring Road." });
-      }
-      if (progress > 0.6) {
-        entries.push({ t: "14:02:19", type: "MAP", msg: "Distance: 160m | Route: Richmond Road." });
-      }
-      if (progress > 0.9) {
-        entries.push({ t: "14:02:21", type: "MAP", msg: "Distance: 45m | Arriving at property boundary." });
-      }
-    }
 
-    if (simStep >= 3) {
-      entries.push(
-        { t: "14:02:22", type: "LOCK", msg: "Inspector arrived at the property." },
-        { t: "14:02:23", type: "LOCK", msg: "Coordinates confirmed. Verification range check: OK." }
-      );
-    }
-
-    if (simStep >= 4) {
-      entries.push(
-        { t: "14:02:24", type: "PHOTO", msg: "Camera system initialized. Ready to snap photo." },
-        { t: "14:02:25", type: "PHOTO", msg: "Live photo captured by inspector on-site." },
-        { t: "14:02:26", type: "SAFE", msg: "Watermarking photo with verified location coordinates and timestamp." },
-        { t: "14:02:27", type: "SEAL", msg: "Tamper-proof digital certificate sealed." }
-      );
-    }
-
-    if (simStep >= 5) {
-      entries.push(
-        { t: "14:02:28", type: "INFO", msg: "Inspection evidence verified by server. Status: COMPLETED." },
-        { t: "14:02:29", type: "INFO", msg: "Session finalized. Verified proof package ready." }
-      );
-    }
-
-    return entries;
-  };
-
-  const currentLogs = getLogs();
 
   return (
     <div className="min-h-screen bg-surface-50 text-surface-900 selection:bg-primary-500 selection:text-white overflow-x-hidden font-sans">
@@ -376,8 +325,7 @@ export function LandingPage() {
             </div>
           </div>
         </div>
-      </section>      {/* Redesigned Interactive Simulation Section */}
-      <section id="demo" className="py-20 border-t border-surface-200 bg-white">
+      </section>      <section id="demo" className="py-20 border-t border-surface-200 bg-white">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           
           {/* Header */}
@@ -426,138 +374,77 @@ export function LandingPage() {
                   <path strokeLinecap="round" strokeLinejoin="round" d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0l3.181 3.183a8.25 8.25 0 0013.803-3.7M4.031 9.865a8.25 8.25 0 0113.803-3.7l3.181 3.182m0-4.991v4.99" />
                 </svg>
               </button>
-              <div className="h-4 w-[1px] bg-surface-200 mx-1" />
-              {/* Step quick links */}
-              <div className="hidden sm:flex items-center gap-1">
-                {SIM_STEPS.map((_, idx) => (
-                  <button
-                    key={idx}
-                    type="button"
-                    onClick={() => {
-                      setSimStep(idx);
-                      setProgress(idx === 2 ? 0.5 : 0);
-                    }}
-                    className={`px-2.5 py-1 text-[11px] font-bold rounded-md transition-all cursor-pointer ${
-                      simStep === idx
-                        ? "bg-primary-600 text-white shadow-sm"
-                        : "text-surface-600 hover:bg-surface-200"
-                    }`}
-                  >
-                    Step {idx + 1}
-                  </button>
-                ))}
-              </div>
             </div>
           </div>
 
           {/* Simulation Grid Layout */}
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-stretch">
             
-            {/* Left Column: Command Center Metrics & CLI */}
-            <div className="lg:col-span-5 flex flex-col justify-between gap-6">
-              
-              {/* Telemetry widgets */}
-              <div className="grid grid-cols-2 gap-4">
-                
-                {/* Distance widget */}
-                <div className="p-4 bg-surface-50 border border-surface-200/80 rounded-xl space-y-2 relative overflow-hidden group hover:border-primary-200 transition-colors">
-                  <div className="flex justify-between items-center">
-                    <span className="text-[10px] font-bold tracking-wider text-surface-500 uppercase">Distance to Target</span>
-                    <CompassIcon size={16} className="text-primary-600" />
-                  </div>
-                  <div className="text-2xl font-black text-surface-900 tabular-nums">
-                    {distanceVal}
-                  </div>
-                  <div className="text-[10px] text-surface-450 flex items-center gap-1 font-medium">
-                    <span className={`w-1.5 h-1.5 rounded-full ${simStep >= 3 ? "bg-emerald-500" : "bg-primary-500 animate-pulse-soft"}`} />
-                    Allowed Range: Within 100m
-                  </div>
+            {/* Left Column: Storytelling Verification Journey */}
+            <div className="lg:col-span-4 flex flex-col justify-between gap-6 bg-surface-50 border border-surface-200/80 p-5 rounded-xl">
+              <div className="space-y-4">
+                <div className="flex items-center justify-between border-b border-surface-200 pb-2">
+                  <h3 className="text-[10px] font-bold uppercase tracking-wider text-surface-500">
+                    Live Progress Tracker
+                  </h3>
+                  <span className="text-[9px] font-bold text-primary-600 bg-primary-50 px-2 py-0.5 rounded-md">
+                    Automated Playback
+                  </span>
                 </div>
 
-                {/* Live Tracking Feed widget */}
-                <div className="p-4 bg-surface-50 border border-surface-200/80 rounded-xl space-y-2 relative overflow-hidden group hover:border-primary-200 transition-colors">
-                  <div className="flex justify-between items-center">
-                    <span className="text-[10px] font-bold tracking-wider text-surface-500 uppercase">Live Tracking Feed</span>
-                    <ZapIcon size={16} className="text-primary-600 animate-pulse-soft" />
-                  </div>
-                  <div className="text-2xl font-black text-surface-900 uppercase tracking-tight">
-                    {socketStatus}
-                  </div>
-                  <div className="text-[10px] text-surface-450 font-medium">
-                    Secure connection status
-                  </div>
-                </div>
+                <div className="relative pl-6 border-l border-surface-200/80 space-y-4 pt-1">
+                  {SIM_STEPS.map((step, idx) => {
+                    const isCompleted = simStep > idx;
+                    const isActive = simStep === idx;
+                    const StepIcon = step.icon;
 
-                {/* Photo Authenticator */}
-                <div className="p-4 bg-surface-50 border border-surface-200/80 rounded-xl space-y-2 relative overflow-hidden group hover:border-primary-200 transition-colors">
-                  <div className="flex justify-between items-center">
-                    <span className="text-[10px] font-bold tracking-wider text-surface-500 uppercase">Photo Authenticator</span>
-                    <CameraIcon size={16} className="text-primary-600" />
-                  </div>
-                  <div className="text-2xl font-black text-surface-900 uppercase tracking-tight">
-                    {cameraStatus}
-                  </div>
-                  <div className="text-[10px] text-surface-450 font-medium">
-                    Verified on-site capture
-                  </div>
-                </div>
+                    return (
+                      <div key={idx} className="relative group transition-all duration-300">
+                        {/* Step Marker Dot */}
+                        <div
+                          className={`absolute -left-[31px] top-0.5 w-6 h-6 rounded-full border flex items-center justify-center transition-all duration-300 z-10 ${
+                            isCompleted
+                              ? "bg-emerald-500 border-emerald-500 text-white"
+                              : isActive
+                              ? "bg-primary-600 border-primary-600 text-white ring-4 ring-primary-100 shadow-sm"
+                              : "bg-white border-surface-300 text-surface-400"
+                          }`}
+                        >
+                          {isCompleted ? (
+                            <svg className="w-3 h-3 fill-none stroke-current stroke-[2.5]" viewBox="0 0 24 24">
+                              <polyline points="20 6 9 17 4 12" />
+                            </svg>
+                          ) : (
+                            <StepIcon size={11} className={isActive ? "text-white animate-pulse-soft" : "text-surface-400"} />
+                          )}
+                        </div>
 
-                {/* Secure Proof Hash */}
-                <div className="p-4 bg-surface-50 border border-surface-200/80 rounded-xl space-y-2 relative overflow-hidden group hover:border-primary-200 transition-colors">
-                  <div className="flex justify-between items-center">
-                    <span className="text-[10px] font-bold tracking-wider text-surface-500 uppercase">Secure Proof Hash</span>
-                    <ClipboardIcon size={16} className="text-primary-600" />
-                  </div>
-                  <div className="text-[13px] font-mono font-bold text-surface-900 leading-tight truncate">
-                    {hashVal}
-                  </div>
-                  <div className="text-[10px] text-surface-450 font-medium">
-                    Digital certificate sealed
-                  </div>
-                </div>
+                        {/* Step content */}
+                        <div className={`space-y-0.5 ${isActive ? "opacity-100 scale-[1.01]" : "opacity-60"} transition-all duration-350`}>
+                          <h4 className={`text-[12px] font-bold tracking-tight ${isActive ? "text-primary-750" : "text-surface-900"}`}>
+                            {step.label}
+                          </h4>
+                          
+                          <p className="text-[10px] text-surface-600 leading-normal font-normal">
+                            {step.desc}
+                          </p>
 
-              </div>
-
-              {/* Terminal logs */}
-              <div className="bg-zinc-950 rounded-xl border border-zinc-900 shadow-elevated overflow-hidden flex-1 flex flex-col min-h-[200px]">
-                {/* Console header */}
-                <div className="px-4 py-2.5 bg-zinc-900 border-b border-zinc-950 flex items-center justify-between">
-                  <div className="flex items-center gap-1.5">
-                    <span className="w-2.5 h-2.5 rounded-full bg-red-500/80" />
-                    <span className="w-2.5 h-2.5 rounded-full bg-amber-500/80" />
-                    <span className="w-2.5 h-2.5 rounded-full bg-emerald-500/80" />
-                  </div>
-                  <span className="text-[10px] font-mono font-bold text-zinc-500">terminal@instantlocate: ~logs</span>
-                  <div className="w-10" />
-                </div>
-                {/* Console logs box */}
-                <div 
-                  ref={terminalContainerRef}
-                  className="flex-1 p-4 overflow-y-auto font-mono text-[11px] space-y-1.5 text-zinc-400"
-                >
-                  {currentLogs.map((log: { t: string; type: string; msg: string }, idx: number) => (
-                    <div key={idx} className="flex items-start gap-2 leading-relaxed">
-                      <span className="text-zinc-650 flex-shrink-0">[{log.t}]</span>
-                      <span className={`px-1 rounded-[3px] text-[9px] font-bold flex-shrink-0 ${
-                        log.type === "INFO" ? "bg-zinc-800 text-zinc-300" :
-                        log.type === "CONN" ? "bg-blue-900/40 text-blue-400" :
-                        log.type === "MAP" ? "bg-amber-900/40 text-amber-400" :
-                        log.type === "LOCK" ? "bg-purple-900/40 text-purple-400" :
-                        log.type === "PHOTO" ? "bg-emerald-900/40 text-emerald-400" :
-                        log.type === "SAFE" ? "bg-pink-900/40 text-pink-400" :
-                        log.type === "SEAL" ? "bg-emerald-950/60 text-emerald-400" :
-                        "bg-red-900/40 text-red-400"
-                      }`}>{log.type}</span>
-                      <span className="text-zinc-200">{log.msg}</span>
-                    </div>
-                  ))}
+                          {/* Outcome Trust Badge */}
+                          {(isActive || isCompleted) && (
+                            <div className="inline-flex items-center px-1.5 py-0.5 mt-1 bg-emerald-50 border border-emerald-200 text-[8.5px] font-bold text-emerald-750 rounded">
+                              {step.badge}
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    );
+                  })}
                 </div>
               </div>
-
             </div>
 
-            {/* Right Column: High-tech SVG Map Visualization & Camera overlay */}
-            <div className="lg:col-span-7 flex flex-col relative min-h-[350px] bg-slate-50 border border-surface-200 rounded-xl overflow-hidden shadow-elevated">
+            {/* Right Column: High-tech Map Visualization & Camera overlay */}
+            <div className="lg:col-span-8 flex flex-col relative min-h-[400px] bg-slate-50 border border-surface-200 rounded-xl overflow-hidden shadow-elevated">
               
               {/* Map header with telemetry feeds */}
               <div className="px-4 py-3 bg-white border-b border-surface-200 flex items-center justify-between z-10">
@@ -584,7 +471,7 @@ export function LandingPage() {
               <div className="flex-1 relative overflow-hidden bg-white select-none">
                 
                 {/* SVG Visual map */}
-                <svg className="w-full h-full min-h-[300px] absolute inset-0" viewBox="0 0 500 350" fill="none">
+                <svg className="w-full h-full min-h-[320px] absolute inset-0" viewBox="0 0 500 350" fill="none">
                   {/* Blueprint Grid Lines */}
                   <defs>
                     <pattern id="mapGrid" width="35" height="35" patternUnits="userSpaceOnUse">
@@ -651,13 +538,13 @@ export function LandingPage() {
                     <>
                       {/* Distance connector dashed line */}
                       <line
-                        x1={cx}
-                        y1={cy}
-                        x2="380"
-                        y2="220"
-                        className={`stroke-[1.5] stroke-dasharray-[4_3] transition-all duration-300 ${
-                          simStep >= 3 ? "stroke-emerald-500" : "stroke-primary-400"
-                        }`}
+                         x1={cx}
+                         y1={cy}
+                         x2="380"
+                         y2="220"
+                         className={`stroke-[1.5] stroke-dasharray-[4_3] transition-all duration-300 ${
+                           simStep >= 3 ? "stroke-emerald-500" : "stroke-primary-400"
+                         }`}
                       />
                       {/* Distance text container */}
                       <rect
@@ -686,7 +573,7 @@ export function LandingPage() {
 
                   {/* Target Pin */}
                   <g transform="translate(380, 220)">
-                    {/* Glowing coordinate pin shadow */}
+                    {/* Glowing pin shadow */}
                     <ellipse cx="0" cy="4" rx="6" ry="2.5" className="fill-slate-900/10 stroke-none" />
                     {/* Visual custom pin */}
                     <path
@@ -703,7 +590,6 @@ export function LandingPage() {
                   {/* Captain Avatar Pin */}
                   {simStep >= 1 && (
                     <g transform={`translate(${cx}, ${cy})`} className="transition-transform duration-100 ease-out">
-                      {/* Avatar base shadow */}
                       <circle cx="0" cy="0" r="14" className="fill-white stroke-primary-600 stroke-[2] shadow-sm animate-pulse-soft" />
                       <circle cx="0" cy="0" r="11" fill="oklch(0.55 0.2 250)" />
                       {/* Caption text letter J */}
@@ -718,19 +604,28 @@ export function LandingPage() {
                       >
                         J
                       </text>
-                      {/* Direction locator triangle pointing towards target */}
-                      {simStep === 2 && (
-                        <polygon
-                          points="0,-15 -4,-11 4,-11"
-                          fill="oklch(0.55 0.2 250)"
-                          transform={`rotate(${
-                            progress <= 0.373 ? 90 : progress <= 0.701 ? 180 : 90
-                          })`}
-                        />
-                      )}
                     </g>
                   )}
                 </svg>
+
+                {/* HTML Float Label Overlays for Map */}
+                <div className="absolute top-[220px] left-[380px] -translate-x-1/2 -translate-y-10 bg-slate-900/90 text-white text-[9px] font-semibold px-2 py-0.5 rounded shadow-sm border border-slate-700 pointer-events-none select-none flex items-center gap-1 animate-fade-in z-10">
+                  <span className="w-1.5 h-1.5 rounded-full bg-primary-500 animate-ping" />
+                  Target Property
+                </div>
+
+                {simStep >= 1 && (
+                  <div
+                    style={{ top: `${cy}px`, left: `${cx}px` }}
+                    className="absolute -translate-x-1/2 -translate-y-10 bg-white border border-surface-200 text-surface-900 text-[9px] font-bold px-2 py-0.5 rounded-md shadow-sm pointer-events-none select-none flex items-center gap-1 transition-all duration-100 ease-out z-10"
+                  >
+                    <span className="w-1 h-1 rounded-full bg-emerald-500 animate-pulse-soft" />
+                    <span>Captain John S.</span>
+                    <span className="text-[7.5px] text-surface-450 font-normal">
+                      {simStep === 1 ? "Assigned" : simStep === 2 ? "En Route" : "Arrived"}
+                    </span>
+                  </div>
+                )}
 
                 {/* Evidence Viewfinder Overlay (fades in at Step 4 & 5) */}
                 {simStep >= 4 && (
@@ -739,6 +634,13 @@ export function LandingPage() {
                     {/* Target Photo Viewfinder Container */}
                     <div className="relative w-full max-w-[340px] aspect-[4/3] rounded-xl border border-emerald-500/80 overflow-hidden bg-slate-900 shadow-elevated">
                       
+                      {/* Realistic Photo Frame */}
+                      <img
+                        src="/verified_property.png"
+                        alt="Verified Property facade"
+                        className="absolute inset-0 w-full h-full object-cover select-none pointer-events-none"
+                      />
+
                       {/* Viewfinder crosshairs */}
                       <div className="absolute inset-0 border-[1.5px] border-emerald-500/20 pointer-events-none" />
                       {/* Corner crop borders */}
@@ -752,20 +654,6 @@ export function LandingPage() {
                         <div className="w-10 h-10 border border-emerald-400/50 rounded-full flex items-center justify-center">
                           <div className="w-2 h-2 bg-emerald-400 rounded-full" />
                         </div>
-                      </div>
-
-                      {/* Mock Wireframe Building / Schematic Drawing */}
-                      <div className="absolute inset-0 flex items-center justify-center pointer-events-none opacity-40">
-                        <svg className="w-[60%] h-[60%] stroke-emerald-500 stroke-[1.5] fill-none" viewBox="0 0 100 100">
-                          {/* Schematic grid */}
-                          <line x1="0" y1="50" x2="100" y2="50" strokeDasharray="2 2" stroke="oklch(0.75 0.18 160)" strokeWidth="0.5" />
-                          <line x1="50" y1="0" x2="50" y2="100" strokeDasharray="2 2" stroke="oklch(0.75 0.18 160)" strokeWidth="0.5" />
-                          {/* House vector outline */}
-                          <polygon points="20,80 20,45 50,20 80,45 80,80" />
-                          <rect x="30" y="55" width="15" height="25" />
-                          <rect x="55" y="45" width="15" height="15" />
-                          <circle cx="50" cy="35" r="5" />
-                        </svg>
                       </div>
 
                       {/* Recording status indicators */}
@@ -828,11 +716,20 @@ export function LandingPage() {
 
               </div>
 
-              {/* Telemetry bottom bar */}
-              <div className="px-4 py-2 bg-surface-50 border-t border-surface-200 flex justify-between items-center text-[9px] font-mono text-surface-500">
-                <span>LOCATION CONFIDENCE: HIGH</span>
-                <span>STATUS: {simStep >= 1 ? "MONITORING ACTIVE" : "CONNECTING..."}</span>
-                <span>UPDATE INTERVAL: LIVE</span>
+              {/* Trust badges bottom bar */}
+              <div className="px-4 py-3 bg-emerald-50/50 border-t border-surface-200 flex flex-wrap gap-4 items-center justify-around text-[10px] font-bold text-emerald-800">
+                <span className="flex items-center gap-1.5">
+                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
+                  ✓ CAPTAIN IDENTITY VERIFIED
+                </span>
+                <span className="flex items-center gap-1.5">
+                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
+                  ✓ SECURE IN-APP CAMERA LOCKED
+                </span>
+                <span className="flex items-center gap-1.5">
+                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
+                  ✓ GEOFENCE RANGE CONFIRMED
+                </span>
               </div>
 
             </div>
