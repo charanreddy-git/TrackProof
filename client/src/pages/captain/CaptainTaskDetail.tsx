@@ -19,6 +19,11 @@ export function CaptainTaskDetail() {
   const { addToast } = useToast();
   const { startTracking, isTracking } = useGeolocation();
   const cleanupRef = useRef<(() => void) | null>(null);
+  const hasAttemptedStart = useRef(false);
+
+  useEffect(() => {
+    hasAttemptedStart.current = false;
+  }, [id]);
 
   useEffect(() => {
     return () => {
@@ -26,9 +31,8 @@ export function CaptainTaskDetail() {
     };
   }, []);
 
-  if (isLoading || !task) return <PageLoader />;
-
   const handleStart = async () => {
+    if (!task) return;
     try {
       await startTask.mutateAsync(task.id);
       addToast("success", "Task started! Location tracking enabled.");
@@ -38,6 +42,16 @@ export function CaptainTaskDetail() {
       addToast("error", errorMsg);
     }
   };
+
+  useEffect(() => {
+    if (task && task.status === "ACCEPTED" && !startTask.isPending && !hasAttemptedStart.current) {
+      hasAttemptedStart.current = true;
+      handleStart();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [task?.status, task?.id, startTask.isPending]);
+
+  if (isLoading || !task) return <PageLoader />;
 
   const API_URL = import.meta.env.VITE_API_URL || "";
   const baseUrl = API_URL.replace("/api", "");
@@ -79,15 +93,11 @@ export function CaptainTaskDetail() {
                 {task.status === "ACCEPTED" && (
                   <Button
                     onClick={handleStart}
-                    isLoading={startTask.isPending}
+                    isLoading={true}
                     className="w-full bg-emerald-600 hover:bg-emerald-700 focus:ring-emerald-500"
                     size="md"
                   >
-                    <svg className="w-4 h-4 mr-1.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z" />
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                    </svg>
-                    Start Task
+                    Starting Task...
                   </Button>
                 )}
 
@@ -109,10 +119,23 @@ export function CaptainTaskDetail() {
                     )}
                     {isTracking && (
                       <div className="flex items-center gap-2 p-2.5 bg-emerald-50 border border-emerald-100 rounded-lg">
-                        <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse-soft flex-shrink-0" />
+                         <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse-soft flex-shrink-0" />
                         <p className="text-[11px] text-emerald-700 font-semibold">Location tracking active</p>
                       </div>
                     )}
+                    <Button
+                      type="button"
+                      variant="secondary"
+                      onClick={() => window.open(`https://www.google.com/maps/dir/?api=1&destination=${task.targetLat},${task.targetLng}`, "_blank", "noopener,noreferrer")}
+                      className="w-full"
+                      size="md"
+                    >
+                      <svg className="w-4 h-4 mr-1.5 text-surface-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                      </svg>
+                      Get Directions
+                    </Button>
                     <Button
                       onClick={() => navigate(`/captain/tasks/${task.id}/upload`)}
                       className="w-full"

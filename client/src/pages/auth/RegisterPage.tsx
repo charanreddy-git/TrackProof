@@ -1,17 +1,20 @@
 import { useState, type FormEvent } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { useAuth } from "../../contexts/AuthContext";
 import { Button } from "../../components/ui/Button";
 import { Input } from "../../components/ui/Input";
 import { useToast } from "../../components/ui/Toast";
-import { UserIcon, CompassIcon } from "../../components/Icons";
 import type { Role } from "../../types";
 
 export function RegisterPage() {
+  const [searchParams] = useSearchParams();
+  const roleParam = searchParams.get("role");
+  const initialRole: Role = (roleParam?.toUpperCase() === "CAPTAIN") ? "CAPTAIN" : "USER";
+
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [role, setRole] = useState<Role>("USER");
+  const [role] = useState<Role>(initialRole);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
   const { register } = useAuth();
@@ -39,9 +42,13 @@ export function RegisterPage() {
 
   return (
     <div>
-      <h2 className="text-xl font-bold text-surface-900 mb-1">Create account</h2>
+      <h2 className="text-xl font-bold text-surface-900 mb-1">
+        {role === "CAPTAIN" ? "Become an Inspector" : "Get Locations Verified"}
+      </h2>
       <p className="text-sm text-surface-500 mb-6">
-        Join InstantLocate as a user or captain
+        {role === "CAPTAIN"
+          ? "Create your captain account and start earning"
+          : "Create your account to request on-demand inspections"}
       </p>
 
       <form onSubmit={handleSubmit} className="space-y-4">
@@ -84,40 +91,7 @@ export function RegisterPage() {
           id="register-password"
         />
 
-        {/* Role selector */}
-        <div className="space-y-2">
-          <label className="block text-sm font-medium text-surface-700">
-            I want to join as
-          </label>
-          <div className="grid grid-cols-2 gap-3">
-            <button
-              type="button"
-              onClick={() => setRole("USER")}
-              className={`p-4 rounded-lg border text-center transition-all duration-200 cursor-pointer flex flex-col items-center justify-center ${
-                role === "USER"
-                  ? "border-primary-600 bg-primary-50/30 text-primary-900 ring-1 ring-primary-600 shadow-sm"
-                  : "border-surface-200 bg-white hover:border-surface-300 text-surface-600 hover:text-surface-900 shadow-sm"
-              }`}
-            >
-              <UserIcon size={24} className={`mb-1.5 ${role === "USER" ? "text-primary-600" : "text-surface-400"}`} />
-              <div className="text-sm font-medium">User</div>
-              <div className="text-[10px] mt-0.5 opacity-80">Create tasks</div>
-            </button>
-            <button
-              type="button"
-              onClick={() => setRole("CAPTAIN")}
-              className={`p-4 rounded-lg border text-center transition-all duration-200 cursor-pointer flex flex-col items-center justify-center ${
-                role === "CAPTAIN"
-                  ? "border-accent-600 bg-accent-50/30 text-accent-900 ring-1 ring-accent-600 shadow-sm"
-                  : "border-surface-200 bg-white hover:border-surface-300 text-surface-600 hover:text-surface-900 shadow-sm"
-              }`}
-            >
-              <CompassIcon size={24} className={`mb-1.5 ${role === "CAPTAIN" ? "text-accent-600" : "text-surface-400"}`} />
-              <div className="text-sm font-medium">Captain</div>
-              <div className="text-[10px] mt-0.5 opacity-80">Complete tasks</div>
-            </button>
-          </div>
-        </div>
+
 
         <Button
           type="submit"

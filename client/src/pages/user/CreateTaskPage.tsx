@@ -33,11 +33,9 @@ const parseLocalCoordinates = (url: string) => {
 };
 
 export function CreateTaskPage() {
-  const [title, setTitle] = useState("");
-  const [description, setDescription] = useState("");
+  const [instructions, setInstructions] = useState("");
   const [latitude, setLatitude] = useState<number | null>(null);
   const [longitude, setLongitude] = useState<number | null>(null);
-  const [locationMethod, setLocationMethod] = useState<"link" | "map">("link");
   const [mapsUrl, setMapsUrl] = useState("");
   const [isResolvingUrl, setIsResolvingUrl] = useState(false);
   const [urlError, setUrlError] = useState<string | null>(null);
@@ -83,10 +81,19 @@ export function CreateTaskPage() {
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
 
+    if (instructions.trim().length < 10) {
+      addToast("error", "Please write at least 10 characters of instructions.");
+      return;
+    }
+
     if (latitude === null || longitude === null) {
       addToast("error", "Please pin or resolve a location first");
       return;
     }
+
+    const trimmedInst = instructions.trim();
+    const title = trimmedInst.length > 40 ? trimmedInst.slice(0, 40) + "..." : trimmedInst;
+    const description = trimmedInst;
 
     try {
       await createTask.mutateAsync({ title, description, latitude, longitude });
@@ -114,36 +121,30 @@ export function CreateTaskPage() {
         {/* Task Details */}
         <Card padding="md">
           <h2 className="text-[11px] font-bold text-surface-400 uppercase tracking-wider mb-4">
-            Task Details
+            Verification Instructions
           </h2>
           <div className="space-y-4">
-            <Input
-              label="Title"
-              value={title}
-              onChange={(e) => setTitle(e.target.value)}
-              placeholder="e.g., Verify shop is open"
-              required
-              id="task-title"
-            />
-
             <div className="space-y-1.5">
               <label
-                htmlFor="task-description"
+                htmlFor="task-instructions"
                 className="block text-sm font-medium text-surface-700"
               >
-                Description
+                What should the inspector verify at this location?
               </label>
               <textarea
-                id="task-description"
-                value={description}
-                onChange={(e) => setDescription(e.target.value)}
-                placeholder="What should the captain verify at this location?"
+                id="task-instructions"
+                value={instructions}
+                onChange={(e) => setInstructions(e.target.value)}
+                placeholder="e.g., Visit the site, check if the foundation has been laid, and take a photo of the main entrance."
                 required
-                rows={3}
+                rows={4}
                 className="w-full px-4 py-2.5 rounded-lg border border-surface-200 text-sm
                   focus:ring-2 focus:ring-primary-500/20 focus:border-primary-500 focus:outline-none
                   placeholder-surface-400 resize-none transition-all duration-200 bg-white"
               />
+              <p className="text-[10px] text-surface-400">
+                Please enter at least 10 characters detailing what evidence needs to be captured.
+              </p>
             </div>
           </div>
         </Card>
@@ -155,75 +156,39 @@ export function CreateTaskPage() {
           </h2>
 
           <div className="space-y-4">
-            {/* Toggle selection */}
-            <div className="grid grid-cols-2 p-1 bg-surface-100 rounded-lg border border-surface-200">
-              <button
-                type="button"
-                onClick={() => {
-                  setLocationMethod("link");
-                  setUrlError(null);
-                }}
-                className={`py-1.5 text-xs font-semibold rounded-md transition-all cursor-pointer ${
-                  locationMethod === "link"
-                    ? "bg-white text-surface-900 shadow-sm border border-surface-200/50 font-bold"
-                    : "text-surface-500 hover:text-surface-800"
-                }`}
-              >
-                Paste Google Maps Link
-              </button>
-              <button
-                type="button"
-                onClick={() => {
-                  setLocationMethod("map");
-                  setUrlError(null);
-                }}
-                className={`py-1.5 text-xs font-semibold rounded-md transition-all cursor-pointer ${
-                  locationMethod === "map"
-                    ? "bg-white text-surface-900 shadow-sm border border-surface-200/50 font-bold"
-                    : "text-surface-500 hover:text-surface-800"
-                }`}
-              >
-                Select on Map
-              </button>
-            </div>
-
-            {/* Paste Link input / instruction header */}
-            {locationMethod === "link" ? (
-              <div className="space-y-3 p-3 bg-surface-50 border border-surface-200 rounded-lg">
-                <div className="flex gap-2 items-end">
-                  <div className="flex-1">
-                    <Input
-                      label="Paste Google Maps URL"
-                      value={mapsUrl}
-                      onChange={(e) => {
-                        setMapsUrl(e.target.value);
-                        setUrlError(null);
-                      }}
-                      placeholder="https://maps.app.goo.gl/... or https://www.google.com/maps/..."
-                      id="maps-url-input"
-                    />
-                  </div>
-                  <Button
-                    type="button"
-                    onClick={handleResolveUrl}
-                    isLoading={isResolvingUrl}
-                    disabled={!mapsUrl.trim()}
-                    className="mb-0.5"
-                  >
-                    Resolve
-                  </Button>
+            {/* Direct Google Maps Link Input */}
+            <div className="space-y-3 p-3 bg-surface-50 border border-surface-200 rounded-lg">
+              <div className="flex gap-2 items-end">
+                <div className="flex-1">
+                  <Input
+                    label="Search Location by Google Maps Link (Optional)"
+                    value={mapsUrl}
+                    onChange={(e) => {
+                      setMapsUrl(e.target.value);
+                      setUrlError(null);
+                    }}
+                    placeholder="Paste maps link here to auto-resolve coordinates..."
+                    id="maps-url-input"
+                  />
                 </div>
-                {urlError && (
-                  <p className="text-[11.5px] text-red-600 font-semibold">{urlError}</p>
-                )}
+                <Button
+                  type="button"
+                  onClick={handleResolveUrl}
+                  isLoading={isResolvingUrl}
+                  disabled={!mapsUrl.trim()}
+                  className="mb-0.5"
+                >
+                  Resolve
+                </Button>
               </div>
-            ) : (
-              <div className="p-3 bg-surface-50 border border-surface-200 rounded-lg">
-                <p className="text-xs text-surface-600 leading-relaxed">
-                  Click on the map to pin the target location, or drag the red marker to adjust coordinate details.
+              {urlError ? (
+                <p className="text-[11.5px] text-red-600 font-semibold">{urlError}</p>
+              ) : (
+                <p className="text-[10px] text-surface-400">
+                  Or simply click directly on the map below to drop a pin.
                 </p>
-              </div>
-            )}
+              )}
+            </div>
 
             {/* Map display */}
             <div className="space-y-3">
@@ -273,7 +238,7 @@ export function CreateTaskPage() {
           <Button
             type="submit"
             isLoading={createTask.isPending}
-            disabled={!locationSelected || !title || !description}
+            disabled={!locationSelected || instructions.trim().length < 10}
             className="flex-1"
           >
             Create Task

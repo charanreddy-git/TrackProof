@@ -1,3 +1,4 @@
+import { useNavigate } from "react-router-dom";
 import { Card } from "../../components/ui/Card";
 import { TaskCard } from "../../components/TaskCard";
 import { Button } from "../../components/ui/Button";
@@ -10,6 +11,7 @@ export function AvailableTasksPage() {
   const { data: tasks, isLoading } = useTaskList("available");
   const acceptTask = useAcceptTask();
   const { addToast } = useToast();
+  const navigate = useNavigate();
 
   if (isLoading) return <PageLoader />;
 
@@ -19,6 +21,7 @@ export function AvailableTasksPage() {
     try {
       await acceptTask.mutateAsync(id);
       addToast("success", "Task accepted! Head to the location now.");
+      navigate(`/captain/tasks/${id}`);
     } catch (err) {
       const errorMsg = (err as { response?: { data?: { message?: string } } }).response?.data?.message || "Failed to accept task";
       addToast("error", errorMsg);

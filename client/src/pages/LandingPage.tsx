@@ -218,7 +218,7 @@ export function LandingPage() {
               Sign In
             </Link>
             <Link
-              to="/register"
+              to="/register?role=USER"
               className="text-[12.5px] font-bold bg-primary-600 hover:bg-primary-700 text-white px-4 py-2 rounded-lg transition-all shadow-sm"
             >
               Get Started
@@ -249,13 +249,13 @@ export function LandingPage() {
 
           <div className="flex flex-col sm:flex-row items-center justify-center gap-3 pt-3">
             <Link
-              to="/register"
+              to="/register?role=USER"
               className="w-full sm:w-auto px-6 py-3 bg-surface-900 text-white hover:bg-surface-950 font-bold rounded-lg transition-all shadow-sm text-[13px] text-center"
             >
               Request an Inspection
             </Link>
             <Link
-              to="/register"
+              to="/register?role=CAPTAIN"
               className="w-full sm:w-auto px-6 py-3 bg-white hover:bg-surface-100 border border-surface-200 text-surface-700 font-bold rounded-lg transition-all shadow-sm text-[13px] text-center"
             >
               Become an Inspector
@@ -845,7 +845,7 @@ export function LandingPage() {
                 </ul>
               </div>
               <Link
-                to="/register"
+                to="/register?role=USER"
                 className="mt-6 block w-full py-2.5 bg-primary-600 hover:bg-primary-700 text-white font-bold rounded-lg text-xs text-center shadow-sm"
               >
                 Sign Up as Requester
@@ -875,7 +875,7 @@ export function LandingPage() {
                 </ul>
               </div>
               <Link
-                to="/register"
+                to="/register?role=CAPTAIN"
                 className="mt-6 block w-full py-2.5 bg-surface-900 hover:bg-surface-950 text-white font-bold rounded-lg text-xs text-center shadow-sm"
               >
                 Join as Local Captain
@@ -937,7 +937,7 @@ export function LandingPage() {
           </p>
           <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
             <Link
-              to="/register"
+              to="/register?role=USER"
               className="w-full sm:w-auto px-6 py-3 bg-primary-600 hover:bg-primary-700 text-white font-bold rounded-lg text-xs transition-all shadow-sm"
             >
               Sign Up Free
