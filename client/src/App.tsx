@@ -25,6 +25,7 @@ import { AcceptedTasksPage } from "./pages/captain/AcceptedTasksPage";
 import { CaptainTaskDetail } from "./pages/captain/CaptainTaskDetail";
 import { UploadEvidencePage } from "./pages/captain/UploadEvidencePage";
 import { LandingPage } from "./pages/LandingPage";
+import { PricingPage } from "./pages/PricingPage";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -45,6 +46,7 @@ function App() {
             <Routes>
               {/* Public routes */}
               <Route path="/" element={<LandingPage />} />
+              <Route path="/pricing" element={<PricingPage />} />
               <Route element={<AuthLayout />}>
                 <Route path="/login" element={<LoginPage />} />
                 <Route path="/register" element={<RegisterPage />} />

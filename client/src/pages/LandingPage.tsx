@@ -206,6 +206,7 @@ export function LandingPage() {
           <nav className="hidden md:flex items-center gap-6 text-[13px] font-medium text-surface-600">
             <a href="#how-it-works" className="hover:text-surface-900 transition-colors">How It Works</a>
             <a href="#demo" className="hover:text-surface-900 transition-colors">Interactive Demo</a>
+            <Link to="/pricing" className="hover:text-surface-900 transition-colors">Pricing</Link>
             <a href="#features" className="hover:text-surface-900 transition-colors">Features</a>
             <a href="#portals" className="hover:text-surface-900 transition-colors">Portals</a>
           </nav>
@@ -963,6 +964,12 @@ export function LandingPage() {
               </svg>
             </div>
             <span className="font-bold text-xs tracking-tight text-surface-900">InstantLocate</span>
+          </div>
+
+          <div className="flex flex-wrap items-center gap-x-6 gap-y-2 text-[11px] font-semibold text-surface-500">
+            <Link to="/pricing" className="hover:text-surface-900 transition-colors">Pricing</Link>
+            <Link to="/register?role=USER" className="hover:text-surface-900 transition-colors">Request Inspection</Link>
+            <Link to="/register?role=CAPTAIN" className="hover:text-surface-900 transition-colors">Become a Captain</Link>
           </div>
 
           <div>
