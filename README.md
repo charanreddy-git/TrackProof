@@ -23,6 +23,7 @@ InstantLocate enables users to create location verification tasks that captains 
 - **File Upload** — Multer with image validation (JPG/PNG, 5MB max)
 - **Atomic Transactions** — Race-condition-safe task acceptance
 - **Interactive Maps** — React-Leaflet with OpenStreetMap tiles
+- **Specialized Workflows** — Action-oriented dashboards tailored separately for Requesters and Captains
 
 ---
 

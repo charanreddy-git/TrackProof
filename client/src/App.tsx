@@ -3,6 +3,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { AuthProvider } from "./contexts/AuthContext";
 import { ToastProvider } from "./components/ui/Toast";
 import { ProtectedRoute } from "./components/ProtectedRoute";
+import { ErrorBoundary } from "./components/ErrorBoundary";
 
 // Layouts
 import { AuthLayout } from "./layouts/AuthLayout";
@@ -27,6 +28,7 @@ import { LandingPage } from "./pages/LandingPage";
 import { RequesterLandingPage } from "./pages/verify/RequesterLandingPage";
 import { CaptainLandingPage } from "./pages/captain/CaptainLandingPage";
 import { PricingPage } from "./pages/PricingPage";
+import { NotFoundPage } from "./pages/NotFoundPage";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -40,10 +42,11 @@ const queryClient = new QueryClient({
 
 function App() {
   return (
-    <QueryClientProvider client={queryClient}>
-      <BrowserRouter>
-        <AuthProvider>
-          <ToastProvider>
+    <ErrorBoundary>
+      <QueryClientProvider client={queryClient}>
+        <BrowserRouter>
+          <AuthProvider>
+            <ToastProvider>
             <Routes>
               {/* Public routes */}
               <Route path="/" element={<LandingPage />} />
@@ -95,13 +98,14 @@ function App() {
                 />
               </Route>
 
-              {/* Catch-all redirect */}
-              <Route path="*" element={<Navigate to="/" replace />} />
+              {/* Catch-all 404 */}
+              <Route path="*" element={<NotFoundPage />} />
             </Routes>
           </ToastProvider>
         </AuthProvider>
       </BrowserRouter>
     </QueryClientProvider>
+  </ErrorBoundary>
   );
 }
 

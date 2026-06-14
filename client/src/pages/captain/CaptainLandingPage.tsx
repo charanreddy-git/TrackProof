@@ -1,128 +1,99 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
 import { Card } from "../../components/ui/Card";
-import {
-  ChevronDownIcon,
-  ClockIcon,
-} from "../../components/Icons";
+import { ClockIcon } from "../../components/Icons";
+import { MarketingHeader } from "../../components/MarketingHeader";
+import { MarketingFooter } from "../../components/MarketingFooter";
+import { FaqAccordion } from "../../components/FaqAccordion";
+
+const NAV_ITEMS = [
+  { label: "How to Earn", to: "#how-it-works", isAnchor: true },
+  { label: "Payout Calculator", to: "#calculator", isAnchor: true },
+  { label: "Captain Benefits", to: "#bonuses", isAnchor: true },
+  { label: "FAQ", to: "#faq", isAnchor: true },
+];
+
+const PAYOUT_PLANS = [
+  {
+    id: "quick",
+    name: "Quick Verification Payout",
+    basePayout: 120,
+    turnaround: "Same-day delivery",
+    desc: "Fast exterior property checks, vacant plot coordinate matching, and shop verification.",
+    requirements: [
+      "Ride to target coordinates",
+      "Capture up to 5 clear on-site photos",
+      "Complete in-app GPS check-in",
+    ],
+  },
+  {
+    id: "detailed",
+    name: "Detailed Verification Payout",
+    basePayout: 250,
+    turnaround: "Within 24 hours",
+    desc: "Rental inspections, neighborhood environment checks, and detailed construction monitoring.",
+    requirements: [
+      "Capture up to 15 site photos",
+      "Provide brief inspector notes summary",
+      "Complete in-app GPS check-in",
+    ],
+  },
+  {
+    id: "premium",
+    name: "Premium Inspection Payout",
+    basePayout: 500,
+    turnaround: "Priority (<12 hours)",
+    desc: "Full property walkthrough reports, business presence audits, and checklist audits.",
+    requirements: [
+      "Capture walkthrough video",
+      "Follow custom inspection guidelines",
+      "Priority dispatch matching",
+    ],
+  },
+];
+
+const FAQS = [
+  {
+    q: "How do I earn money as a Captain?",
+    a: "As a Captain, you claim inspection tasks in your local area through the dashboard. Ride to the location, follow specific photo/video instructions, verify your GPS location via our web app, capture evidence, and submit. You get paid for every successfully completed task.",
+  },
+  {
+    q: "What is the payout model?",
+    a: "Captains earn a high base cut of 60-65% of customer fees. Additionally, you receive 100% of the travel allowance (₹5/km after 3 km) and 100% of any urgency bonus (₹199 if the requester needs it under 4 hours), making travel and promptness highly lucrative.",
+  },
+  {
+    q: "When and how do I get paid?",
+    a: "Payouts are processed weekly directly to your bank account or UPI ID. There is no minimum payout threshold, ensuring you get your hard-earned funds promptly.",
+  },
+  {
+    q: "What equipment do I need?",
+    a: "Just a standard smartphone with a working camera and GPS capability, and your own mode of transport (e.g., bike, scooter, or car) to travel to inspection locations.",
+  },
+  {
+    q: "Do I need to download an application from the app store?",
+    a: "No! InstantLocate works directly in your phone's web browser. Just open the claimed task link, grant location and camera access, snap the photos, and submit.",
+  },
+];
 
 export function CaptainLandingPage() {
-  const [activeFaq, setActiveFaq] = useState<number | null>(null);
-
-  // Calculator State
   const [selectedPlanId, setSelectedPlanId] = useState<string>("detailed");
   const [distance, setDistance] = useState<number>(3);
   const [isUrgent, setIsUrgent] = useState<boolean>(false);
 
-  const toggleFaq = (index: number) => {
-    setActiveFaq(activeFaq === index ? null : index);
-  };
-
-  const payoutPlans = [
-    {
-      id: "quick",
-      name: "Quick Verification Payout",
-      basePayout: 120,
-      turnaround: "Same-day delivery",
-      desc: "Fast exterior property checks, vacant plot coordinate matching, and shop verification.",
-      requirements: [
-        "Ride to target coordinates",
-        "Capture up to 5 clear on-site photos",
-        "Complete in-app GPS check-in",
-      ],
-    },
-    {
-      id: "detailed",
-      name: "Detailed Verification Payout",
-      basePayout: 250,
-      turnaround: "Within 24 hours",
-      desc: "Rental inspections, neighborhood environment checks, and detailed construction monitoring.",
-      requirements: [
-        "Capture up to 15 site photos",
-        "Provide brief inspector notes summary",
-        "Complete in-app GPS check-in",
-      ],
-    },
-    {
-      id: "premium",
-      name: "Premium Inspection Payout",
-      basePayout: 500,
-      turnaround: "Priority (<12 hours)",
-      desc: "Full property walkthrough reports, business presence audits, and checklist audits.",
-      requirements: [
-        "Capture walkthrough video",
-        "Follow custom inspection guidelines",
-        "Priority dispatch matching",
-      ],
-    },
-  ];
-
-  const faqs = [
-    {
-      q: "How do I earn money as a Captain?",
-      a: "As a Captain, you claim inspection tasks in your local area through the dashboard. Ride to the location, follow specific photo/video instructions, verify your GPS location via our web app, capture evidence, and submit. You get paid for every successfully completed task.",
-    },
-    {
-      q: "What is the payout model?",
-      a: "Captains earn a high base cut of 60-65% of customer fees. Additionally, you receive 100% of the travel allowance (₹5/km after 3 km) and 100% of any urgency bonus (₹199 if the requester needs it under 4 hours), making travel and promptness highly lucrative.",
-    },
-    {
-      q: "When and how do I get paid?",
-      a: "Payouts are processed weekly directly to your bank account or UPI ID. There is no minimum payout threshold, ensuring you get your hard-earned funds promptly.",
-    },
-    {
-      q: "What equipment do I need?",
-      a: "Just a standard smartphone with a working camera and GPS capability, and your own mode of transport (e.g., bike, scooter, or car) to travel to inspection locations.",
-    },
-    {
-      q: "Do I need to download an application from the app store?",
-      a: "No! InstantLocate works directly in your phone's web browser. Just open the claimed task link, grant location and camera access, snap the photos, and submit.",
-    },
-  ];
-
-  const selectedPlan = payoutPlans.find((p) => p.id === selectedPlanId) || payoutPlans[1];
+  const selectedPlan = PAYOUT_PLANS.find((p) => p.id === selectedPlanId) || PAYOUT_PLANS[1];
   const distanceEarnings = Math.max(0, distance - 3) * 5;
   const urgencyEarnings = isUrgent ? 199 : 0;
   const totalPayout = selectedPlan.basePayout + distanceEarnings + urgencyEarnings;
 
   return (
     <div className="min-h-screen bg-surface-50 text-surface-900 font-sans selection:bg-accent-500 selection:text-white">
-      {/* Header */}
-      <header className="sticky top-0 z-50 bg-white/80 backdrop-blur-md border-b border-surface-200/80">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
-          <div className="flex items-center gap-2.5">
-            <div className="w-8 h-8 bg-accent-500 rounded-lg flex items-center justify-center">
-              <svg className="w-4.5 h-4.5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
-              </svg>
-            </div>
-            <span className="font-bold text-[15px] tracking-tight text-surface-900">InstantLocate Captains</span>
-          </div>
-
-          <nav className="hidden md:flex items-center gap-6 text-[13px] font-medium text-surface-650">
-            <a href="#how-it-works" className="hover:text-surface-900 transition-colors">How to Earn</a>
-            <a href="#calculator" className="hover:text-surface-900 transition-colors">Payout Calculator</a>
-            <a href="#bonuses" className="hover:text-surface-900 transition-colors">Captain Benefits</a>
-            <a href="#faq" className="hover:text-surface-900 transition-colors">FAQ</a>
-          </nav>
-
-          <div className="flex items-center gap-3">
-            <Link
-              to="/login"
-              className="text-[13px] font-semibold text-surface-650 hover:text-surface-900 px-3 py-1.5 rounded-lg transition-colors"
-            >
-              Sign In
-            </Link>
-            <Link
-              to="/captain/signup"
-              className="text-[12.5px] font-bold bg-accent-500 hover:bg-accent-600 text-white px-4 py-2 rounded-lg transition-all shadow-sm"
-            >
-              Join as Captain
-            </Link>
-          </div>
-        </div>
-      </header>
+      <MarketingHeader
+        variant="accent"
+        logoLabel="InstantLocate Captains"
+        navItems={NAV_ITEMS}
+        ctaLabel="Join as Captain"
+        ctaTo="/captain/signup"
+      />
 
       {/* Hero Section */}
       <section className="relative pt-20 pb-16 md:pt-28 md:pb-24">
@@ -180,45 +151,20 @@ export function CaptainLandingPage() {
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-            <div className="p-6 rounded-lg bg-white border border-surface-200/85 hover:border-accent-200 hover:shadow-card-hover transition-all space-y-4">
-              <div className="w-9 h-9 rounded-lg bg-accent-50 border border-accent-200/50 text-accent-600 flex items-center justify-center font-bold text-[13px]">
-                01
+            {[
+              { step: "01", title: "1. Browse Available Tasks", desc: "Check your dashboard to view coordinate inspection requests near your current location. Claim any task that suits you." },
+              { step: "02", title: "2. Travel to Location", desc: "Navigate to the target coordinates using your browser's map. Distance fee rewards apply automatically after 3 km." },
+              { step: "03", title: "3. Geofenced Capture", desc: "Open the in-browser camera within the 100m geofence. Capture site photos and submit securely." },
+              { step: "04", title: "4. Weekly Payouts", desc: "Verification logs are instantly verified by the customer. Earnings are dispatched directly to your bank account weekly." },
+            ].map((item) => (
+              <div key={item.step} className="p-6 rounded-lg bg-white border border-surface-200/85 hover:border-accent-200 hover:shadow-card-hover transition-all space-y-4">
+                <div className="w-9 h-9 rounded-lg bg-accent-50 border border-accent-200/50 text-accent-600 flex items-center justify-center font-bold text-[13px]">
+                  {item.step}
+                </div>
+                <h4 className="text-[13px] font-bold text-surface-900">{item.title}</h4>
+                <p className="text-[11px] text-surface-650 leading-relaxed">{item.desc}</p>
               </div>
-              <h4 className="text-[13px] font-bold text-surface-900">1. Browse Available Tasks</h4>
-              <p className="text-[11px] text-surface-650 leading-relaxed">
-                Check your dashboard to view coordinate inspection requests near your current location. Claim any task that suits you.
-              </p>
-            </div>
-
-            <div className="p-6 rounded-lg bg-white border border-surface-200/85 hover:border-accent-200 hover:shadow-card-hover transition-all space-y-4">
-              <div className="w-9 h-9 rounded-lg bg-accent-50 border border-accent-200/50 text-accent-600 flex items-center justify-center font-bold text-[13px]">
-                02
-              </div>
-              <h4 className="text-[13px] font-bold text-surface-900">2. Travel to Location</h4>
-              <p className="text-[11px] text-surface-650 leading-relaxed">
-                Navigate to the target coordinates using your browser's map. Distance fee rewards apply automatically after 3 km.
-              </p>
-            </div>
-
-            <div className="p-6 rounded-lg bg-white border border-surface-200/85 hover:border-accent-200 hover:shadow-card-hover transition-all space-y-4">
-              <div className="w-9 h-9 rounded-lg bg-accent-50 border border-accent-200/50 text-accent-600 flex items-center justify-center font-bold text-[13px]">
-                03
-              </div>
-              <h4 className="text-[13px] font-bold text-surface-900">3. Geofenced Capture</h4>
-              <p className="text-[11px] text-surface-650 leading-relaxed">
-                Open the in-browser camera within the 100m geofence. Capture site photos and submit securely.
-              </p>
-            </div>
-
-            <div className="p-6 rounded-lg bg-white border border-surface-200/85 hover:border-accent-200 hover:shadow-card-hover transition-all space-y-4">
-              <div className="w-9 h-9 rounded-lg bg-accent-50 border border-accent-200/50 text-accent-600 flex items-center justify-center font-bold text-[13px]">
-                04
-              </div>
-              <h4 className="text-[13px] font-bold text-surface-900">4. Weekly Payouts</h4>
-              <p className="text-[11px] text-surface-650 leading-relaxed">
-                Verification logs are instantly verified by the customer. Earnings are dispatched directly to your bank account weekly.
-              </p>
-            </div>
+            ))}
           </div>
         </div>
       </section>
@@ -233,7 +179,7 @@ export function CaptainLandingPage() {
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12">
-            {payoutPlans.map((plan) => (
+            {PAYOUT_PLANS.map((plan) => (
               <Card key={plan.id} padding="lg" className="border border-surface-200 hover:shadow-card-hover transition-all flex flex-col justify-between">
                 <div className="space-y-4">
                   <div>
@@ -278,7 +224,7 @@ export function CaptainLandingPage() {
                   1. Select Verification Level
                 </label>
                 <div className="grid grid-cols-3 gap-2">
-                  {payoutPlans.map((p) => (
+                  {PAYOUT_PLANS.map((p) => (
                     <button
                       key={p.id}
                       type="button"
@@ -444,56 +390,15 @@ export function CaptainLandingPage() {
             <h2 className="text-[11px] font-bold text-accent-500 uppercase tracking-widest">FAQ</h2>
             <h3 className="text-2xl font-bold text-surface-900 sm:text-3xl tracking-tight">Captain FAQ</h3>
           </div>
-
-          <div className="space-y-3">
-            {faqs.map((faq, index) => {
-              const isOpen = activeFaq === index;
-              return (
-                <div
-                  key={index}
-                  className="bg-white border border-surface-200/80 rounded-lg overflow-hidden transition-all duration-300 shadow-sm"
-                >
-                  <button
-                    type="button"
-                    onClick={() => toggleFaq(index)}
-                    className="w-full px-5 py-4 flex items-center justify-between text-left font-bold text-surface-900 hover:bg-surface-50 transition-colors text-xs cursor-pointer"
-                  >
-                    <span>{faq.q}</span>
-                    <ChevronDownIcon
-                      className={`w-4 h-4 text-surface-400 transition-transform duration-200 ${
-                        isOpen ? "rotate-180" : ""
-                      }`}
-                    />
-                  </button>
-                  {isOpen && (
-                    <div className="px-5 pb-4 pt-1 text-[11.5px] text-surface-650 leading-relaxed border-t border-surface-100">
-                      {faq.a}
-                    </div>
-                  )}
-                </div>
-              );
-            })}
-          </div>
+          <FaqAccordion items={FAQS} />
         </div>
       </section>
 
-      {/* Footer */}
-      <footer className="border-t border-surface-200 bg-surface-50 py-10 text-surface-500 text-[11px]">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col md:flex-row items-center justify-between gap-6">
-          <div className="flex items-center gap-2">
-            <div className="w-6 h-6 bg-accent-500 rounded-lg flex items-center justify-center">
-              <svg className="w-3.5 h-3.5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
-              </svg>
-            </div>
-            <span className="font-bold text-xs tracking-tight text-surface-900">InstantLocate Captains</span>
-          </div>
-          <div>
-            &copy; {new Date().getFullYear()} InstantLocate. Secure Remote Inspections & Verification.
-          </div>
-        </div>
-      </footer>
+      <MarketingFooter
+        variant="accent"
+        logoLabel="InstantLocate Captains"
+        tagline="Secure Remote Inspections & Verification."
+      />
     </div>
   );
 }

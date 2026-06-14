@@ -41,21 +41,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     if (savedToken && savedUser) {
       try {
         const parsedUser = JSON.parse(savedUser) as User;
-        setTimeout(() => {
-          setToken(savedToken);
-          setUser(parsedUser);
-          connectSocket(savedToken);
-          setIsLoading(false);
-        }, 0);
-        return;
+        setToken(savedToken);
+        setUser(parsedUser);
+        connectSocket(savedToken);
       } catch {
         localStorage.removeItem("token");
         localStorage.removeItem("user");
       }
     }
-    setTimeout(() => {
-      setIsLoading(false);
-    }, 0);
+    setIsLoading(false);
   }, []);
 
   const login = useCallback(async (email: string, password: string) => {

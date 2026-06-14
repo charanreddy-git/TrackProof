@@ -90,8 +90,9 @@ export function RegisterPage({ forcedRole }: RegisterPageProps = {}) {
           onChange={(e) => setPassword(e.target.value)}
           placeholder="••••••••"
           required
+          minLength={6}
           autoComplete="new-password"
-          helperText="Must be at least 6 characters"
+          helperText="At least 6 characters"
           id="register-password"
         />
 
@@ -119,4 +120,3 @@ export function RegisterPage({ forcedRole }: RegisterPageProps = {}) {
     </div>
   );
 }
-

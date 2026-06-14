@@ -125,12 +125,19 @@ export function CreateTaskPage() {
           </h2>
           <div className="space-y-4">
             <div className="space-y-1.5">
-              <label
-                htmlFor="task-instructions"
-                className="block text-sm font-medium text-surface-700"
-              >
-                What should the inspector verify at this location?
-              </label>
+              <div className="flex items-center justify-between">
+                <label
+                  htmlFor="task-instructions"
+                  className="block text-sm font-medium text-surface-700"
+                >
+                  What should the inspector verify at this location?
+                </label>
+                <span className={`text-[11px] font-semibold tabular-nums ${
+                  instructions.length >= 10 ? "text-emerald-600" : "text-surface-400"
+                }`}>
+                  {instructions.length} / 10 min
+                </span>
+              </div>
               <textarea
                 id="task-instructions"
                 value={instructions}
@@ -138,12 +145,12 @@ export function CreateTaskPage() {
                 placeholder="e.g., Visit the site, check if the foundation has been laid, and take a photo of the main entrance."
                 required
                 rows={4}
-                className="w-full px-4 py-2.5 rounded-lg border border-surface-200 text-sm
+                className="w-full px-4 py-2.5 rounded-lg border border-surface-200 text-base sm:text-sm
                   focus:ring-2 focus:ring-primary-500/20 focus:border-primary-500 focus:outline-none
                   placeholder-surface-400 resize-none transition-all duration-200 bg-white"
               />
               <p className="text-[10px] text-surface-400">
-                Please enter at least 10 characters detailing what evidence needs to be captured.
+                Describe what evidence you need captured — be specific.
               </p>
             </div>
           </div>
@@ -158,27 +165,25 @@ export function CreateTaskPage() {
           <div className="space-y-4">
             {/* Direct Google Maps Link Input */}
             <div className="space-y-3 p-3 bg-surface-50 border border-surface-200 rounded-lg">
-              <div className="flex gap-2 items-end">
-                <div className="flex-1">
-                  <Input
-                    label="Search Location by Google Maps Link (Optional)"
-                    value={mapsUrl}
-                    onChange={(e) => {
-                      setMapsUrl(e.target.value);
-                      setUrlError(null);
-                    }}
-                    placeholder="Paste maps link here to auto-resolve coordinates..."
-                    id="maps-url-input"
-                  />
-                </div>
+              <div className="space-y-2">
+                <Input
+                  label="Search Location by Google Maps Link (Optional)"
+                  value={mapsUrl}
+                  onChange={(e) => {
+                    setMapsUrl(e.target.value);
+                    setUrlError(null);
+                  }}
+                  placeholder="Paste maps link here to auto-resolve coordinates..."
+                  id="maps-url-input"
+                />
                 <Button
                   type="button"
                   onClick={handleResolveUrl}
                   isLoading={isResolvingUrl}
                   disabled={!mapsUrl.trim()}
-                  className="mb-0.5"
+                  className="w-full sm:w-auto"
                 >
-                  Resolve
+                  Resolve Location
                 </Button>
               </div>
               {urlError ? (
@@ -200,7 +205,7 @@ export function CreateTaskPage() {
                     setLatitude(lat);
                     setLongitude(lng);
                   }}
-                  height="300px"
+                  height="240px"
                 />
               </div>
 

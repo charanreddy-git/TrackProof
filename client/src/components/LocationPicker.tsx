@@ -1,17 +1,8 @@
 import { useRef, useMemo, useEffect } from "react";
 import { MapContainer, TileLayer, Marker, useMapEvents, useMap } from "react-leaflet";
-import L from "leaflet";
 import "leaflet/dist/leaflet.css";
-import markerShadow from "leaflet/dist/images/marker-shadow.png";
+import { pickIcon } from "./MapIcons";
 
-const pickIcon = new L.Icon({
-  iconUrl: "https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-red.png",
-  shadowUrl: markerShadow,
-  iconSize: [25, 41],
-  iconAnchor: [12, 41],
-  popupAnchor: [1, -34],
-  shadowSize: [41, 41],
-});
 
 interface LocationPickerProps {
   latitude: number | null;
@@ -72,7 +63,7 @@ export function LocationPicker({
         zoom={13}
         style={{ height, width: "100%" }}
         className="rounded-xl overflow-hidden border border-surface-200"
-        scrollWheelZoom={true}
+        scrollWheelZoom={false}
       >
         <TileLayer
           attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'

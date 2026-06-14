@@ -6,7 +6,7 @@ import { StatusBadge } from "../../components/StatusBadge";
 import { MapView } from "../../components/MapView";
 import { targetIcon } from "../../components/MapIcons";
 import { PageLoader } from "../../components/ui/Spinner";
-import { useTaskDetail, useStartTask } from "../../hooks/useTasks";
+import { useTaskDetail, useStartTask, useAcceptTask } from "../../hooks/useTasks";
 import { useGeolocation } from "../../hooks/useLocation";
 import { useToast } from "../../components/ui/Toast";
 import { CompassIcon, CameraIcon } from "../../components/Icons";
@@ -15,6 +15,7 @@ export function CaptainTaskDetail() {
   const { id } = useParams<{ id: string }>();
   const { data: task, isLoading } = useTaskDetail(id!);
   const startTask = useStartTask();
+  const acceptTask = useAcceptTask();
   const navigate = useNavigate();
   const { addToast } = useToast();
   const { startTracking, isTracking } = useGeolocation();
@@ -43,13 +44,16 @@ export function CaptainTaskDetail() {
     }
   };
 
-  useEffect(() => {
-    if (task && task.status === "ACCEPTED" && !startTask.isPending && !hasAttemptedStart.current) {
-      hasAttemptedStart.current = true;
-      handleStart();
+  const handleAccept = async () => {
+    if (!task) return;
+    try {
+      await acceptTask.mutateAsync(task.id);
+      addToast("success", "Task accepted! You can now start tracking.");
+    } catch (err) {
+      const errorMsg = (err as { response?: { data?: { message?: string } } }).response?.data?.message || "Failed to accept task";
+      addToast("error", errorMsg);
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [task?.status, task?.id, startTask.isPending]);
+  };
 
   if (isLoading || !task) return <PageLoader />;
 
@@ -62,7 +66,7 @@ export function CaptainTaskDetail() {
       <div>
         <Link
           to="/captain/accepted"
-          className="inline-flex items-center gap-1.5 text-[13px] text-surface-500 hover:text-surface-800 font-medium transition-colors"
+          className="inline-flex items-center gap-1.5 text-[13px] text-surface-500 hover:text-surface-800 font-medium transition-colors py-1"
         >
           <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
@@ -71,10 +75,28 @@ export function CaptainTaskDetail() {
         </Link>
       </div>
 
-      {/* Grid container: Split on lg screens */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 items-stretch flex-1">
-        {/* Left Column: Details Pane (Scrollable on lg) */}
-        <div className="lg:col-span-5 flex flex-col space-y-4 lg:max-h-[calc(100vh-180px)] lg:overflow-y-auto lg:pr-2">
+      {/* Grid container: Map on top mobile, side-by-side on desktop */}
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 items-stretch flex-1">
+        {/* Map — order-first on mobile so users see location immediately */}
+        <div className="order-first lg:order-last lg:col-span-7 flex flex-col h-[220px] sm:h-[280px] lg:h-auto lg:min-h-[400px]">
+          <div className="border border-surface-200 rounded-xl overflow-hidden shadow-sm h-full flex-1 relative bg-white">
+            <MapView
+              center={[task.targetLat, task.targetLng]}
+              zoom={16}
+              markers={[
+                {
+                  position: [task.targetLat, task.targetLng],
+                  label: "Target Location",
+                  icon: targetIcon,
+                },
+              ]}
+              height="100%"
+            />
+          </div>
+        </div>
+
+        {/* Left Column: Details Pane */}
+        <div className="order-last lg:order-first lg:col-span-5 flex flex-col space-y-4 lg:max-h-[calc(100vh-180px)] lg:overflow-y-auto lg:pr-2">
           {/* Header Card */}
           <Card padding="md">
             <div className="flex items-start justify-between gap-4">
@@ -87,17 +109,28 @@ export function CaptainTaskDetail() {
           </Card>
 
           {/* Actions — shown immediately for quick access */}
-          {(task.status === "ACCEPTED" || task.status === "IN_PROGRESS" || task.status === "SUBMITTED" || task.status === "COMPLETED") && (
+          {(task.status === "OPEN" || task.status === "ACCEPTED" || task.status === "IN_PROGRESS" || task.status === "SUBMITTED" || task.status === "COMPLETED") && (
             <Card padding="md">
               <div className="space-y-2">
+                {task.status === "OPEN" && (
+                  <Button
+                    onClick={handleAccept}
+                    isLoading={acceptTask.isPending}
+                    className="w-full"
+                    size="md"
+                  >
+                    {acceptTask.isPending ? "Accepting…" : "Accept Task"}
+                  </Button>
+                )}
+
                 {task.status === "ACCEPTED" && (
                   <Button
                     onClick={handleStart}
-                    isLoading={true}
+                    isLoading={startTask.isPending}
                     className="w-full bg-emerald-600 hover:bg-emerald-700 focus:ring-emerald-500"
                     size="md"
                   >
-                    Starting Task...
+                    {startTask.isPending ? "Starting…" : "Start Task & Enable Tracking"}
                   </Button>
                 )}
 
@@ -221,24 +254,6 @@ export function CaptainTaskDetail() {
               </div>
             </Card>
           )}
-        </div>
-
-        {/* Right Column: Prominent Map Pane */}
-        <div className="lg:col-span-7 flex flex-col h-[350px] lg:h-auto min-h-[300px]">
-          <div className="border border-surface-200 rounded-xl overflow-hidden shadow-sm h-full flex-1 relative bg-white">
-            <MapView
-              center={[task.targetLat, task.targetLng]}
-              zoom={16}
-              markers={[
-                {
-                  position: [task.targetLat, task.targetLng],
-                  label: "Target Location",
-                  icon: targetIcon,
-                },
-              ]}
-              height="100%"
-            />
-          </div>
         </div>
       </div>
     </div>

@@ -18,6 +18,11 @@ export async function createTask(input: CreateTaskInput): Promise<Task> {
 }
 
 
+export async function acceptTask(id: string): Promise<Task> {
+  const { data } = await api.post<ApiResponse<Task>>(`/tasks/${id}/accept`);
+  return data.data;
+}
+
 export async function startTask(id: string): Promise<Task> {
   const { data } = await api.post<ApiResponse<Task>>(`/tasks/${id}/start`);
   return data.data;

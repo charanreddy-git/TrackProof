@@ -1,4 +1,5 @@
 import { Outlet } from "react-router-dom";
+import { Logo } from "../components/Logo";
 
 export function AuthLayout() {
   return (
@@ -6,14 +7,8 @@ export function AuthLayout() {
       <div className="w-full max-w-md animate-slide-up">
         {/* Logo */}
         <div className="text-center mb-8">
-          <div className="inline-flex items-center gap-2.5 mb-2">
-            <div className="w-9 h-9 bg-primary-600 rounded-lg flex items-center justify-center shadow-sm">
-              <svg className="w-5 h-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
-              </svg>
-            </div>
-            <span className="text-xl font-bold tracking-tight text-surface-900">InstantLocate</span>
+          <div className="inline-flex items-center mb-2">
+            <Logo size="lg" />
           </div>
           <p className="text-surface-500 text-sm">
             Secure GPS location verification platform
@@ -21,7 +16,7 @@ export function AuthLayout() {
         </div>
 
         {/* Form Container */}
-        <div className="bg-white rounded-xl shadow-card border border-surface-200 p-8">
+        <div className="bg-white rounded-xl shadow-card border border-surface-200 p-5 sm:p-8">
           <Outlet />
         </div>
       </div>

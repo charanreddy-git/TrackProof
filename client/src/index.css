@@ -91,8 +91,9 @@
 /* Global styles */
 html {
   scroll-behavior: smooth;
-  /* Safe area support for notched phones */
-  padding-top: env(safe-area-inset-top);
+  /* Prevent iOS text size adjustment */
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
 }
 
 body {
@@ -102,6 +103,20 @@ body {
   background-color: var(--color-surface-50);
   color: var(--color-surface-900);
   font-feature-settings: "cv02", "cv03", "cv04", "cv11";
+  /* Prevent overscroll bounce on mobile */
+  overscroll-behavior-y: none;
+}
+
+/* Optimize touch interactions */
+button, a, [role="button"] {
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* Minimum tap target size for accessibility */
+.tap-target {
+  min-height: 44px;
+  min-width: 44px;
 }
 
 /* Leaflet map overrides */
@@ -159,15 +174,25 @@ body {
 
 /* Bottom nav safe area */
 .pb-safe {
-  padding-bottom: calc(env(safe-area-inset-bottom) + 0px);
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+}
+.pb-safe-nav {
+  padding-bottom: calc(env(safe-area-inset-bottom, 0px) + 64px);
 }
 .mb-bottom-nav {
-  margin-bottom: 64px;
+  margin-bottom: calc(env(safe-area-inset-bottom, 0px) + 64px);
 }
-@media (min-width: 1024px) {
+/* Bottom nav only shows on mobile (< sm), so clear margin from sm+ */
+@media (min-width: 640px) {
   .mb-bottom-nav {
     margin-bottom: 0;
   }
+}
+
+/* Mobile scroll improvements */
+.scroll-smooth-mobile {
+  -webkit-overflow-scrolling: touch;
+  scroll-behavior: smooth;
 }
 
 /* Number tabular font rendering */

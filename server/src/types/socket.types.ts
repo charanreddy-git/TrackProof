@@ -16,6 +16,7 @@ export interface ServerToClientEvents {
     evidenceImage: string;
   }) => void;
   "task:completed": (data: { taskId: string }) => void;
+  "task:updated": () => void;
 }
 
 export interface ClientToServerEvents {

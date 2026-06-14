@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback, useRef } from "react";
+import { useQueryClient } from "@tanstack/react-query";
 import { getSocket, joinTaskRoom, leaveTaskRoom } from "../sockets/socket";
 
 interface LocationData {
@@ -102,4 +103,24 @@ export function useLiveLocation(taskId: string | undefined) {
   }, [taskId, socket]);
 
   return location;
+}
+
+export function useGlobalTaskUpdates() {
+  const { socket } = useSocket();
+  const queryClient = useQueryClient();
+
+  useEffect(() => {
+    if (!socket) return;
+
+    const handleTaskUpdated = () => {
+      // Invalidate all tasks queries to force a refetch
+      queryClient.invalidateQueries({ queryKey: ["tasks"] });
+    };
+
+    socket.on("task:updated", handleTaskUpdated);
+
+    return () => {
+      socket.off("task:updated", handleTaskUpdated);
+    };
+  }, [socket, queryClient]);
 }

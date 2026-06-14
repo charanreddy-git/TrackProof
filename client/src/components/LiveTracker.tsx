@@ -2,26 +2,9 @@ import { useEffect, useState } from "react";
 import { MapContainer, TileLayer, Marker, Popup, Circle, useMap } from "react-leaflet";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
-import markerShadow from "leaflet/dist/images/marker-shadow.png";
+import { targetIcon, captainIcon } from "./MapIcons";
 import { useLiveLocation } from "../hooks/useSocket";
 
-const targetIcon = new L.Icon({
-  iconUrl: "https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-red.png",
-  shadowUrl: markerShadow,
-  iconSize: [25, 41],
-  iconAnchor: [12, 41],
-  popupAnchor: [1, -34],
-  shadowSize: [41, 41],
-});
-
-const captainIcon = new L.Icon({
-  iconUrl: "https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-blue.png",
-  shadowUrl: markerShadow,
-  iconSize: [25, 41],
-  iconAnchor: [12, 41],
-  popupAnchor: [1, -34],
-  shadowSize: [41, 41],
-});
 
 interface LiveTrackerProps {
   taskId: string;
@@ -61,10 +44,8 @@ export function LiveTracker({
 
   useEffect(() => {
     if (liveLocation) {
-      setTimeout(() => {
-        setCaptainPos([liveLocation.latitude, liveLocation.longitude]);
-        setLastUpdated(new Date());
-      }, 0);
+      setCaptainPos([liveLocation.latitude, liveLocation.longitude]);
+      setLastUpdated(new Date());
     }
   }, [liveLocation]);
 

@@ -81,6 +81,9 @@ export class TaskController {
           captainName: task.acceptedBy!.name,
         });
 
+      // Notify dashboard for both users
+      getIO().to(`user:${task.createdById}`).to(`user:${task.acceptedById}`).emit("task:updated");
+
       res.status(200).json({ success: true, data: task });
     } catch (error) {
       next(error);
@@ -97,6 +100,9 @@ export class TaskController {
       getIO()
         .to(`task:${task.id}`)
         .emit("task:started", { taskId: task.id });
+
+      // Notify dashboard for both users
+      getIO().to(`user:${task.createdById}`).to(`user:${task.acceptedById}`).emit("task:updated");
 
       res.status(200).json({ success: true, data: task });
     } catch (error) {
@@ -127,6 +133,9 @@ export class TaskController {
           evidenceImage: imagePath,
         });
 
+      // Notify dashboard for both users
+      getIO().to(`user:${task.createdById}`).to(`user:${task.acceptedById}`).emit("task:updated");
+
       res.status(200).json({ success: true, data: task });
     } catch (error) {
       next(error);
@@ -143,6 +152,9 @@ export class TaskController {
       getIO()
         .to(`task:${task.id}`)
         .emit("task:completed", { taskId: task.id });
+
+      // Notify dashboard for both users
+      getIO().to(`user:${task.createdById}`).to(`user:${task.acceptedById}`).emit("task:updated");
 
       res.status(200).json({ success: true, data: task });
     } catch (error) {

@@ -1,12 +1,14 @@
 import { useState } from "react";
 import { Outlet, NavLink, useNavigate, useLocation } from "react-router-dom";
 import { useAuth } from "../contexts/AuthContext";
+import { useGlobalTaskUpdates } from "../hooks/useSocket";
 import {
   DashboardIcon,
   PlusIcon,
   ClipboardIcon,
   LogOutIcon,
 } from "../components/Icons";
+import { LogoMark } from "../components/Logo";
 
 const userNav = [
   { to: "/user", label: "Dashboard", icon: DashboardIcon, end: true },
@@ -25,6 +27,9 @@ export function DashboardLayout() {
   const location = useLocation();
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
+  // Subscribe to real-time dashboard invalidations
+  useGlobalTaskUpdates();
+
   const navItems = user?.role === "CAPTAIN" ? captainNav : userNav;
 
   const handleLogout = () => {
@@ -42,10 +47,10 @@ export function DashboardLayout() {
 
   return (
     <div className="min-h-screen bg-surface-50">
-      {/* Mobile overlay */}
+      {/* Desktop sidebar overlay (only shown when sidebar is open on lg-) */}
       {sidebarOpen && (
         <div
-          className="fixed inset-0 bg-surface-950/40 z-40 lg:hidden backdrop-blur-sm"
+          className="fixed inset-0 bg-surface-950/40 z-40 hidden sm:block lg:hidden backdrop-blur-sm"
           onClick={() => setSidebarOpen(false)}
         />
       )}
@@ -63,12 +68,7 @@ export function DashboardLayout() {
           {/* Logo */}
           <div className="px-5 py-4 border-b border-surface-100">
             <div className="flex items-center gap-3">
-              <div className="w-8 h-8 bg-gradient-to-br from-primary-500 to-primary-700 rounded-lg flex items-center justify-center flex-shrink-0">
-                <svg className="w-4 h-4 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
-                </svg>
-              </div>
+              <LogoMark />
               <div>
                 <h2 className="font-bold text-surface-900 text-[15px] leading-tight tracking-tight">InstantLocate</h2>
                 <span className="text-[11px] text-surface-400 capitalize font-medium">{user?.role?.toLowerCase()} portal</span>
@@ -142,10 +142,10 @@ export function DashboardLayout() {
         {/* Top bar */}
         <header className="sticky top-0 z-30 bg-white/90 backdrop-blur-lg border-b border-surface-100">
           <div className="flex items-center gap-3 px-4 lg:px-6 h-14">
-            {/* Mobile hamburger */}
+            {/* Sidebar toggle — only shown on tablet (sm-lg), hidden on mobile (uses bottom nav) and desktop (sidebar always visible) */}
             <button
               onClick={() => setSidebarOpen(true)}
-              className="lg:hidden p-2 -ml-1 rounded-lg hover:bg-surface-100 transition-colors cursor-pointer text-surface-600"
+              className="hidden sm:flex lg:hidden p-2 -ml-1 rounded-lg hover:bg-surface-100 transition-colors cursor-pointer text-surface-600 items-center justify-center"
               aria-label="Open menu"
             >
               <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -153,7 +153,12 @@ export function DashboardLayout() {
               </svg>
             </button>
 
-            {/* Page title — mobile prominent, desktop subtle */}
+            {/* Logo mark — mobile only (replaces hamburger) */}
+            <div className="sm:hidden flex items-center gap-2">
+              <LogoMark />
+            </div>
+
+            {/* Page title */}
             <span className="flex-1 text-[15px] font-semibold text-surface-900 lg:text-[13.5px] lg:font-medium lg:text-surface-500">{pageTitle}</span>
 
             {/* Role badge */}
@@ -164,7 +169,7 @@ export function DashboardLayout() {
                     user?.role === "CAPTAIN" ? "bg-accent-500" : "bg-primary-500"
                   }`}
                 />
-                {user?.role === "CAPTAIN" ? "Captain" : "User"}
+                <span className="text-xs font-medium">{user?.role === "CAPTAIN" ? "Captain" : "User"}</span>
               </span>
             </div>
           </div>
@@ -176,8 +181,9 @@ export function DashboardLayout() {
         </main>
       </div>
 
-      {/* ─── Mobile Bottom Navigation ─── */}
-      <nav className="lg:hidden fixed bottom-0 left-0 right-0 z-40 bg-white border-t border-surface-100 pb-safe"
+      {/* ─── Mobile Bottom Navigation (only on mobile/small screens) ─── */}
+      <nav
+        className="sm:hidden fixed bottom-0 left-0 right-0 z-40 bg-white border-t border-surface-100 pb-safe"
         style={{ boxShadow: "0 -1px 0 rgba(0,0,0,0.06), 0 -4px 12px rgba(0,0,0,0.04)" }}
       >
         <div className="flex items-stretch h-16">
@@ -192,26 +198,24 @@ export function DashboardLayout() {
                 key={item.to}
                 to={item.to}
                 end={item.end}
-                className="relative flex-1 flex flex-col items-center justify-center gap-0.5 transition-colors"
+                className="relative flex-1 flex flex-col items-center justify-center gap-0.5 transition-colors min-h-[44px]"
               >
                 <div
-                  className={`p-1.5 rounded-lg transition-all duration-150 ${
-                    isActive ? "text-primary-600" : "text-surface-400"
+                  className={`p-2 rounded-xl transition-all duration-150 ${
+                    isActive
+                      ? "text-primary-600 bg-primary-50"
+                      : "text-surface-400"
                   }`}
                 >
-                  <Icon size={20} />
+                  <Icon size={22} />
                 </div>
                 <span
-                  className={`text-[10.5px] font-medium transition-colors duration-150 ${
+                  className={`text-[10px] font-semibold transition-colors duration-150 ${
                     isActive ? "text-primary-600" : "text-surface-400"
                   }`}
                 >
                   {item.label}
                 </span>
-                {/* Active dot indicator */}
-                {isActive && (
-                  <span className="absolute bottom-1 w-1 h-1 rounded-full bg-primary-600" />
-                )}
               </NavLink>
             );
           })}

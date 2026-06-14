@@ -328,7 +328,7 @@ export function UploadEvidencePage() {
 
               {preview ? (
                 /* Captured photo preview */
-                <div className="relative rounded-lg overflow-hidden bg-black aspect-video flex items-center justify-center border border-surface-200">
+                <div className="relative rounded-lg overflow-hidden bg-black aspect-[4/3] sm:aspect-video flex items-center justify-center border border-surface-200">
                   <img src={preview} alt="Captured" className="h-full object-contain" />
 
                   {/* Captured badge */}
@@ -348,7 +348,7 @@ export function UploadEvidencePage() {
                 </div>
               ) : (
                 /* Live viewfinder */
-                <div className="relative rounded-lg overflow-hidden bg-surface-950 aspect-video flex items-center justify-center border border-surface-900">
+                <div className="relative rounded-lg overflow-hidden bg-surface-950 aspect-[4/3] sm:aspect-video flex items-center justify-center border border-surface-900">
                   <video
                     ref={videoRef}
                     autoPlay
@@ -492,7 +492,7 @@ export function UploadEvidencePage() {
             <Button
               type="button"
               variant="secondary"
-              className="flex-1"
+              className="flex-1 h-12"
               onClick={() => { stopCamera(); navigate(`/captain/tasks/${task.id}`); }}
             >
               Cancel
@@ -501,7 +501,7 @@ export function UploadEvidencePage() {
               type="submit"
               isLoading={isSubmitting}
               disabled={!file || !isInRange}
-              className="flex-1"
+              className="flex-1 h-12"
             >
               Submit Evidence
             </Button>

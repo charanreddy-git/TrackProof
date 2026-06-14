@@ -1,5 +1,5 @@
 import { useState, type FormEvent } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate, useLocation } from "react-router-dom";
 import { useAuth } from "../../contexts/AuthContext";
 import { Button } from "../../components/ui/Button";
 import { Input } from "../../components/ui/Input";
@@ -12,7 +12,12 @@ export function LoginPage() {
   const [error, setError] = useState("");
   const { login } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
   const { addToast } = useToast();
+
+  // Support a ?returnTo= param so users land back where they came from
+  const searchParams = new URLSearchParams(location.search);
+  const returnTo = searchParams.get("returnTo");
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
@@ -22,9 +27,9 @@ export function LoginPage() {
     try {
       await login(email, password);
       addToast("success", "Welcome back!");
-      // Auth context will set user, then we redirect based on role
       const user = JSON.parse(localStorage.getItem("user") || "{}");
-      navigate(user.role === "CAPTAIN" ? "/captain/dashboard" : "/user");
+      const defaultDest = user.role === "CAPTAIN" ? "/captain/dashboard" : "/user";
+      navigate(returnTo || defaultDest, { replace: true });
     } catch (err) {
       const message =
         (err as { response?: { data?: { message?: string } } }).response?.data?.message || "Login failed. Please try again.";
@@ -84,7 +89,7 @@ export function LoginPage() {
       <p className="text-center text-sm text-surface-500 mt-6">
         Don't have an account?{" "}
         <Link
-          to="/"
+          to="/register"
           className="text-primary-600 hover:text-primary-700 font-medium"
         >
           Create one

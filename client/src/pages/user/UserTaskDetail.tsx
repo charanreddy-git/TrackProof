@@ -71,7 +71,7 @@ export function UserTaskDetail() {
       <div>
         <Link
           to="/user"
-          className="inline-flex items-center gap-1.5 text-[13px] text-surface-500 hover:text-surface-800 font-medium transition-colors"
+          className="inline-flex items-center gap-1.5 text-[13px] text-surface-500 hover:text-surface-800 font-medium transition-colors py-1"
         >
           <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
@@ -80,10 +80,28 @@ export function UserTaskDetail() {
         </Link>
       </div>
 
-      {/* Grid container: Split on lg screens */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 items-stretch flex-1">
-        {/* Left Column: Details Pane (Scrollable on lg) */}
-        <div className="lg:col-span-5 flex flex-col space-y-4 lg:max-h-[calc(100vh-180px)] lg:overflow-y-auto lg:pr-2">
+      {/* Grid container: Map on top mobile, side-by-side on desktop */}
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 items-stretch flex-1">
+        {/* Map — order-first on mobile so users see location immediately */}
+        <div className="order-first lg:order-last lg:col-span-7 flex flex-col h-[220px] sm:h-[280px] lg:h-auto lg:min-h-[400px]">
+          <div className="border border-surface-200 rounded-xl overflow-hidden shadow-sm h-full flex-1 relative bg-white">
+            <MapView
+              center={[task.targetLat, task.targetLng]}
+              zoom={16}
+              markers={[
+                {
+                  position: [task.targetLat, task.targetLng],
+                  label: "Target Location",
+                  icon: targetIcon,
+                },
+              ]}
+              height="100%"
+            />
+          </div>
+        </div>
+
+        {/* Left Column: Details Pane */}
+        <div className="order-last lg:order-first lg:col-span-5 flex flex-col space-y-4 lg:max-h-[calc(100vh-180px)] lg:overflow-y-auto lg:pr-2">
           {/* Header Card */}
           <Card padding="md">
             <div className="flex items-start justify-between gap-4">
@@ -154,7 +172,7 @@ export function UserTaskDetail() {
                 </Button>
               )}
 
-              {["ACCEPTED", "IN_PROGRESS"].includes(task.status) && (
+              {task.status === "IN_PROGRESS" && (
                 <Link to={`/user/track/${task.id}`} className="block">
                   <Button variant="secondary" className="w-full" size="md">
                     <svg className="w-4 h-4 mr-1.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -189,14 +207,24 @@ export function UserTaskDetail() {
           {/* Evidence Image — shown prominently when available for review */}
           {task.evidenceImage && (
             <Card padding="md">
-              <h2 className="text-[11px] font-bold text-surface-400 uppercase tracking-wider mb-3">
-                Evidence Photo
-              </h2>
+              <div className="flex items-center justify-between mb-3">
+                <h2 className="text-[11px] font-bold text-surface-400 uppercase tracking-wider">
+                  Evidence Photo
+                </h2>
+                <a
+                  href={`${baseUrl}${task.evidenceImage}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-[11px] font-semibold text-primary-600 hover:text-primary-700"
+                >
+                  View full size ↗
+                </a>
+              </div>
               <div className="rounded-lg overflow-hidden border border-surface-200 bg-surface-50">
                 <img
                   src={`${baseUrl}${task.evidenceImage}`}
                   alt="Verification Evidence"
-                  className="w-full max-h-64 object-cover"
+                  className="w-full object-cover"
                 />
               </div>
             </Card>
@@ -230,24 +258,6 @@ export function UserTaskDetail() {
               </div>
             </div>
           </Card>
-        </div>
-
-        {/* Right Column: Prominent Map Pane */}
-        <div className="lg:col-span-7 flex flex-col h-[350px] lg:h-auto min-h-[300px]">
-          <div className="border border-surface-200 rounded-xl overflow-hidden shadow-sm h-full flex-1 relative bg-white">
-            <MapView
-              center={[task.targetLat, task.targetLng]}
-              zoom={16}
-              markers={[
-                {
-                  position: [task.targetLat, task.targetLng],
-                  label: "Target Location",
-                  icon: targetIcon,
-                },
-              ]}
-              height="100%"
-            />
-          </div>
         </div>
       </div>
     </div>

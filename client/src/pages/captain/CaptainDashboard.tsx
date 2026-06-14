@@ -25,8 +25,6 @@ export function CaptainDashboard() {
   const mySubmitted = tasks.filter((t) => t.status === "SUBMITTED");
   const myCompleted = tasks.filter((t) => t.status === "COMPLETED");
 
-  const totalEarnings = myCompleted.length * 150; // Base estimated payout
-
   const stats = [
     {
       label: "Active",
@@ -47,8 +45,8 @@ export function CaptainDashboard() {
       icon: CheckCircleIcon,
     },
     {
-      label: "Earnings",
-      value: `₹${totalEarnings}`,
+      label: "Payouts",
+      value: myCompleted.length > 0 ? `${myCompleted.length} done` : "—",
       icon: IndianRupeeIcon,
       highlight: true,
     },
