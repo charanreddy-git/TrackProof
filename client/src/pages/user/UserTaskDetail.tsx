@@ -1,13 +1,6 @@
-import { useParams, Link } from "react-router-dom";
-import { Card } from "../../components/ui/Card";
-import { Button } from "../../components/ui/Button";
-import { StatusBadge } from "../../components/StatusBadge";
-import { MapView } from "../../components/MapView";
-import { targetIcon } from "../../components/MapIcons";
-import { PageLoader } from "../../components/ui/Spinner";
-import { useTaskDetail, useCompleteTask } from "../../hooks/useTasks";
-import { useTaskUpdates } from "../../hooks/useSocket";
-import { useToast } from "../../components/ui/Toast";
+import { useParams } from "react-router-dom";
+import { Card, Button, StatusBadge, MapView, targetIcon, PageLoader, useToast } from "../../components";
+import { useTaskDetail, useCompleteTask, useTaskUpdates } from "../../hooks";
 import { useQueryClient } from "@tanstack/react-query";
 import type { TaskStatus } from "../../types";
 
@@ -67,22 +60,16 @@ export function UserTaskDetail() {
 
   return (
     <div className="h-full flex flex-col max-w-7xl mx-auto space-y-4">
-      {/* Back */}
       <div>
-        <Link
-          to="/user"
-          className="inline-flex items-center gap-1.5 text-[13px] text-surface-500 hover:text-surface-800 font-medium transition-colors py-1"
-        >
+        <Button to="/user" variant="ghost" size="sm">
           <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
           </svg>
           Back to Dashboard
-        </Link>
+        </Button>
       </div>
 
-      {/* Grid container: Map on top mobile, side-by-side on desktop */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 items-stretch flex-1">
-        {/* Map — order-first on mobile so users see location immediately */}
         <div className="order-first lg:order-last lg:col-span-7 flex flex-col h-[220px] sm:h-[280px] lg:h-auto lg:min-h-[400px]">
           <div className="border border-surface-200 rounded-xl overflow-hidden shadow-sm h-full flex-1 relative bg-white">
             <MapView
@@ -100,9 +87,7 @@ export function UserTaskDetail() {
           </div>
         </div>
 
-        {/* Left Column: Details Pane */}
         <div className="order-last lg:order-first lg:col-span-5 flex flex-col space-y-4 lg:max-h-[calc(100vh-180px)] lg:overflow-y-auto lg:pr-2">
-          {/* Header Card */}
           <Card padding="md">
             <div className="flex items-start justify-between gap-4">
               <div className="flex-1 min-w-0">
@@ -113,7 +98,6 @@ export function UserTaskDetail() {
             </div>
           </Card>
 
-          {/* Progress Card */}
           <Card padding="md">
             <h2 className="text-[11px] font-bold text-surface-400 uppercase tracking-wider mb-4">
               Task Status
@@ -155,7 +139,6 @@ export function UserTaskDetail() {
             </div>
           </Card>
 
-          {/* Actions — elevated for immediate access */}
           <Card padding="md">
             <div className="space-y-2">
               {task.status === "SUBMITTED" && (
@@ -173,15 +156,13 @@ export function UserTaskDetail() {
               )}
 
               {task.status === "IN_PROGRESS" && (
-                <Link to={`/user/track/${task.id}`} className="block">
-                  <Button variant="secondary" className="w-full" size="md">
-                    <svg className="w-4 h-4 mr-1.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
-                    </svg>
-                    Track Live Location
-                  </Button>
-                </Link>
+                <Button to={`/user/track/${task.id}`} variant="secondary" className="w-full" size="md">
+                  <svg className="w-4 h-4 mr-1.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                  </svg>
+                  Track Live Location
+                </Button>
               )}
 
               {task.status === "OPEN" && (
@@ -204,7 +185,6 @@ export function UserTaskDetail() {
             </div>
           </Card>
 
-          {/* Evidence Image — shown prominently when available for review */}
           {task.evidenceImage && (
             <Card padding="md">
               <div className="flex items-center justify-between mb-3">
@@ -224,40 +204,11 @@ export function UserTaskDetail() {
                 <img
                   src={`${baseUrl}${task.evidenceImage}`}
                   alt="Verification Evidence"
-                  className="w-full object-cover"
+                  className="w-full max-h-80 object-contain"
                 />
               </div>
             </Card>
           )}
-
-          {/* Task Info Card */}
-          <Card padding="md">
-            <h2 className="text-[11px] font-bold text-surface-400 uppercase tracking-wider mb-3">
-              Task Details
-            </h2>
-            <div className="divide-y divide-surface-100 text-xs">
-              <div className="flex justify-between py-2">
-                <span className="text-surface-500">Created</span>
-                <span className="font-semibold text-surface-800">
-                  {new Date(task.createdAt).toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" })}
-                </span>
-              </div>
-              <div className="flex justify-between py-2">
-                <span className="text-surface-500">Captain Assigned</span>
-                <span className="font-semibold text-surface-800">
-                  {task.acceptedBy?.name || (
-                    <span className="text-surface-400 font-normal">Unassigned</span>
-                  )}
-                </span>
-              </div>
-              <div className="flex justify-between py-2">
-                <span className="text-surface-500">Coordinates</span>
-                <span className="font-mono text-surface-600">
-                  {task.targetLat.toFixed(6)}, {task.targetLng.toFixed(6)}
-                </span>
-              </div>
-            </div>
-          </Card>
         </div>
       </div>
     </div>

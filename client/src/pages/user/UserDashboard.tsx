@@ -1,8 +1,6 @@
 import { Link } from "react-router-dom";
-import { Card } from "../../components/ui/Card";
-import { TaskTable } from "../../components/TaskTable";
-import { PageLoader } from "../../components/ui/Spinner";
-import { useTaskList } from "../../hooks/useTasks";
+import { Card, TaskTable, PageLoader, Button } from "../../components";
+import { useTaskList } from "../../hooks";
 import {
   ClipboardIcon,
   ZapIcon,
@@ -69,17 +67,12 @@ export function UserDashboard() {
           <h1 className="text-xl font-bold text-surface-900 tracking-tight">{contextTitle}</h1>
           <p className="text-sm text-surface-500 mt-0.5">{contextSub}</p>
         </div>
-        <Link
-          to="/user/create-task"
-          id="create-task-btn"
-          className="inline-flex items-center gap-2 px-4 py-2.5 bg-primary-600 text-white text-[13px] font-semibold rounded-lg hover:bg-primary-700 active:scale-95 transition-all shadow-sm"
-        >
+        <Button to="/user/create-task" size="md" id="create-task-btn">
           <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M12 4v16m8-8H4" />
           </svg>
-          <span className="hidden sm:inline">New Task</span>
-          <span className="sm:hidden">New</span>
-        </Link>
+          New Task
+        </Button>
       </div>
 
       {/* Stat Cards */}

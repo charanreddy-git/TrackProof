@@ -1,32 +1,4 @@
-import { Link } from "react-router-dom";
-import { MarketingHeader } from "../components/MarketingHeader";
-import { MarketingFooter } from "../components/MarketingFooter";
-import {
-  MapPinIcon,
-  CameraIcon,
-  CheckCircleIcon,
-} from "../components/Icons";
-
-const STEPS = [
-  {
-    icon: MapPinIcon,
-    step: "01",
-    title: "Pin the Location",
-    desc: "Drop a pin on any property, plot, or address in India. Add specific instructions for the inspector.",
-  },
-  {
-    icon: CameraIcon,
-    step: "02",
-    title: "Inspector Visits On-Site",
-    desc: "A verified local captain rides to the coordinates, captures GPS-sealed photos from within the 100m geofence.",
-  },
-  {
-    icon: CheckCircleIcon,
-    step: "03",
-    title: "Get Verified Proof",
-    desc: "Receive timestamped, location-watermarked photo evidence directly on your dashboard. Review and confirm.",
-  },
-];
+import { MarketingHeader, MarketingFooter, Button, Card } from "../components";
 
 export function LandingPage() {
   return (
@@ -53,23 +25,15 @@ export function LandingPage() {
                 Send a local inspector to any coordinates. Get GPS-sealed photos, on-site evidence, and verified proof — delivered to your dashboard.
               </p>
 
-              {/* CTA */}
               <div className="flex flex-col sm:flex-row items-center justify-center gap-3 pt-2">
-                <Link
-                  to="/verify/signup"
-                  className="px-8 py-3.5 bg-primary-600 hover:bg-primary-700 text-white font-bold rounded-lg transition-all shadow-md text-[13px]"
-                >
+                <Button to="/verify/signup" size="lg">
                   Request an Inspection
-                </Link>
-                <Link
-                  to="/pricing"
-                  className="px-6 py-3 text-[13px] font-semibold text-surface-600 hover:text-surface-900 bg-white border border-surface-200 hover:border-surface-300 rounded-lg transition-all"
-                >
+                </Button>
+                <Button to="/pricing" variant="secondary" size="lg">
                   View Pricing →
-                </Link>
+                </Button>
               </div>
 
-              {/* Trust Indicators */}
               <div className="flex flex-wrap items-center justify-center gap-x-6 gap-y-2 pt-3 text-xs font-semibold text-surface-600">
                 <span className="flex items-center gap-1.5">
                   <span className="text-primary-650">✓</span> GPS-verified evidence
@@ -94,39 +58,29 @@ export function LandingPage() {
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-stretch max-w-3xl mx-auto w-full">
-              {/* Requester Card */}
-              <div className="p-8 bg-white border border-surface-200 rounded-2xl hover:border-primary-500 hover:shadow-card-hover transition-all duration-200 flex flex-col justify-between space-y-6 group">
+              <Card padding="lg" hover className="flex flex-col justify-between space-y-6 group border-2 border-surface-200 hover:border-primary-500">
                 <div className="space-y-3">
                   <h2 className="text-lg sm:text-xl font-bold text-surface-900 tracking-tight">Verify a Property</h2>
                   <p className="text-xs text-surface-550 leading-relaxed font-normal">
                     Get verified photos, walkthrough videos, and on-site checks delivered to your dashboard. Ideal for NRI buyers, investors, and landowners.
                   </p>
                 </div>
-
-                <Link
-                  to="/verify"
-                  className="block w-full py-3 bg-primary-600 hover:bg-primary-700 text-white font-bold text-xs text-center rounded-xl transition-all shadow-sm group-hover:scale-[1.01]"
-                >
+                <Button to="/verify" className="w-full text-xs" size="md">
                   Request an Inspection
-                </Link>
-              </div>
+                </Button>
+              </Card>
 
-              {/* Captain Card */}
-              <div className="p-8 bg-white border border-surface-200 rounded-2xl hover:border-accent-500 hover:shadow-card-hover transition-all duration-200 flex flex-col justify-between space-y-6 group">
+              <Card padding="lg" hover className="flex flex-col justify-between space-y-6 group border-2 border-surface-200 hover:border-accent-500">
                 <div className="space-y-3">
                   <h2 className="text-lg sm:text-xl font-bold text-surface-900 tracking-tight">Become a Captain</h2>
                   <p className="text-xs text-surface-550 leading-relaxed font-normal">
                     Inspect properties in your local area, complete simple site visits, and get paid weekly. Join our fleet of flexible inspectors.
                   </p>
                 </div>
-
-                <Link
-                  to="/captain"
-                  className="block w-full py-3 bg-surface-900 hover:bg-surface-950 text-white font-bold text-xs text-center rounded-xl transition-all shadow-sm group-hover:scale-[1.01]"
-                >
+                <Button to="/captain" variant="secondary" className="w-full text-xs" size="md">
                   Start Earning
-                </Link>
-              </div>
+                </Button>
+              </Card>
             </div>
           </div>
         </section>
@@ -138,12 +92,9 @@ export function LandingPage() {
             <p className="text-sm text-surface-550 max-w-lg mx-auto">
               Starting at <strong className="text-surface-900 font-bold">₹199</strong> per inspection. No subscriptions, no hidden fees. Full refund if no inspector is matched within 48 hours.
             </p>
-            <Link
-              to="/pricing"
-              className="inline-flex items-center gap-1.5 px-6 py-2.5 bg-surface-900 hover:bg-surface-950 text-white text-xs font-bold rounded-lg transition-all shadow-sm"
-            >
+            <Button to="/pricing" variant="secondary" size="md">
               See All Plans & Calculator
-            </Link>
+            </Button>
           </div>
         </section>
       </main>

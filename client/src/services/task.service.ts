@@ -34,10 +34,7 @@ export async function submitTask(
 ): Promise<Task> {
   const { data } = await api.post<ApiResponse<Task>>(
     `/tasks/${id}/submit`,
-    formData,
-    {
-      headers: { "Content-Type": "multipart/form-data" },
-    }
+    formData
   );
   return data.data;
 }

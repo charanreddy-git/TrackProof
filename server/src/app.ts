@@ -1,11 +1,10 @@
 import express from "express";
 import cors from "cors";
 import path from "path";
-import authRoutes from "./routes/auth.routes";
-import taskRoutes from "./routes/task.routes";
-import { errorHandler } from "./middleware/error.middleware";
-import { prisma } from "./lib/prisma";
-import { logger } from "./utils/logger";
+import { authRoutes, taskRoutes } from "./routes";
+import { errorHandler } from "./middleware";
+import { prisma } from "./lib";
+import { logger } from "./utils";
 
 const app = express();
 

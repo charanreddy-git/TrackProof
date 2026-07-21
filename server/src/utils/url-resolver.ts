@@ -4,14 +4,15 @@ import type { IncomingMessage } from "http";
 import { URL } from "url";
 import { ApiError } from "./api-error";
 
-/**
- * Parses coordinates (latitude & longitude) from a Google Maps URL.
- * Supports multiple URL formats:
- * - https://www.google.com/maps/@12.9716,77.5946,15z
- * - https://maps.google.com/?q=12.9716,77.5946
- * - https://www.google.com/maps/place/12.9716,77.5946
- * - https://www.google.com/maps/...!3d12.9715987!4d77.5945627
- */
+const GOOGLE_MAPS_HOSTS = new Set([
+  "maps.google.com",
+  "www.google.com",
+  "maps.google.co.in",
+  "www.google.co.in",
+  "goo.gl",
+  "maps.app.goo.gl",
+]);
+
 function parseCoordinates(
   url: string
 ): { latitude: number; longitude: number } | null {
@@ -36,10 +37,16 @@ function parseCoordinates(
   return null;
 }
 
-/**
- * Follows HTTP redirects recursively using Node's native HTTP/HTTPS modules.
- * Stops after maxRedirects to prevent infinite redirect loops.
- */
+function isGoogleMapsUrl(raw: string): boolean {
+  try {
+    const parsed = new URL(raw);
+    const host = parsed.hostname.toLowerCase();
+    return GOOGLE_MAPS_HOSTS.has(host) || host.endsWith(".google.com");
+  } catch {
+    return false;
+  }
+}
+
 async function followRedirects(
   urlStr: string,
   maxRedirects = 6
@@ -47,14 +54,17 @@ async function followRedirects(
   let currentUrl = urlStr;
 
   for (let i = 0; i < maxRedirects; i++) {
-    if (
-      !currentUrl.startsWith("http://") &&
-      !currentUrl.startsWith("https://")
-    ) {
+    let parsed: URL;
+    try {
+      parsed = new URL(currentUrl);
+    } catch {
       break;
     }
 
-    const parsed = new URL(currentUrl);
+    if (parsed.protocol !== "http:" && parsed.protocol !== "https:") {
+      break;
+    }
+
     const client = parsed.protocol === "https:" ? https : http;
 
     const response = await new Promise<IncomingMessage>((resolve, reject) => {
@@ -89,23 +99,10 @@ async function followRedirects(
   return currentUrl;
 }
 
-/**
- * Resolves a Google Maps URL to coordinates.
- * Validates the URL is a Google Maps link, attempts direct parsing,
- * then falls back to following redirects for shortened URLs.
- *
- * @throws {ApiError} if URL is not a Google Maps link or coordinates cannot be extracted
- */
 export async function resolveGoogleMapsUrl(
   url: string
 ): Promise<{ latitude: number; longitude: number }> {
-  const isGoogleMaps =
-    url.includes("maps.google.com") ||
-    url.includes("google.com/maps") ||
-    url.includes("goo.gl/maps") ||
-    url.includes("maps.app.goo.gl");
-
-  if (!isGoogleMaps) {
+  if (!isGoogleMapsUrl(url)) {
     throw ApiError.badRequest(
       "Invalid URL. Only Google Maps links are supported."
     );

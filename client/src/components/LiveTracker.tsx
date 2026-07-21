@@ -3,7 +3,7 @@ import { MapContainer, TileLayer, Marker, Popup, Circle, useMap } from "react-le
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
 import { targetIcon, captainIcon } from "./MapIcons";
-import { useLiveLocation } from "../hooks/useSocket";
+import { useLiveLocation } from "../hooks";
 
 
 interface LiveTrackerProps {

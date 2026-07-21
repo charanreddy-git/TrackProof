@@ -1,7 +1,6 @@
-import { prisma } from "../lib/prisma";
-import { ApiError } from "../utils/api-error";
-import { haversineDistance, MAX_DISTANCE_METERS } from "../utils/haversine";
-import { CreateTaskInput, SubmitTaskInput } from "../validators/task.validator";
+import { prisma } from "../lib";
+import { ApiError, haversineDistance, MAX_DISTANCE_METERS } from "../utils";
+import type { CreateTaskInput, SubmitTaskInput } from "../validators";
 import { TaskStatus } from "@prisma/client";
 
 /** Reusable select shape for user relations on task responses */
@@ -15,7 +14,7 @@ const taskWithUsers = {
   acceptedBy: userSelect,
 } as const;
 
-export type TaskFilter = "available" | "accepted";
+type TaskFilter = "available" | "accepted";
 
 export class TaskService {
   /**

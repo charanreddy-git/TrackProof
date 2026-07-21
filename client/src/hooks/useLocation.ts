@@ -1,5 +1,5 @@
 import { useState, useCallback } from "react";
-import { emitLocationUpdate } from "../sockets/socket";
+import { emitLocationUpdate } from "../sockets";
 
 interface GeolocationState {
   latitude: number | null;

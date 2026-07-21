@@ -1,5 +1,4 @@
-import { Link } from "react-router-dom";
-import { Logo } from "../components/Logo";
+import { Logo, Button } from "../components";
 
 export function NotFoundPage() {
   return (
@@ -22,18 +21,8 @@ export function NotFoundPage() {
         </div>
 
         <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
-          <Link
-            to="/"
-            className="px-6 py-2.5 bg-primary-600 hover:bg-primary-700 text-white text-sm font-bold rounded-lg transition-all shadow-sm focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-primary-500"
-          >
-            Back to Home
-          </Link>
-          <Link
-            to="/verify"
-            className="px-6 py-2.5 bg-white hover:bg-surface-50 text-surface-700 text-sm font-semibold border border-surface-200 rounded-lg transition-all focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-primary-500"
-          >
-            Request an Inspection
-          </Link>
+          <Button to="/">Back to Home</Button>
+          <Button to="/verify" variant="secondary">Request an Inspection</Button>
         </div>
       </div>
     </div>

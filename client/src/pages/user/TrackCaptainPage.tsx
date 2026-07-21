@@ -1,8 +1,6 @@
 import { useParams, Link } from "react-router-dom";
-import { LiveTracker } from "../../components/LiveTracker";
-import { PageLoader } from "../../components/ui/Spinner";
-import { useTaskDetail } from "../../hooks/useTasks";
-import { useSocket } from "../../hooks/useSocket";
+import { LiveTracker, PageLoader } from "../../components";
+import { useTaskDetail, useSocket } from "../../hooks";
 import { useEffect } from "react";
 
 export function TrackCaptainPage() {

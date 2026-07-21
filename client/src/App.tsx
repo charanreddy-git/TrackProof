@@ -1,34 +1,20 @@
-import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { AuthProvider } from "./contexts/AuthContext";
-import { ToastProvider } from "./components/ui/Toast";
-import { ProtectedRoute } from "./components/ProtectedRoute";
-import { ErrorBoundary } from "./components/ErrorBoundary";
 
-// Layouts
-import { AuthLayout } from "./layouts/AuthLayout";
-import { DashboardLayout } from "./layouts/DashboardLayout";
-
-// Auth Pages
-import { LoginPage } from "./pages/auth/LoginPage";
-import { RegisterPage } from "./pages/auth/RegisterPage";
-
-// User Pages
-import { UserDashboard } from "./pages/user/UserDashboard";
-import { CreateTaskPage } from "./pages/user/CreateTaskPage";
-import { UserTaskDetail } from "./pages/user/UserTaskDetail";
-import { TrackCaptainPage } from "./pages/user/TrackCaptainPage";
-
-// Captain Pages
-import { CaptainDashboard } from "./pages/captain/CaptainDashboard";
-import { AcceptedTasksPage } from "./pages/captain/AcceptedTasksPage";
-import { CaptainTaskDetail } from "./pages/captain/CaptainTaskDetail";
-import { UploadEvidencePage } from "./pages/captain/UploadEvidencePage";
-import { LandingPage } from "./pages/LandingPage";
-import { RequesterLandingPage } from "./pages/verify/RequesterLandingPage";
-import { CaptainLandingPage } from "./pages/captain/CaptainLandingPage";
-import { PricingPage } from "./pages/PricingPage";
-import { NotFoundPage } from "./pages/NotFoundPage";
+import { AuthProvider } from "./contexts";
+import { ToastProvider, ProtectedRoute, ErrorBoundary } from "./components";
+import { AuthLayout, DashboardLayout } from "./layouts";
+import { LoginPage, RegisterPage } from "./pages/auth";
+import { UserDashboard, CreateTaskPage, UserTaskDetail, TrackCaptainPage } from "./pages/user";
+import {
+  CaptainDashboard,
+  AcceptedTasksPage,
+  CaptainTaskDetail,
+  UploadEvidencePage,
+  CaptainLandingPage,
+} from "./pages/captain";
+import { RequesterLandingPage } from "./pages/verify";
+import { LandingPage, PricingPage, NotFoundPage } from "./pages";
 
 const queryClient = new QueryClient({
   defaultOptions: {

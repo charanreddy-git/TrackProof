@@ -1,9 +1,7 @@
 import { useState, type FormEvent } from "react";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
-import { useAuth } from "../../contexts/AuthContext";
-import { Button } from "../../components/ui/Button";
-import { Input } from "../../components/ui/Input";
-import { useToast } from "../../components/ui/Toast";
+import { useAuth } from "../../contexts";
+import { Button, Input, useToast } from "../../components";
 import type { Role } from "../../types";
 
 interface RegisterPageProps {

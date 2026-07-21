@@ -1,6 +1,6 @@
 import multer from "multer";
 import path from "path";
-import { ApiError } from "../utils/api-error";
+import { ApiError } from "../utils";
 
 const storage = multer.diskStorage({
   destination: (_req, _file, cb) => {
@@ -13,7 +13,7 @@ const storage = multer.diskStorage({
   },
 });
 
-const ALLOWED_TYPES = ["image/jpeg", "image/jpg", "image/png"];
+const ALLOWED_TYPES = ["image/jpeg", "image/png"];
 const ALLOWED_EXTS = [".jpg", ".jpeg", ".png"];
 const MAX_SIZE = 5 * 1024 * 1024; // 5MB
 

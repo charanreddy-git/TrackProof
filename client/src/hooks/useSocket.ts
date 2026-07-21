@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback, useRef } from "react";
 import { useQueryClient } from "@tanstack/react-query";
-import { getSocket, joinTaskRoom, leaveTaskRoom } from "../sockets/socket";
+import { getSocket, joinTaskRoom, leaveTaskRoom } from "../sockets";
 
 interface LocationData {
   taskId: string;

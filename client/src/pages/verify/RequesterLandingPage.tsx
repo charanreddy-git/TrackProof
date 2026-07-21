@@ -4,29 +4,12 @@ import {
   CameraIcon,
   ClipboardIcon,
 } from "../../components/Icons";
-import { MarketingHeader } from "../../components/MarketingHeader";
-import { MarketingFooter } from "../../components/MarketingFooter";
-import { FaqAccordion } from "../../components/FaqAccordion";
+import { MarketingHeader, MarketingFooter, FaqAccordion } from "../../components";
 
 const NAV_ITEMS = [
   { label: "How It Works", to: "#how-it-works", isAnchor: true },
   { label: "Pricing", to: "/pricing" },
   { label: "FAQ", to: "#faq", isAnchor: true },
-];
-
-const USE_CASES = [
-  {
-    title: "Verify Before Booking",
-    desc: "Check plot boundaries, vacancy, and surroundings before wire-transferring token money to a seller.",
-  },
-  {
-    title: "Inspect Without Flights",
-    desc: "Audit inherited land or local property investments in India without booking expensive flight tickets.",
-  },
-  {
-    title: "Monitor Construction",
-    desc: "See raw, on-site photos of concrete pours and brick layouts to release builder milestones on time.",
-  },
 ];
 
 const FAQS = [
@@ -45,29 +28,6 @@ const FAQS = [
   {
     q: "How long does the entire inspection take?",
     a: "Most inspections are accepted and completed within 12 to 24 hours. You will receive an SMS and email notification with your sealed PDF report as soon as the inspector submits the photos.",
-  },
-];
-
-const EVIDENCE_ITEMS = [
-  {
-    label: "Front Gate & Entrance",
-    img: "https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&w=600&q=80",
-    check: "Locks secure, boundary gates aligned.",
-  },
-  {
-    label: "Boundary Wall Limits",
-    img: "https://images.unsplash.com/photo-1500382017468-9049fed747ef?auto=format&fit=crop&w=600&q=80",
-    check: "Plots match official municipal layout.",
-  },
-  {
-    label: "Asphalt Road Access",
-    img: "https://images.unsplash.com/photo-1594913785162-e6785b490895?auto=format&fit=crop&w=600&q=80",
-    check: "Direct, paved asphalt connection verified.",
-  },
-  {
-    label: "Construction Progress Check",
-    img: "https://images.unsplash.com/photo-1541888946425-d81bb19240f5?auto=format&fit=crop&w=600&q=80",
-    check: "Pillars complete, brickwork finalized.",
   },
 ];
 

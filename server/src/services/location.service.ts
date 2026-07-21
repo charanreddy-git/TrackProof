@@ -1,5 +1,5 @@
-import { prisma } from "../lib/prisma";
-import { LocationUpdateInput } from "../validators/location.validator";
+import { prisma } from "../lib";
+import type { LocationUpdateInput } from "../validators";
 
 export class LocationService {
   /**

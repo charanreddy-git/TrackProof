@@ -8,8 +8,8 @@ import {
   type ReactNode,
 } from "react";
 import type { User, Role } from "../types";
-import { loginApi, registerApi } from "../services/auth.service";
-import { connectSocket, disconnectSocket } from "../sockets/socket";
+import { loginApi, registerApi } from "../services";
+import { connectSocket, disconnectSocket } from "../sockets";
 
 interface AuthContextType {
   user: User | null;

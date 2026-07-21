@@ -1,8 +1,7 @@
 import bcrypt from "bcryptjs";
-import { prisma } from "../lib/prisma";
-import { signToken } from "../utils/jwt";
-import { ApiError } from "../utils/api-error";
-import { RegisterInput, LoginInput } from "../validators/auth.validator";
+import { prisma } from "../lib";
+import { signToken, ApiError } from "../utils";
+import type { RegisterInput, LoginInput } from "../validators";
 
 const SALT_ROUNDS = 12;
 

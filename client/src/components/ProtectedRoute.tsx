@@ -1,6 +1,6 @@
 import { Navigate } from "react-router-dom";
-import { useAuth } from "../contexts/AuthContext";
-import { PageLoader } from "./ui/Spinner";
+import { useAuth } from "../contexts";
+import { PageLoader } from "./ui";
 import type { Role } from "../types";
 
 interface ProtectedRouteProps {

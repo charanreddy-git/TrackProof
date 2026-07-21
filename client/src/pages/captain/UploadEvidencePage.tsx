@@ -1,10 +1,7 @@
 import { useState, useRef, useEffect, useCallback, type FormEvent } from "react";
-import { useParams, Link, useNavigate } from "react-router-dom";
-import { Card } from "../../components/ui/Card";
-import { Button } from "../../components/ui/Button";
-import { PageLoader } from "../../components/ui/Spinner";
-import { useTaskDetail, useSubmitTask } from "../../hooks/useTasks";
-import { useToast } from "../../components/ui/Toast";
+import { useParams, useNavigate } from "react-router-dom";
+import { Card, Button, PageLoader, useToast } from "../../components";
+import { useTaskDetail, useSubmitTask } from "../../hooks";
 import {
   CompassIcon,
   CameraIcon,
@@ -222,17 +219,12 @@ export function UploadEvidencePage() {
 
   return (
     <div className="max-w-xl mx-auto space-y-4">
-      {/* Compact header */}
       <div className="flex items-center gap-3">
-        <Link
-          to={`/captain/tasks/${task.id}`}
-          className="flex-shrink-0 p-1.5 -ml-1.5 rounded-lg hover:bg-surface-100 transition-colors text-surface-500 hover:text-surface-800"
-          aria-label="Back to task"
-        >
+        <Button to={`/captain/tasks/${task.id}`} variant="ghost" size="sm" aria-label="Back to task">
           <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
           </svg>
-        </Link>
+        </Button>
         <div>
           <h1 className="text-[15px] font-bold text-surface-900 tracking-tight">Submit Evidence</h1>
           <p className="text-xs text-surface-500">Capture a photo within 100m of the target</p>

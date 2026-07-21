@@ -1,10 +1,14 @@
+import { Link } from "react-router-dom";
 import type { ButtonHTMLAttributes, ReactNode } from "react";
 
-interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
+interface ButtonProps extends Omit<ButtonHTMLAttributes<HTMLButtonElement>, "type"> {
   variant?: "primary" | "secondary" | "danger" | "ghost";
   size?: "sm" | "md" | "lg";
   isLoading?: boolean;
   children: ReactNode;
+  to?: string;
+  href?: string;
+  type?: "button" | "submit" | "reset";
 }
 
 export function Button({
@@ -14,10 +18,13 @@ export function Button({
   children,
   className = "",
   disabled,
+  to,
+  href,
+  type = "button",
   ...props
 }: ButtonProps) {
   const baseClasses =
-    "inline-flex items-center justify-center font-medium rounded-lg transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer";
+    "inline-flex items-center justify-center font-medium rounded-lg transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer no-underline";
 
   const variantClasses = {
     primary:
@@ -36,33 +43,41 @@ export function Button({
     lg: "px-6 py-3 text-base gap-2.5",
   };
 
+  const classes = `${baseClasses} ${variantClasses[variant]} ${sizeClasses[size]} ${className}`;
+
+  const spinner = (
+    <svg className="animate-spin -ml-1 h-4 w-4" fill="none" viewBox="0 0 24 24">
+      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+    </svg>
+  );
+
+  if (to) {
+    return (
+      <Link to={to} className={classes}>
+        {isLoading && spinner}
+        {children}
+      </Link>
+    );
+  }
+
+  if (href) {
+    return (
+      <a href={href} target="_blank" rel="noopener noreferrer" className={classes}>
+        {isLoading && spinner}
+        {children}
+      </a>
+    );
+  }
+
   return (
     <button
-      className={`${baseClasses} ${variantClasses[variant]} ${sizeClasses[size]} ${className}`}
+      className={classes}
       disabled={disabled || isLoading}
+      type={type}
       {...props}
     >
-      {isLoading && (
-        <svg
-          className="animate-spin -ml-1 h-4 w-4"
-          fill="none"
-          viewBox="0 0 24 24"
-        >
-          <circle
-            className="opacity-25"
-            cx="12"
-            cy="12"
-            r="10"
-            stroke="currentColor"
-            strokeWidth="4"
-          />
-          <path
-            className="opacity-75"
-            fill="currentColor"
-            d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"
-          />
-        </svg>
-      )}
+      {isLoading && spinner}
       {children}
     </button>
   );

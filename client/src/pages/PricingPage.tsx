@@ -1,14 +1,4 @@
-import { Link } from "react-router-dom";
-import { Card } from "../components/ui/Card";
-import {
-  CompassIcon,
-  CameraIcon,
-  ZapIcon,
-  CheckCircleIcon,
-} from "../components/Icons";
-import { MarketingHeader } from "../components/MarketingHeader";
-import { MarketingFooter } from "../components/MarketingFooter";
-import { FaqAccordion } from "../components/FaqAccordion";
+import { Card, Button, CompassIcon, CameraIcon, ZapIcon, CheckCircleIcon, MarketingHeader, MarketingFooter, FaqAccordion } from "../components";
 
 interface Plan {
   id: string;
@@ -160,16 +150,13 @@ export function PricingPage() {
               </div>
               
               <div className="pt-10">
-                <Link
+                <Button
                   to="/verify/signup"
-                  className={`block w-full py-3.5 font-bold rounded-xl text-sm text-center transition-all shadow-sm ${
-                    plan.id === "premium"
-                      ? "bg-primary-600 hover:bg-primary-700 text-white hover:scale-[1.02]"
-                      : "bg-surface-900 hover:bg-surface-950 text-white hover:scale-[1.02]"
-                  }`}
+                  className="w-full"
+                  size="md"
                 >
                   Request {plan.name}
-                </Link>
+                </Button>
               </div>
             </Card>
           ))}

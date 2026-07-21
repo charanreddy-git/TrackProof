@@ -1,47 +1,69 @@
-import axios from "axios";
-import { disconnectSocket } from "../sockets/socket";
+import { disconnectSocket } from "../sockets";
 
 const API_URL = import.meta.env.VITE_API_URL || "/api";
 
-const api = axios.create({
-  baseURL: API_URL,
-  headers: {
-    "Content-Type": "application/json",
-  },
-});
+class ApiError extends Error {
+  response: { data: { message?: string } };
 
-// Request interceptor — attach JWT token
-api.interceptors.request.use(
-  (config) => {
-    const token = localStorage.getItem("token");
-    if (token) {
-      config.headers.Authorization = `Bearer ${token}`;
-    }
-    return config;
-  },
-  (error) => Promise.reject(error)
-);
-
-// Response interceptor — handle 401 (expired token)
-api.interceptors.response.use(
-  (response) => response,
-  (error) => {
-    if (error.response?.status === 401) {
-      localStorage.removeItem("token");
-      localStorage.removeItem("user");
-      disconnectSocket();
-      
-      // Only redirect if not already on auth pages
-      if (
-        !window.location.pathname.includes("/login") &&
-        !window.location.pathname.includes("/register") &&
-        !window.location.pathname.includes("/signup")
-      ) {
-        window.location.href = "/login";
-      }
-    }
-    return Promise.reject(error);
+  constructor(message: string, data: { message?: string }) {
+    super(message);
+    this.name = "ApiError";
+    this.response = { data };
   }
-);
+}
+
+async function request<T>(
+  method: string,
+  url: string,
+  body?: unknown,
+  extraHeaders?: Record<string, string>
+): Promise<{ data: T }> {
+  const token = localStorage.getItem("token");
+  const isFormData = body instanceof FormData;
+
+  const headers: Record<string, string> = {};
+  if (token) headers["Authorization"] = `Bearer ${token}`;
+  if (extraHeaders) Object.assign(headers, extraHeaders);
+  if (body !== undefined && !isFormData) {
+    headers["Content-Type"] = "application/json";
+  }
+
+  const response = await fetch(`${API_URL}${url}`, {
+    method,
+    headers,
+    body: isFormData ? body : body !== undefined ? JSON.stringify(body) : undefined,
+  });
+
+  if (response.status === 401) {
+    localStorage.removeItem("token");
+    localStorage.removeItem("user");
+    disconnectSocket();
+    if (
+      !window.location.pathname.includes("/login") &&
+      !window.location.pathname.includes("/register") &&
+      !window.location.pathname.includes("/signup")
+    ) {
+      window.location.href = "/login";
+    }
+  }
+
+  const json = await response.json();
+
+  if (!response.ok) {
+    throw new ApiError(json.message || "Request failed", json);
+  }
+
+  return { data: json };
+}
+
+const api = {
+  get<T>(url: string, config?: { params?: Record<string, string> }): Promise<{ data: T }> {
+    const qs = config?.params ? "?" + new URLSearchParams(config.params).toString() : "";
+    return request<T>("GET", `${url}${qs}`);
+  },
+  post<T>(url: string, body?: unknown, config?: { headers?: Record<string, string> }): Promise<{ data: T }> {
+    return request<T>("POST", url, body, config?.headers);
+  },
+};
 
 export default api;

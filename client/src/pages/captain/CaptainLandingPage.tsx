@@ -1,10 +1,6 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
-import { Card } from "../../components/ui/Card";
-import { ClockIcon } from "../../components/Icons";
-import { MarketingHeader } from "../../components/MarketingHeader";
-import { MarketingFooter } from "../../components/MarketingFooter";
-import { FaqAccordion } from "../../components/FaqAccordion";
+import { Card, ClockIcon, MarketingHeader, MarketingFooter, FaqAccordion } from "../../components";
 
 const NAV_ITEMS = [
   { label: "How to Earn", to: "#how-it-works", isAnchor: true },

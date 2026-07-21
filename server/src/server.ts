@@ -2,8 +2,8 @@ import "dotenv/config";
 import http from "http";
 import app from "./app";
 import { initializeSocket } from "./sockets";
-import { prisma } from "./lib/prisma";
-import { logger } from "./utils/logger";
+import { prisma } from "./lib";
+import { logger } from "./utils";
 
 const PORT = process.env.PORT || 3001;
 
@@ -22,6 +22,11 @@ async function shutdown(signal: string): Promise<void> {
     logger.info("Server closed");
     process.exit(0);
   });
+
+  setTimeout(() => {
+    logger.error("Graceful shutdown timed out — forcing exit");
+    process.exit(1);
+  }, 10000).unref();
 }
 
 process.on("SIGTERM", () => shutdown("SIGTERM"));

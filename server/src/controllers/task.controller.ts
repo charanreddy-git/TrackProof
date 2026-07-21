@@ -1,13 +1,8 @@
 import { Request, Response, NextFunction } from "express";
-import { TaskService } from "../services/task.service";
-import {
-  createTaskSchema,
-  submitTaskSchema,
-  taskFilterSchema,
-} from "../validators/task.validator";
-import { ApiError } from "../utils/api-error";
+import { TaskService } from "../services";
+import { createTaskSchema, submitTaskSchema, taskFilterSchema } from "../validators";
+import { ApiError, resolveGoogleMapsUrl } from "../utils";
 import { getIO } from "../sockets";
-import { resolveGoogleMapsUrl } from "../utils/url-resolver";
 
 /** Express 5 types `req.params` values as `string | string[]`; named route params are always strings at runtime. */
 function paramId(req: Request): string {
@@ -73,16 +68,13 @@ export class TaskController {
         req.user!.userId
       );
 
-      getIO()
-        .to(`task:${task.id}`)
-        .emit("task:accepted", {
-          taskId: task.id,
-          captainId: req.user!.userId,
-          captainName: task.acceptedBy!.name,
-        });
-
-      // Notify dashboard for both users
-      getIO().to(`user:${task.createdById}`).to(`user:${task.acceptedById}`).emit("task:updated");
+      const io = getIO();
+      io.to(`task:${task.id}`).emit("task:accepted", {
+        taskId: task.id,
+        captainId: req.user!.userId,
+        captainName: task.acceptedBy!.name,
+      });
+      io.to(`user:${task.createdById}`).to(`user:${task.acceptedById}`).emit("task:updated");
 
       res.status(200).json({ success: true, data: task });
     } catch (error) {
@@ -97,12 +89,9 @@ export class TaskController {
         req.user!.userId
       );
 
-      getIO()
-        .to(`task:${task.id}`)
-        .emit("task:started", { taskId: task.id });
-
-      // Notify dashboard for both users
-      getIO().to(`user:${task.createdById}`).to(`user:${task.acceptedById}`).emit("task:updated");
+      const io = getIO();
+      io.to(`task:${task.id}`).emit("task:started", { taskId: task.id });
+      io.to(`user:${task.createdById}`).to(`user:${task.acceptedById}`).emit("task:updated");
 
       res.status(200).json({ success: true, data: task });
     } catch (error) {
@@ -126,15 +115,12 @@ export class TaskController {
         imagePath
       );
 
-      getIO()
-        .to(`task:${task.id}`)
-        .emit("task:submitted", {
-          taskId: task.id,
-          evidenceImage: imagePath,
-        });
-
-      // Notify dashboard for both users
-      getIO().to(`user:${task.createdById}`).to(`user:${task.acceptedById}`).emit("task:updated");
+      const io = getIO();
+      io.to(`task:${task.id}`).emit("task:submitted", {
+        taskId: task.id,
+        evidenceImage: imagePath,
+      });
+      io.to(`user:${task.createdById}`).to(`user:${task.acceptedById}`).emit("task:updated");
 
       res.status(200).json({ success: true, data: task });
     } catch (error) {
@@ -149,12 +135,9 @@ export class TaskController {
         req.user!.userId
       );
 
-      getIO()
-        .to(`task:${task.id}`)
-        .emit("task:completed", { taskId: task.id });
-
-      // Notify dashboard for both users
-      getIO().to(`user:${task.createdById}`).to(`user:${task.acceptedById}`).emit("task:updated");
+      const io = getIO();
+      io.to(`task:${task.id}`).emit("task:completed", { taskId: task.id });
+      io.to(`user:${task.createdById}`).to(`user:${task.acceptedById}`).emit("task:updated");
 
       res.status(200).json({ success: true, data: task });
     } catch (error) {

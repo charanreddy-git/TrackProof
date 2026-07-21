@@ -1,8 +1,6 @@
 import { Link } from "react-router-dom";
-import { Card } from "../../components/ui/Card";
-import { TaskTable } from "../../components/TaskTable";
-import { PageLoader } from "../../components/ui/Spinner";
-import { useTaskList } from "../../hooks/useTasks";
+import { Card, TaskTable, PageLoader } from "../../components";
+import { useTaskList } from "../../hooks";
 import {
   ZapIcon,
   ClipboardIcon,

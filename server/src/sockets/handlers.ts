@@ -1,7 +1,7 @@
 import { Server, Socket } from "socket.io";
-import { LocationService } from "../services/location.service";
-import { locationUpdateSchema } from "../validators/location.validator";
-import { logger } from "../utils/logger";
+import { LocationService } from "../services";
+import { locationUpdateSchema } from "../validators";
+import { logger } from "../utils";
 import type {
   ServerToClientEvents,
   ClientToServerEvents,

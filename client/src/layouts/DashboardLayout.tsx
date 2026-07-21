@@ -1,14 +1,14 @@
 import { useState } from "react";
 import { Outlet, NavLink, useNavigate, useLocation } from "react-router-dom";
-import { useAuth } from "../contexts/AuthContext";
-import { useGlobalTaskUpdates } from "../hooks/useSocket";
+import { useAuth } from "../contexts";
+import { useGlobalTaskUpdates } from "../hooks";
 import {
   DashboardIcon,
   PlusIcon,
   ClipboardIcon,
   LogOutIcon,
 } from "../components/Icons";
-import { LogoMark } from "../components/Logo";
+import { LogoMark } from "../components";
 
 const userNav = [
   { to: "/user", label: "Dashboard", icon: DashboardIcon, end: true },

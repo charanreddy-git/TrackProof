@@ -1,12 +1,8 @@
 import { useState, type FormEvent } from "react";
 import { useNavigate } from "react-router-dom";
-import { Card } from "../../components/ui/Card";
-import { Button } from "../../components/ui/Button";
-import { Input } from "../../components/ui/Input";
-import { LocationPicker } from "../../components/LocationPicker";
-import { useCreateTask } from "../../hooks/useTasks";
-import { useToast } from "../../components/ui/Toast";
-import api from "../../services/api";
+import { Card, Button, Input, LocationPicker, useToast } from "../../components";
+import { useCreateTask } from "../../hooks";
+import { api } from "../../services";
 
 const parseLocalCoordinates = (url: string) => {
   // Regex 1: Matches /@12.9716,77.5946
@@ -62,7 +58,10 @@ export function CreateTaskPage() {
       }
 
       // Fallback to backend redirect follower for shortened links
-      const response = await api.post("/tasks/resolve-url", { url: trimmed });
+      const response = await api.post<{ success: boolean; data: { latitude: number; longitude: number } }>(
+        "/tasks/resolve-url",
+        { url: trimmed }
+      );
       const { latitude: resolvedLat, longitude: resolvedLng } = response.data.data;
       setLatitude(resolvedLat);
       setLongitude(resolvedLng);

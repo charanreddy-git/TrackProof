@@ -1,8 +1,7 @@
 import { Server as HttpServer } from "http";
 import { Server } from "socket.io";
-import { verifyToken } from "../utils/jwt";
+import { verifyToken, logger } from "../utils";
 import { registerSocketHandlers } from "./handlers";
-import { logger } from "../utils/logger";
 import type {
   ServerToClientEvents,
   ClientToServerEvents,
