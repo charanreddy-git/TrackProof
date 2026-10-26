@@ -3,224 +3,239 @@ import { Outlet, NavLink, useNavigate, useLocation } from "react-router-dom";
 import { useAuth } from "../contexts";
 import { useGlobalTaskUpdates } from "../hooks";
 import {
-  DashboardIcon,
   PlusIcon,
   ClipboardIcon,
   LogOutIcon,
+  HomeIcon,
+  SearchIcon,
+  UserIcon,
 } from "../components/Icons";
-import { LogoMark } from "../components";
+import { Logo, LogoMark } from "../components";
+import { formatPhone } from "../utils/phone";
 
 const userNav = [
-  { to: "/user", label: "Dashboard", icon: DashboardIcon, end: true },
-  { to: "/user/create-task", label: "New Task", icon: PlusIcon, end: true },
-  { to: "/user/tasks", label: "My Tasks", icon: ClipboardIcon, end: false },
+  { to: "/user", label: "Overview", icon: HomeIcon, end: true },
+  { to: "/user/create-task", label: "Request a visit", icon: PlusIcon, end: true },
+  { to: "/user/tasks", label: "My requests", icon: ClipboardIcon, end: false },
 ];
 
 const captainNav = [
-  { to: "/captain/dashboard", label: "Dashboard", icon: DashboardIcon, end: true },
-  { to: "/captain/accepted", label: "My Tasks", icon: ClipboardIcon, end: true },
+  { to: "/captain/dashboard", label: "Find work", icon: SearchIcon, end: true },
+  { to: "/captain/accepted", label: "My visits", icon: ClipboardIcon, end: false },
 ];
 
 export function DashboardLayout() {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
-  const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [accountMenu, setAccountMenu] = useState({ open: false, path: "" });
+  // The menu closes automatically when the route changes; no effect needed.
+  const accountOpen = accountMenu.open && accountMenu.path === location.pathname;
+  const setAccountOpen = (open: boolean) =>
+    setAccountMenu({ open, path: location.pathname });
 
-  // Subscribe to real-time dashboard invalidations
+  // Subscribe to real-time dashboard invalidations.
   useGlobalTaskUpdates();
 
-  const navItems = user?.role === "CAPTAIN" ? captainNav : userNav;
+  const isInspector = user?.role === "CAPTAIN";
+  const navItems = isInspector ? captainNav : userNav;
+  // The camera flow gets the full screen: a fixed tab bar would cover the shutter.
+  const isCameraFlow = location.pathname.endsWith("/upload");
 
   const handleLogout = () => {
     logout();
     navigate("/login");
   };
 
-  // Determine current page title for mobile header
   const currentNav = navItems.find((item) =>
-    item.end
-      ? location.pathname === item.to
-      : location.pathname.startsWith(item.to)
+    item.end ? location.pathname === item.to : location.pathname.startsWith(item.to)
   );
-  const pageTitle = currentNav?.label ?? "InstantLocate";
+
+  const pageTitle = (() => {
+    if (location.pathname === "/user/create-task") return "Request a visit";
+    if (location.pathname.startsWith("/user/tasks/")) return "Visit details";
+    if (location.pathname.startsWith("/user/track/")) return "Live tracking";
+    if (location.pathname.startsWith("/captain/tasks/")) {
+      return location.pathname.endsWith("/upload") ? "Submit proof" : "Visit details";
+    }
+    return currentNav?.label ?? "TrackProof";
+  })();
+  const firstName = user?.name?.split(" ")[0] || user?.name || "there";
 
   return (
     <div className="min-h-screen bg-surface-50">
-      {/* Desktop sidebar overlay (only shown when sidebar is open on lg-) */}
-      {sidebarOpen && (
-        <div
-          className="fixed inset-0 bg-surface-950/40 z-40 hidden sm:block lg:hidden backdrop-blur-sm"
-          onClick={() => setSidebarOpen(false)}
-        />
-      )}
-
-      {/* ─── Sidebar (desktop) ─── */}
-      <aside
-        className={`
-          fixed top-0 left-0 z-50 h-full w-64 bg-white border-r border-surface-100 
-          transform transition-transform duration-300 ease-in-out
-          ${sidebarOpen ? "translate-x-0" : "-translate-x-full"}
-          lg:translate-x-0
-        `}
-      >
-        <div className="flex flex-col h-full">
-          {/* Logo */}
-          <div className="px-5 py-4 border-b border-surface-100">
-            <div className="flex items-center gap-3">
-              <LogoMark />
-              <div>
-                <h2 className="font-bold text-surface-900 text-[15px] leading-tight tracking-tight">InstantLocate</h2>
-                <span className="text-[11px] text-surface-400 capitalize font-medium">{user?.role?.toLowerCase()} portal</span>
-              </div>
-            </div>
-          </div>
-
-          {/* Navigation */}
-          <nav className="flex-1 px-3 py-3 space-y-0.5">
-            {navItems.map((item) => {
-              const Icon = item.icon;
-              return (
-                <NavLink
-                  key={item.to}
-                  to={item.to}
-                  end={item.end}
-                  onClick={() => setSidebarOpen(false)}
-                  className={({ isActive }) =>
-                    `relative flex items-center gap-3 px-3 py-2.5 rounded-lg text-[13.5px] font-medium transition-all duration-150 group ${
-                      isActive
-                        ? "bg-primary-50 text-primary-700"
-                        : "text-surface-600 hover:text-surface-900 hover:bg-surface-50"
-                    }`
-                  }
-                >
-                  {({ isActive }) => (
-                    <>
-                      {/* Left accent bar */}
-                      <span
-                        className={`absolute left-0 h-5 w-0.5 rounded-r-full bg-primary-600 transition-opacity duration-150 ${
-                          isActive ? "opacity-100" : "opacity-0"
-                        }`}
-                      />
-                      <Icon size={16} className={isActive ? "text-primary-600" : "text-surface-400 group-hover:text-surface-600"} />
-                      {item.label}
-                    </>
-                  )}
-                </NavLink>
-              );
-            })}
-          </nav>
-
-          {/* User section */}
-          <div className="p-3 border-t border-surface-100">
-            <div className="flex items-center gap-2.5 px-2 py-2 mb-1">
-              <div className="w-8 h-8 rounded-full bg-gradient-to-br from-primary-400 to-primary-600 flex items-center justify-center text-white text-xs font-bold flex-shrink-0">
-                {user?.name?.charAt(0).toUpperCase()}
-              </div>
-              <div className="flex-1 min-w-0">
-                <p className="text-[13px] font-semibold text-surface-900 truncate leading-tight">
-                  {user?.name}
-                </p>
-                <p className="text-[11px] text-surface-400 truncate leading-tight">
-                  {user?.email}
-                </p>
-              </div>
-            </div>
-            <button
-              onClick={handleLogout}
-              className="w-full flex items-center gap-2.5 px-3 py-2.5 text-[13px] text-surface-500 hover:text-danger-500 hover:bg-red-50 rounded-lg transition-colors cursor-pointer"
-            >
-              <LogOutIcon size={15} />
-              Sign Out
-            </button>
-          </div>
+      {/* ─── Sidebar (tablet and desktop) ─── */}
+      <aside className="fixed inset-y-0 left-0 z-40 hidden w-64 border-r border-surface-200 bg-white sm:flex sm:flex-col">
+        <div className="flex h-16 items-center border-b border-surface-150 px-5">
+          <Logo size="sm" />
         </div>
-      </aside>
 
-      {/* ─── Main Content ─── */}
-      <div className="lg:pl-64 flex flex-col min-h-screen">
-        {/* Top bar */}
-        <header className="sticky top-0 z-30 bg-white/90 backdrop-blur-lg border-b border-surface-100">
-          <div className="flex items-center gap-3 px-4 lg:px-6 h-14">
-            {/* Sidebar toggle — only shown on tablet (sm-lg), hidden on mobile (uses bottom nav) and desktop (sidebar always visible) */}
-            <button
-              onClick={() => setSidebarOpen(true)}
-              className="hidden sm:flex lg:hidden p-2 -ml-1 rounded-lg hover:bg-surface-100 transition-colors cursor-pointer text-surface-600 items-center justify-center"
-              aria-label="Open menu"
-            >
-              <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
-              </svg>
-            </button>
-
-            {/* Logo mark — mobile only (replaces hamburger) */}
-            <div className="sm:hidden flex items-center gap-2">
-              <LogoMark />
-            </div>
-
-            {/* Page title */}
-            <span className="flex-1 text-[15px] font-semibold text-surface-900 lg:text-[13.5px] lg:font-medium lg:text-surface-500">{pageTitle}</span>
-
-            {/* Role badge */}
-            <div className="flex items-center gap-2 ml-auto">
-              <span className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-surface-100 rounded-full text-xs font-medium text-surface-600">
-                <span
-                  className={`w-1.5 h-1.5 rounded-full ${
-                    user?.role === "CAPTAIN" ? "bg-accent-500" : "bg-primary-500"
-                  }`}
-                />
-                <span className="text-xs font-medium">{user?.role === "CAPTAIN" ? "Captain" : "User"}</span>
-              </span>
-            </div>
-          </div>
-        </header>
-
-        {/* Page content */}
-        <main className="flex-1 p-4 lg:p-6 animate-fade-in mb-bottom-nav">
-          <Outlet />
-        </main>
-      </div>
-
-      {/* ─── Mobile Bottom Navigation (only on mobile/small screens) ─── */}
-      <nav
-        className="sm:hidden fixed bottom-0 left-0 right-0 z-40 bg-white border-t border-surface-100 pb-safe"
-        style={{ boxShadow: "0 -1px 0 rgba(0,0,0,0.06), 0 -4px 12px rgba(0,0,0,0.04)" }}
-      >
-        <div className="flex items-stretch h-16">
+        <nav className="flex-1 space-y-1 px-3 py-4" aria-label="Dashboard navigation">
           {navItems.map((item) => {
             const Icon = item.icon;
-            const isActive = item.end
-              ? location.pathname === item.to
-              : location.pathname.startsWith(item.to);
-
             return (
               <NavLink
                 key={item.to}
                 to={item.to}
                 end={item.end}
-                className="relative flex-1 flex flex-col items-center justify-center gap-0.5 transition-colors min-h-[44px]"
-              >
-                <div
-                  className={`p-2 rounded-xl transition-all duration-150 ${
+                className={({ isActive }) =>
+                  `flex min-h-11 items-center gap-3 rounded-xl px-3 text-sm font-medium transition-colors ${
                     isActive
-                      ? "text-primary-600 bg-primary-50"
-                      : "text-surface-400"
-                  }`}
-                >
-                  <Icon size={22} />
-                </div>
-                <span
-                  className={`text-[10px] font-semibold transition-colors duration-150 ${
-                    isActive ? "text-primary-600" : "text-surface-400"
-                  }`}
-                >
-                  {item.label}
-                </span>
+                      ? "bg-primary-50 text-primary-800"
+                      : "text-surface-600 hover:bg-surface-50 hover:text-surface-900"
+                  }`
+                }
+              >
+                {({ isActive }) => (
+                  <>
+                    <Icon
+                      size={18}
+                      className={isActive ? "text-primary-700" : "text-surface-500"}
+                    />
+                    {item.label}
+                  </>
+                )}
               </NavLink>
             );
           })}
+        </nav>
+
+        <div className="border-t border-surface-150 p-3">
+          <div className="flex items-center gap-3 rounded-xl px-2 py-2">
+            <div className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-full bg-primary-100 text-sm font-bold text-primary-800">
+              {user?.name?.charAt(0).toUpperCase()}
+            </div>
+            <div className="min-w-0 flex-1">
+              <p className="truncate text-sm font-semibold text-surface-900">{user?.name}</p>
+              <p className="truncate text-xs text-surface-500">
+                {isInspector ? "Inspector" : "Property owner"}
+              </p>
+            </div>
+          </div>
+          <button
+            type="button"
+            onClick={handleLogout}
+            className="mt-1 flex min-h-10 w-full items-center gap-3 rounded-xl px-3 text-sm font-medium text-surface-500 transition-colors hover:bg-danger-50 hover:text-danger-700"
+          >
+            <LogOutIcon size={17} />
+            Sign out
+          </button>
         </div>
-      </nav>
+      </aside>
+
+      {/* ─── Main content ─── */}
+      <div className="flex min-h-screen flex-col sm:pl-64">
+        <header className="sticky top-0 z-30 border-b border-surface-200 bg-white/95 backdrop-blur-lg">
+          <div className="flex h-14 items-center justify-between gap-3 px-4 sm:h-16 sm:px-6 lg:px-8">
+            <div className="flex min-w-0 items-center gap-2.5 sm:hidden">
+              <LogoMark size="sm" />
+              <span className="text-sm font-extrabold tracking-tight text-surface-900">
+                Track<span className="text-primary-700">Proof</span>
+              </span>
+            </div>
+
+            <div className="hidden min-w-0 sm:block">
+              <p className="truncate text-sm font-semibold text-surface-900">{pageTitle}</p>
+            </div>
+
+            <p className="hidden text-sm text-surface-500 lg:block">
+              {isInspector ? `Welcome, ${firstName}` : `Hello, ${firstName}`}
+            </p>
+
+            <div className="relative ml-auto">
+              <button
+                type="button"
+                onClick={() => setAccountOpen(!accountOpen)}
+                className="flex h-11 w-11 items-center justify-center rounded-full bg-primary-100 text-sm font-bold text-primary-800 transition-colors hover:bg-primary-200"
+                aria-label="Account menu"
+                aria-expanded={accountOpen}
+                aria-haspopup="menu"
+              >
+                {user?.name?.charAt(0).toUpperCase() || <UserIcon size={18} />}
+              </button>
+
+              {accountOpen && (
+                <>
+                  <div
+                    className="fixed inset-0 z-40"
+                    onClick={() => setAccountOpen(false)}
+                    aria-hidden="true"
+                  />
+                  <div
+                    className="absolute right-0 z-50 mt-2 w-60 overflow-hidden rounded-xl border border-surface-200 bg-white shadow-elevated animate-scale-in"
+                    role="menu"
+                  >
+                    <div className="border-b border-surface-150 px-4 py-3">
+                      <p className="truncate text-sm font-semibold text-surface-900">{user?.name}</p>
+                      <p className="truncate text-xs text-surface-500">
+                        {user?.phone ? formatPhone(user.phone) : null}
+                      </p>
+                      <p className="mt-1.5 inline-flex rounded-md bg-surface-100 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-surface-500">
+                        {isInspector ? "Inspector" : "Property owner"}
+                      </p>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={handleLogout}
+                      role="menuitem"
+                      className="flex w-full items-center gap-2.5 px-4 py-3 text-sm font-medium text-surface-600 transition-colors hover:bg-surface-50 hover:text-surface-900"
+                    >
+                      <LogOutIcon size={16} />
+                      Sign out
+                    </button>
+                  </div>
+                </>
+              )}
+            </div>
+          </div>
+        </header>
+
+        <main className={`flex-1 p-4 animate-fade-in sm:p-6 sm:pb-8 lg:p-8 ${isCameraFlow ? "" : "mb-bottom-nav"}`}>
+          <Outlet />
+        </main>
+      </div>
+
+      {/* ─── Mobile bottom navigation ─── */}
+      {!isCameraFlow && (
+        <nav
+          className="fixed inset-x-0 bottom-0 z-40 border-t border-surface-200 bg-white pb-safe sm:hidden"
+          style={{ boxShadow: "0 -1px 0 rgba(18,17,15,0.06)" }}
+          aria-label="Mobile dashboard navigation"
+        >
+          <div className="flex h-16 items-stretch">
+            {navItems.map((item) => {
+              const Icon = item.icon;
+              const isActive = item.end
+                ? location.pathname === item.to
+                : location.pathname.startsWith(item.to);
+
+              return (
+                <NavLink
+                  key={item.to}
+                  to={item.to}
+                  end={item.end}
+                  className="relative flex min-h-[44px] flex-1 flex-col items-center justify-center gap-1"
+                >
+                  <span
+                    className={`flex h-8 w-12 items-center justify-center rounded-lg transition-colors ${
+                      isActive ? "bg-primary-50 text-primary-700" : "text-surface-500"
+                    }`}
+                  >
+                    <Icon size={20} />
+                  </span>
+                  <span
+                    className={`text-[11px] font-medium ${
+                      isActive ? "text-primary-700" : "text-surface-500"
+                    }`}
+                  >
+                    {item.label === "Request a visit" ? "Request" : item.label}
+                  </span>
+                </NavLink>
+              );
+            })}
+          </div>
+        </nav>
+      )}
     </div>
   );
 }

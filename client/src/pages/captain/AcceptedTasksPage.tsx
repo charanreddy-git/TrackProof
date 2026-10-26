@@ -6,40 +6,50 @@ export function AcceptedTasksPage() {
 
   if (isLoading) return <PageLoader />;
 
-  const myTasks = tasks || [];
-  const activeTasks = myTasks.filter((t) =>
-    ["ACCEPTED", "IN_PROGRESS"].includes(t.status)
+  const allTasks = tasks || [];
+  const activeTasks = allTasks.filter((task) =>
+    ["ACCEPTED", "IN_PROGRESS", "SUBMITTED"].includes(task.status)
   );
+  const completedTasks = allTasks.filter((task) => task.status === "COMPLETED");
+  const hasTasks = allTasks.length > 0;
 
   return (
-    <div className="space-y-5 max-w-5xl">
-      {/* Header */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-xl font-bold text-surface-900 tracking-tight">My Tasks</h1>
-          <p className="text-sm text-surface-500 mt-0.5">
-            {activeTasks.length > 0
-              ? `${activeTasks.length} active task${activeTasks.length !== 1 ? "s" : ""}`
-              : "Tasks you have accepted"}
-          </p>
-        </div>
-        {activeTasks.length > 0 && (
-          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-amber-50 text-amber-700 text-xs font-semibold rounded-full ring-1 ring-amber-100">
-            <span className="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse-soft" />
-            {activeTasks.length} active
-          </span>
-        )}
+    <div className="mx-auto max-w-3xl space-y-6">
+      <div>
+        <h1 className="text-2xl font-bold tracking-tight text-surface-950">My visits</h1>
+        <p className="mt-1 text-sm text-surface-500">
+          {hasTasks
+            ? `${activeTasks.length} active · ${completedTasks.length} completed`
+            : "Property visits you accept will appear here."}
+        </p>
       </div>
 
-      <Card padding="md">
+      <Card>
+        <div className="mb-2">
+          <h2 className="text-base font-bold text-surface-950">Active visits</h2>
+          <p className="text-[13px] text-surface-500">
+            These visits still need your action or the requester's review.
+          </p>
+        </div>
         <TaskTable
-          tasks={myTasks}
+          tasks={activeTasks}
           basePath="/captain/tasks"
           showCreatedBy
-          emptyMessage="No accepted tasks"
-          emptyAction={{ label: "Browse available tasks", to: "/captain/available" }}
+          emptyMessage="No active visits"
+          emptyDescription="Accept a request from Find work to start earning."
+          emptyAction={{ label: "Find available work", to: "/captain/dashboard" }}
         />
       </Card>
+
+      {completedTasks.length > 0 && (
+        <Card>
+          <div className="mb-2">
+            <h2 className="text-base font-bold text-surface-950">Completed visits</h2>
+            <p className="text-[13px] text-surface-500">Your finished property checks.</p>
+          </div>
+          <TaskTable tasks={completedTasks} basePath="/captain/tasks" showCreatedBy />
+        </Card>
+      )}
     </div>
   );
 }

@@ -7,78 +7,101 @@ import {
   useCallback,
   type ReactNode,
 } from "react";
-import type { User, Role } from "../types";
-import { loginApi, registerApi } from "../services";
+import type {
+  AuthResponse,
+  OtpRequestResponse,
+  Role,
+  User,
+} from "../types";
+import { requestOtpApi, verifyOtpApi } from "../services";
 import { connectSocket, disconnectSocket } from "../sockets";
+
+interface VerifyOtpOptions {
+  name?: string;
+  role?: Role;
+}
 
 interface AuthContextType {
   user: User | null;
   token: string | null;
   isAuthenticated: boolean;
   isLoading: boolean;
-  login: (email: string, password: string) => Promise<void>;
-  register: (
-    name: string,
-    email: string,
-    password: string,
-    role: Role
-  ) => Promise<void>;
+  requestOtp: (phone: string) => Promise<OtpRequestResponse>;
+  verifyOtp: (
+    phone: string,
+    code: string,
+    options?: VerifyOtpOptions
+  ) => Promise<AuthResponse>;
   logout: () => void;
 }
 
 const AuthContext = createContext<AuthContextType | null>(null);
 
-export function AuthProvider({ children }: { children: ReactNode }) {
-  const [user, setUser] = useState<User | null>(null);
-  const [token, setToken] = useState<string | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
+interface AuthSession {
+  user: User | null;
+  token: string | null;
+}
 
-  // Restore session from localStorage on mount
-  useEffect(() => {
-    const savedToken = localStorage.getItem("token");
-    const savedUser = localStorage.getItem("user");
+/** Read a saved phone-auth session once, before the first render. */
+function readSavedSession(): AuthSession {
+  const savedToken = localStorage.getItem("token");
+  const savedUser = localStorage.getItem("user");
 
-    if (savedToken && savedUser) {
-      try {
-        const parsedUser = JSON.parse(savedUser) as User;
-        setToken(savedToken);
-        setUser(parsedUser);
-        connectSocket(savedToken);
-      } catch {
-        localStorage.removeItem("token");
-        localStorage.removeItem("user");
-      }
+  if (!savedToken || !savedUser) {
+    return { user: null, token: null };
+  }
+
+  try {
+    const parsedUser = JSON.parse(savedUser) as User;
+    // Sessions created before phone-first auth are discarded.
+    if (!parsedUser.phone) {
+      throw new Error("Legacy session");
     }
-    setIsLoading(false);
-  }, []);
+    return { user: parsedUser, token: savedToken };
+  } catch {
+    localStorage.removeItem("token");
+    localStorage.removeItem("user");
+    return { user: null, token: null };
+  }
+}
 
-  const login = useCallback(async (email: string, password: string) => {
-    const result = await loginApi(email, password);
-    setUser(result.user);
-    setToken(result.token);
+export function AuthProvider({ children }: { children: ReactNode }) {
+  const [session, setSession] = useState<AuthSession>(readSavedSession);
+  const { user, token } = session;
+
+  // Socket connection is an external system, so it belongs in an effect.
+  // The session itself is restored synchronously from localStorage.
+  useEffect(() => {
+    if (token) {
+      connectSocket(token);
+    } else {
+      disconnectSocket();
+    }
+  }, [token]);
+
+  const saveSession = useCallback((result: AuthResponse) => {
+    setSession({ user: result.user, token: result.token });
     localStorage.setItem("token", result.token);
     localStorage.setItem("user", JSON.stringify(result.user));
-    connectSocket(result.token);
   }, []);
 
-  const register = useCallback(
-    async (name: string, email: string, password: string, role: Role) => {
-      const result = await registerApi(name, email, password, role);
-      setUser(result.user);
-      setToken(result.token);
-      localStorage.setItem("token", result.token);
-      localStorage.setItem("user", JSON.stringify(result.user));
-      connectSocket(result.token);
+  const requestOtp = useCallback(async (phone: string) => {
+    return requestOtpApi(phone);
+  }, []);
+
+  const verifyOtp = useCallback(
+    async (phone: string, code: string, options: VerifyOtpOptions = {}) => {
+      const result = await verifyOtpApi({ phone, code, ...options });
+      saveSession(result);
+      return result;
     },
-    []
+    [saveSession]
   );
 
   const logout = useCallback(() => {
-    setUser(null);
-    setToken(null);
+    setSession({ user: null, token: null });
     localStorage.removeItem("token");
     localStorage.removeItem("user");
-    disconnectSocket();
   }, []);
 
   return (
@@ -87,9 +110,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         user,
         token,
         isAuthenticated: !!token && !!user,
-        isLoading,
-        login,
-        register,
+        isLoading: false,
+        requestOtp,
+        verifyOtp,
         logout,
       }}
     >

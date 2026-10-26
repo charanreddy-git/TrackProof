@@ -1,42 +1,35 @@
 import type { TaskStatus } from "../types";
+import { CheckIcon } from "./Icons";
 
 const statusConfig: Record<
   TaskStatus,
-  { label: string; classes: string; dot: boolean }
+  { label: string; classes: string; dot: string | null }
 > = {
   OPEN: {
-    label: "Open",
-    classes: "bg-blue-50 text-blue-700 ring-1 ring-blue-100",
-    dot: true,
+    label: "New request",
+    classes: "bg-surface-100 text-surface-700 ring-1 ring-surface-200",
+    dot: "bg-surface-400",
   },
   ACCEPTED: {
-    label: "Accepted",
-    classes: "bg-indigo-50 text-indigo-700 ring-1 ring-indigo-100",
-    dot: true,
+    label: "Inspector assigned",
+    classes: "bg-info-50 text-info-700 ring-1 ring-info-100",
+    dot: "bg-info-500",
   },
   IN_PROGRESS: {
-    label: "In Progress",
-    classes: "bg-amber-50 text-amber-700 ring-1 ring-amber-100",
-    dot: true,
+    label: "On the way",
+    classes: "bg-warning-50 text-warning-700 ring-1 ring-warning-100",
+    dot: "bg-warning-500",
   },
   SUBMITTED: {
-    label: "Review",
+    label: "Proof ready",
     classes: "bg-violet-50 text-violet-700 ring-1 ring-violet-100",
-    dot: true,
+    dot: "bg-violet-500",
   },
   COMPLETED: {
     label: "Completed",
-    classes: "bg-emerald-50 text-emerald-700 ring-1 ring-emerald-100",
-    dot: false,
+    classes: "bg-success-50 text-success-700 ring-1 ring-success-100",
+    dot: null,
   },
-};
-
-const dotColors: Record<TaskStatus, string> = {
-  OPEN: "bg-blue-500",
-  ACCEPTED: "bg-indigo-500",
-  IN_PROGRESS: "bg-amber-500",
-  SUBMITTED: "bg-violet-500",
-  COMPLETED: "bg-emerald-500",
 };
 
 interface StatusBadgeProps {
@@ -56,10 +49,14 @@ export function StatusBadge({ status, size = "sm" }: StatusBadgeProps) {
         ${sizeClass}
       `}
     >
-      {config.dot && (
+      {config.dot ? (
         <span
-          className={`w-1.5 h-1.5 rounded-full flex-shrink-0 ${dotColors[status]} animate-pulse-soft`}
+          className={`w-1.5 h-1.5 rounded-full flex-shrink-0 ${config.dot} ${
+            status === "IN_PROGRESS" ? "animate-pulse-soft" : ""
+          }`}
         />
+      ) : (
+        <CheckIcon size={11} className="flex-shrink-0" />
       )}
       {config.label}
     </span>

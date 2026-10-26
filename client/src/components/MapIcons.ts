@@ -11,12 +11,12 @@ const ICON_DEFAULTS = {
 
 export const targetIcon = new L.Icon({
   ...ICON_DEFAULTS,
-  iconUrl: "https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-red.png",
+  iconUrl: "/marker-icon-red.png",
 });
 
 export const captainIcon = new L.Icon({
   ...ICON_DEFAULTS,
-  iconUrl: "https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-blue.png",
+  iconUrl: "/marker-icon-blue.png",
 });
 
 /** Alias for targetIcon — used in location picker for visual consistency */

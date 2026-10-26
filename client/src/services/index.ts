@@ -1,5 +1,5 @@
 export { default as api } from "./api";
-export { loginApi, registerApi } from "./auth.service";
+export { requestOtpApi, verifyOtpApi } from "./auth.service";
 export {
   fetchTasks,
   fetchTaskById,

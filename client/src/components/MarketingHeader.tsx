@@ -1,6 +1,7 @@
 import { useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useLocation } from "react-router-dom";
 import { Logo } from "./Logo";
+import { MenuIcon, XIcon } from "./Icons";
 
 interface NavItem {
   label: string;
@@ -19,117 +20,119 @@ interface MarketingHeaderProps {
 
 export function MarketingHeader({
   variant = "primary",
-  logoLabel = "InstantLocate",
+  logoLabel = "TrackProof",
   navItems = [],
-  ctaLabel = "Get Started",
+  ctaLabel = "Request a visit",
   ctaTo = "/verify/signup",
 }: MarketingHeaderProps) {
-  const [mobileOpen, setMobileOpen] = useState(false);
+  const location = useLocation();
+  const routeKey = `${location.pathname}${location.hash}`;
+  // The menu closes automatically when the route changes; no effect needed.
+  const [mobileMenu, setMobileMenu] = useState({ open: false, routeKey: "" });
+  const mobileOpen = mobileMenu.open && mobileMenu.routeKey === routeKey;
+  const setMobileOpen = (open: boolean) => setMobileMenu({ open, routeKey });
 
-  const ctaBg = variant === "accent"
-    ? "bg-accent-500 hover:bg-accent-600"
-    : "bg-primary-600 hover:bg-primary-700";
+  const ctaClasses =
+    variant === "accent"
+      ? "bg-accent-400 hover:bg-accent-300 text-surface-950"
+      : "bg-primary-700 hover:bg-primary-800 text-white";
 
-  const NavLink = ({ item }: { item: NavItem }) =>
+  const isItemActive = (item: NavItem) => {
+    if (item.isActive) return true;
+    if (item.isAnchor) return false;
+    if (item.to === "/") return location.pathname === "/";
+    return location.pathname.startsWith(item.to);
+  };
+
+  const linkClasses = (active: boolean) =>
+    `inline-flex min-h-11 items-center rounded-lg px-1 text-sm font-medium transition-colors ${
+      active ? "text-primary-800" : "text-surface-600 hover:text-surface-900"
+    }`;
+
+  const renderItem = (item: NavItem) =>
     item.isAnchor ? (
       <a
+        key={item.to}
         href={item.to}
         onClick={() => setMobileOpen(false)}
-        className={`hover:text-surface-900 transition-colors ${
-          item.isActive ? "text-primary-600 font-bold" : ""
-        }`}
+        className={linkClasses(false)}
       >
         {item.label}
       </a>
     ) : (
       <Link
+        key={item.to}
         to={item.to}
         onClick={() => setMobileOpen(false)}
-        className={`hover:text-surface-900 transition-colors ${
-          item.isActive ? "text-primary-600 font-bold" : ""
-        }`}
+        className={linkClasses(isItemActive(item))}
+        aria-current={isItemActive(item) ? "page" : undefined}
       >
         {item.label}
       </Link>
     );
 
   return (
-    <header className="sticky top-0 z-50 bg-white/80 backdrop-blur-md border-b border-surface-200/80">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+    <header className="sticky top-0 z-50 border-b border-surface-200/80 bg-surface-50/90 backdrop-blur-lg">
+      <div className="mx-auto flex h-16 max-w-6xl items-center justify-between gap-4 px-4 sm:px-6 lg:px-8">
         <Logo variant={variant} label={logoLabel} />
 
-        {/* Desktop nav */}
         {navItems.length > 0 && (
-          <nav className="hidden md:flex items-center gap-6 text-[13px] font-medium text-surface-650">
-            {navItems.map((item) => (
-              <NavLink key={item.to} item={item} />
-            ))}
+          <nav className="hidden items-center gap-6 md:flex" aria-label="Main navigation">
+            {navItems.map(renderItem)}
           </nav>
         )}
 
-        {/* Desktop CTA */}
-        <div className="hidden md:flex items-center gap-3">
+        <div className="hidden items-center gap-2 md:flex">
           <Link
             to="/login"
-            className="text-[13px] font-semibold text-surface-650 hover:text-surface-900 px-3 py-1.5 rounded-lg transition-colors focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:outline-none"
+            className="inline-flex min-h-11 items-center rounded-lg px-3 text-sm font-semibold text-surface-650 transition-colors hover:bg-surface-100 hover:text-surface-900"
           >
-            Sign In
+            Sign in
           </Link>
           <Link
             to={ctaTo}
-            className={`text-[12.5px] font-bold ${ctaBg} text-white px-4 py-2 rounded-lg transition-all shadow-sm focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-primary-500 focus-visible:outline-none`}
+            className={`rounded-xl px-4 py-2.5 text-sm font-semibold shadow-sm transition-colors ${ctaClasses}`}
           >
             {ctaLabel}
           </Link>
         </div>
 
-        {/* Mobile: CTA + hamburger */}
-        <div className="flex md:hidden items-center gap-2">
+        <div className="flex items-center gap-1 md:hidden">
           <Link
-            to={ctaTo}
-            className={`text-[12px] font-bold ${ctaBg} text-white px-3 py-1.5 rounded-lg transition-all shadow-sm`}
+            to="/login"
+            className="inline-flex min-h-11 items-center rounded-lg px-2.5 text-sm font-semibold text-surface-650"
           >
-            {ctaLabel}
+            Sign in
           </Link>
           {navItems.length > 0 && (
             <button
+              type="button"
               onClick={() => setMobileOpen(!mobileOpen)}
-              className="p-2 rounded-lg hover:bg-surface-100 transition-colors text-surface-600 cursor-pointer"
+              className="inline-flex h-11 w-11 items-center justify-center rounded-xl text-surface-650 transition-colors hover:bg-surface-100"
               aria-label={mobileOpen ? "Close menu" : "Open menu"}
               aria-expanded={mobileOpen}
             >
-              {mobileOpen ? (
-                <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                </svg>
-              ) : (
-                <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
-                </svg>
-              )}
+              {mobileOpen ? <XIcon size={22} /> : <MenuIcon size={22} />}
             </button>
           )}
         </div>
       </div>
 
-      {/* Mobile dropdown menu */}
       {mobileOpen && navItems.length > 0 && (
-        <div className="md:hidden border-t border-surface-200 bg-white/95 backdrop-blur-md animate-slide-up">
-          <nav className="max-w-7xl mx-auto px-4 py-3 flex flex-col gap-0.5 text-[14px] font-medium text-surface-700">
+        <div className="border-t border-surface-200 bg-surface-50 md:hidden">
+          <nav className="mx-auto flex max-w-6xl flex-col gap-1 px-4 py-4" aria-label="Mobile navigation">
             {navItems.map((item) => (
-              <div key={item.to} className="py-2 border-b border-surface-100 last:border-0">
-                <NavLink item={item} />
+              <div key={item.to} className="py-0.5">
+                {renderItem(item)}
               </div>
             ))}
-            <div className="pt-3 pb-1">
-              <Link
-                to="/login"
-                onClick={() => setMobileOpen(false)}
-                className="block w-full text-center py-2.5 text-sm font-semibold text-surface-700 border border-surface-200 rounded-lg hover:bg-surface-50 transition-colors"
-              >
-                Sign In
-              </Link>
-            </div>
+            <Link
+              to={ctaTo}
+              onClick={() => setMobileOpen(false)}
+              className={`mt-3 block rounded-xl px-4 py-3 text-center text-sm font-semibold shadow-sm ${ctaClasses}`}
+            >
+              {ctaLabel}
+            </Link>
           </nav>
         </div>
       )}

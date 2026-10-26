@@ -1,30 +1,66 @@
+import { Link } from "react-router-dom";
 import { Logo, Button } from "../components";
+
+const HELPFUL_LINKS = [
+  { label: "How TrackProof works", to: "/#how-it-works" },
+  { label: "Pricing", to: "/pricing" },
+  { label: "For inspectors", to: "/captain" },
+  { label: "Sign in", to: "/login" },
+];
 
 export function NotFoundPage() {
   return (
-    <div className="min-h-screen bg-surface-50 flex flex-col items-center justify-center px-4 text-center">
-      <div className="w-full max-w-md space-y-8 animate-slide-up">
-        <div className="flex justify-center">
-          <Logo size="lg" />
-        </div>
+    <div className="flex min-h-screen flex-col bg-surface-50">
+      <header className="mx-auto flex w-full max-w-6xl items-center justify-between px-4 py-5 sm:px-6">
+        <Logo />
+        <Link
+          to="/"
+          className="inline-flex min-h-11 items-center rounded-lg px-3 text-sm font-semibold text-surface-600 transition-colors hover:bg-surface-100 hover:text-surface-900"
+        >
+          Back to home
+        </Link>
+      </header>
 
-        <div className="space-y-3">
-          <p className="text-[11px] font-bold text-primary-500 uppercase tracking-widest">
-            404 — Page Not Found
+      <main className="flex flex-1 items-center justify-center px-4 pb-16 pt-6 sm:px-6">
+        <div className="w-full max-w-lg animate-slide-up text-center">
+          <p className="text-[13px] font-bold uppercase tracking-[0.18em] text-accent-700">
+            Error 404
           </p>
-          <h1 className="text-2xl font-bold text-surface-900 tracking-tight">
-            We can't find that page
+          <h1 className="mt-3 text-3xl font-bold tracking-tight text-surface-900 sm:text-4xl">
+            We couldn’t find that page
           </h1>
-          <p className="text-sm text-surface-500 leading-relaxed max-w-xs mx-auto">
-            The page you're looking for doesn't exist or has been moved.
+          <p className="mx-auto mt-4 max-w-sm text-[15px] leading-relaxed text-surface-500">
+            The link may be old or mistyped. Your visits and reports are safe — head
+            back to your dashboard or start a new request.
           </p>
-        </div>
 
-        <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
-          <Button to="/">Back to Home</Button>
-          <Button to="/verify" variant="secondary">Request an Inspection</Button>
+          <div className="mt-8 flex flex-col justify-center gap-3 sm:flex-row">
+            <Button to="/" size="lg">
+              Go to home
+            </Button>
+            <Button to="/verify" variant="secondary" size="lg">
+              Request a visit
+            </Button>
+          </div>
+
+          <div className="mt-12 border-t border-surface-200 pt-6">
+            <p className="text-xs font-semibold uppercase tracking-wider text-surface-500">
+              Popular pages
+            </p>
+            <nav className="mt-3 flex flex-wrap justify-center gap-x-5 gap-y-2">
+              {HELPFUL_LINKS.map((link) => (
+                <Link
+                  key={link.to}
+                  to={link.to}
+                  className="inline-flex min-h-11 items-center px-1 text-sm font-medium text-primary-800 underline-offset-4 hover:underline"
+                >
+                  {link.label}
+                </Link>
+              ))}
+            </nav>
+          </div>
         </div>
-      </div>
+      </main>
     </div>
   );
 }

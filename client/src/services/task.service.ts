@@ -2,7 +2,7 @@ import api from "./api";
 import type { ApiResponse, Task, CreateTaskInput } from "../types";
 
 export async function fetchTasks(filter?: string): Promise<Task[]> {
-  const params = filter ? { filter } : {};
+  const params: Record<string, string> | undefined = filter ? { filter } : undefined;
   const { data } = await api.get<ApiResponse<Task[]>>("/tasks", { params });
   return data.data;
 }

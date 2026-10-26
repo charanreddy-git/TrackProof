@@ -3,15 +3,20 @@ import { ApiError, haversineDistance, MAX_DISTANCE_METERS } from "../utils";
 import type { CreateTaskInput, SubmitTaskInput } from "../validators";
 import { TaskStatus } from "@prisma/client";
 
-/** Reusable select shape for user relations on task responses */
-const userSelect = {
-  select: { id: true, name: true, email: true, role: true },
+/** Safe shape for public/open task listings — no phone number. */
+const publicUserSelect = {
+  select: { id: true, name: true, role: true },
+} as const;
+
+/** Contact shape for participants who are allowed to reach each other. */
+const contactUserSelect = {
+  select: { id: true, name: true, phone: true, role: true },
 } as const;
 
 /** Standard include block — attaches creator and assignee to task queries */
 const taskWithUsers = {
-  createdBy: userSelect,
-  acceptedBy: userSelect,
+  createdBy: contactUserSelect,
+  acceptedBy: contactUserSelect,
 } as const;
 
 type TaskFilter = "available" | "accepted";
@@ -57,7 +62,7 @@ export class TaskService {
     if (filter === "available") {
       return prisma.task.findMany({
         where: { status: TaskStatus.OPEN },
-        include: { createdBy: userSelect },
+        include: { createdBy: publicUserSelect },
         orderBy: { createdAt: "desc" },
       });
     }
@@ -65,19 +70,28 @@ export class TaskService {
     if (filter === "accepted") {
       return prisma.task.findMany({
         where: { acceptedById: userId },
-        include: { createdBy: userSelect },
+        include: taskWithUsers,
         orderBy: { updatedAt: "desc" },
       });
     }
 
-    // Default: OPEN tasks + own accepted tasks
-    return prisma.task.findMany({
-      where: {
-        OR: [{ status: TaskStatus.OPEN }, { acceptedById: userId }],
-      },
-      include: taskWithUsers,
-      orderBy: { createdAt: "desc" },
-    });
+    // Default: OPEN tasks (contact hidden) + own accepted tasks (contact visible)
+    const [openTasks, acceptedTasks] = await Promise.all([
+      prisma.task.findMany({
+        where: { status: TaskStatus.OPEN },
+        include: { createdBy: publicUserSelect },
+        orderBy: { createdAt: "desc" },
+      }),
+      prisma.task.findMany({
+        where: { acceptedById: userId },
+        include: taskWithUsers,
+        orderBy: { createdAt: "desc" },
+      }),
+    ]);
+
+    return [...openTasks, ...acceptedTasks].sort(
+      (a, b) => b.createdAt.getTime() - a.createdAt.getTime()
+    );
   }
 
   /**
@@ -111,6 +125,18 @@ export class TaskService {
       throw ApiError.forbidden("You do not have access to this task");
     }
 
+    // An unclaimed task is public, but the requester's phone number is not.
+    if (role === "CAPTAIN" && task.status === "OPEN") {
+      return {
+        ...task,
+        createdBy: {
+          id: task.createdBy.id,
+          name: task.createdBy.name,
+          role: task.createdBy.role,
+        },
+      };
+    }
+
     return task;
   }
 
@@ -127,12 +153,22 @@ export class TaskService {
         throw ApiError.badRequest("Task is no longer available");
       }
 
-      return tx.task.update({
-        where: { id: taskId },
+      // Conditional update: two inspectors can read OPEN at the same time,
+      // but only one can move the row out of OPEN.
+      const claimed = await tx.task.updateMany({
+        where: { id: taskId, status: TaskStatus.OPEN },
         data: {
           status: TaskStatus.ACCEPTED,
           acceptedById: captainId,
         },
+      });
+
+      if (claimed.count === 0) {
+        throw ApiError.badRequest("Task is no longer available");
+      }
+
+      return tx.task.findUniqueOrThrow({
+        where: { id: taskId },
         include: taskWithUsers,
       });
     });
@@ -195,12 +231,31 @@ export class TaskService {
       );
     }
 
-    return prisma.task.update({
-      where: { id: taskId },
+    const updated = await prisma.task.updateMany({
+      where: {
+        id: taskId,
+        acceptedById: captainId,
+        status: TaskStatus.IN_PROGRESS,
+      },
       data: {
         status: TaskStatus.SUBMITTED,
         evidenceImage: imagePath,
+        evidenceLat: input.latitude,
+        evidenceLng: input.longitude,
+        evidenceAccuracy: input.accuracy ?? null,
+        evidenceCapturedAt: input.capturedAt
+          ? new Date(input.capturedAt)
+          : new Date(),
+        evidenceSubmittedAt: new Date(),
       },
+    });
+
+    if (updated.count === 0) {
+      throw ApiError.badRequest("Task must be IN_PROGRESS to submit evidence");
+    }
+
+    return prisma.task.findUniqueOrThrow({
+      where: { id: taskId },
       include: taskWithUsers,
     });
   }

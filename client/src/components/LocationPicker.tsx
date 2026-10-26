@@ -28,7 +28,8 @@ function ClickHandler({
 function ChangeView({ center }: { center: [number, number] }) {
   const map = useMap();
   useEffect(() => {
-    map.setView(center, map.getZoom());
+    // Zoom in when a location is chosen so the pin is easy to place accurately.
+    map.setView(center, Math.max(map.getZoom(), 14));
   }, [center, map]);
   return null;
 }
@@ -39,7 +40,8 @@ export function LocationPicker({
   onLocationSelect,
   height = "350px",
 }: LocationPickerProps) {
-  const defaultCenter: [number, number] = [17.385, 78.486];
+  // Centre of India — users can zoom in or paste a Google Maps link for accuracy.
+  const defaultCenter: [number, number] = [22.5937, 78.9629];
   const position = latitude !== null && longitude !== null ? [latitude, longitude] as [number, number] : null;
 
   const markerRef = useRef<L.Marker | null>(null);
@@ -60,7 +62,7 @@ export function LocationPicker({
     <div className="space-y-2">
       <MapContainer
         center={position || defaultCenter}
-        zoom={13}
+        zoom={position ? 15 : 5}
         style={{ height, width: "100%" }}
         className="rounded-xl overflow-hidden border border-surface-200"
         scrollWheelZoom={false}

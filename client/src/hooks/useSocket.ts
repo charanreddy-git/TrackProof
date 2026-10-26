@@ -21,18 +21,14 @@ export function useSocket() {
 
   const joinRoom = useCallback(
     (taskId: string) => {
-      if (socket?.connected) {
-        joinTaskRoom(taskId);
-      }
+      if (socket) joinTaskRoom(taskId);
     },
     [socket]
   );
 
   const leaveRoom = useCallback(
     (taskId: string) => {
-      if (socket?.connected) {
-        leaveTaskRoom(taskId);
-      }
+      if (socket) leaveTaskRoom(taskId);
     },
     [socket]
   );

@@ -39,7 +39,7 @@ export function initializeSocket(httpServer: HttpServer): void {
     try {
       const decoded = verifyToken(token);
       socket.data.userId = decoded.userId;
-      socket.data.email = decoded.email;
+      socket.data.phone = decoded.phone;
       socket.data.role = decoded.role;
       next();
     } catch {
@@ -48,10 +48,10 @@ export function initializeSocket(httpServer: HttpServer): void {
   });
 
   io.on("connection", (socket) => {
-    logger.debug(`Socket connected: ${socket.data.email} (${socket.data.role})`);
+    logger.debug(`Socket connected: ${socket.data.phone} (${socket.data.role})`);
     registerSocketHandlers(io, socket);
     socket.on("disconnect", () => {
-      logger.debug(`Socket disconnected: ${socket.data.email}`);
+      logger.debug(`Socket disconnected: ${socket.data.phone}`);
     });
   });
 }

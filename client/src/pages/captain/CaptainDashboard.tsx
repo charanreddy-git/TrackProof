@@ -1,142 +1,169 @@
-import { Link } from "react-router-dom";
-import { Card, TaskTable, PageLoader } from "../../components";
+import { Card, TaskTable, PageLoader, Button } from "../../components";
+import { useAuth } from "../../contexts";
 import { useTaskList } from "../../hooks";
 import {
+  SearchIcon,
   ZapIcon,
-  ClipboardIcon,
   CheckCircleIcon,
+  MapPinIcon,
+  CameraIcon,
   IndianRupeeIcon,
 } from "../../components/Icons";
 
 export function CaptainDashboard() {
   const { data: allTasks, isLoading: loadingAll } = useTaskList();
-  const { data: availableTasks, isLoading: loadingAvailable } =
-    useTaskList("available");
+  const { data: availableTasks, isLoading: loadingAvailable } = useTaskList("available");
+  const { user } = useAuth();
 
   if (loadingAll || loadingAvailable) return <PageLoader />;
 
   const tasks = allTasks || [];
   const available = availableTasks || [];
-  const myInProgress = tasks.filter((t) =>
-    ["ACCEPTED", "IN_PROGRESS"].includes(t.status)
+  const firstName = user?.name?.split(" ")[0] || "there";
+
+  const activeTasks = tasks.filter((task) =>
+    ["ACCEPTED", "IN_PROGRESS"].includes(task.status)
   );
-  const mySubmitted = tasks.filter((t) => t.status === "SUBMITTED");
-  const myCompleted = tasks.filter((t) => t.status === "COMPLETED");
+  const completedTasks = tasks.filter((task) => task.status === "COMPLETED");
+  const submittedTasks = tasks.filter((task) => task.status === "SUBMITTED");
 
   const stats = [
     {
-      label: "Active",
-      value: myInProgress.length,
-      icon: ZapIcon,
-      href: "/captain/accepted",
-      urgent: myInProgress.length > 0,
-      highlight: true,
+      label: "Available now",
+      value: available.length,
+      icon: SearchIcon,
+      highlight: available.length > 0,
     },
     {
-      label: "Pending",
-      value: mySubmitted.length,
-      icon: ClipboardIcon,
+      label: "Active visits",
+      value: activeTasks.length,
+      icon: ZapIcon,
     },
     {
       label: "Completed",
-      value: myCompleted.length,
+      value: completedTasks.length,
       icon: CheckCircleIcon,
-    },
-    {
-      label: "Payouts",
-      value: myCompleted.length > 0 ? `${myCompleted.length} done` : "—",
-      icon: IndianRupeeIcon,
-      highlight: true,
     },
   ];
 
-  const hasCurrentAction = myInProgress.length > 0 || mySubmitted.length > 0;
-
-  const contextTitle = (() => {
-    if (myInProgress.length > 0) return `${myInProgress.length} active task${myInProgress.length > 1 ? "s" : ""}`;
-    if (available.length > 0) return `${available.length} tasks nearby`;
-    return "No new tasks";
-  })();
-
-  const contextSub = (() => {
-    if (myInProgress.length > 0) return "Head to the location and submit evidence";
-    if (available.length > 0) return "Accept a task to get started";
-    return "Check back shortly for new verification tasks";
-  })();
-
   return (
-    <div className="space-y-6 max-w-5xl">
-      {/* Header */}
+    <div className="mx-auto max-w-5xl space-y-6">
       <div>
-        <h1 className="text-xl font-bold text-surface-900 tracking-tight">{contextTitle}</h1>
-        <p className="text-sm text-surface-500 mt-0.5">{contextSub}</p>
+        <h1 className="text-2xl font-bold tracking-tight text-surface-950">
+          Find work, {firstName}
+        </h1>
+        <p className="mt-1 text-sm text-surface-500">
+          {available.length > 0
+            ? `${available.length} property visit${available.length > 1 ? "s" : ""} available near you.`
+            : "New property visits will appear here when they are posted."}
+        </p>
       </div>
 
-      {/* Stat Cards */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+      <div className="grid grid-cols-3 gap-3">
         {stats.map((stat) => {
           const Icon = stat.icon;
-          const isUrgent = stat.urgent;
-          const card = (
-            <Card key={stat.label} padding="sm" className={`relative flex flex-col justify-between min-h-[96px] h-full ${isUrgent ? "border-l-2 border-l-amber-400" : ""}`}>
-              <div className="flex items-center justify-between">
-                <span className="text-[12px] text-surface-500 font-medium">{stat.label}</span>
-                <span className={isUrgent ? "text-amber-400" : stat.highlight ? "text-emerald-500" : "text-surface-300"}>
-                  <Icon size={18} />
-                </span>
+          return (
+            <Card key={stat.label} padding="sm" className="flex flex-col gap-3">
+              <div className="flex items-center justify-between gap-1">
+                <span className="text-xs font-medium text-surface-500 sm:text-[13px]">{stat.label}</span>
+                <Icon
+                  size={16}
+                  className={stat.highlight ? "text-accent-600" : "text-surface-300"}
+                />
               </div>
-              <span className={`text-2xl font-bold tabular-nums leading-none mt-4 block ${stat.highlight && stat.label === "Earnings" ? "text-emerald-600" : "text-surface-900"}`}>
+              <span
+                className={`text-3xl font-bold leading-none tabular-nums tracking-tight ${
+                  stat.highlight ? "text-accent-700" : "text-surface-950"
+                }`}
+              >
                 {stat.value}
               </span>
             </Card>
           );
-
-          return stat.href ? (
-            <Link key={stat.label} to={stat.href} className="block">
-              {card}
-            </Link>
-          ) : (
-            <div key={stat.label}>{card}</div>
-          );
         })}
       </div>
 
-      {/* Your Current Action Section */}
-      {hasCurrentAction && (
-        <Card padding="md" className="border-amber-200 bg-amber-50/30">
-          <div className="flex items-center gap-2 mb-1">
-            <span className="w-2 h-2 rounded-full bg-amber-500 animate-pulse-soft" />
-            <h2 className="text-[14px] font-bold text-surface-900">Your Current Tasks</h2>
+      {/* Available requests first — this is what an inspector needs to act on. */}
+      {available.length > 0 && (
+        <Card>
+          <div className="mb-2 flex items-start justify-between gap-3">
+            <div>
+              <h2 className="text-base font-bold text-surface-950">New requests near you</h2>
+              <p className="text-[13px] text-surface-500">Open a request to see the location and accept it.</p>
+            </div>
+            <span className="flex-shrink-0 rounded-full bg-accent-50 px-2.5 py-1 text-[11px] font-semibold text-accent-700">
+              {available.length} open
+            </span>
           </div>
-          <p className="text-[12px] text-surface-400 mb-4">Complete these tasks to earn your payout.</p>
+
           <TaskTable
-            tasks={[...myInProgress, ...mySubmitted]}
+            tasks={available}
+            basePath="/captain/tasks"
+            showCreatedBy
+            emptyMessage="No open requests right now"
+            emptyDescription="New property visits will appear here. Check back after some time."
+          />
+        </Card>
+      )}
+
+      {(activeTasks.length > 0 || submittedTasks.length > 0) && (
+        <Card>
+          <div className="mb-2 flex items-start justify-between gap-3">
+            <div>
+              <h2 className="text-base font-bold text-surface-950">Your active visits</h2>
+              <p className="text-[13px] text-surface-500">
+                {submittedTasks.length > 0
+                  ? "Some visits are waiting for the requester to review your proof."
+                  : "Travel to the property and submit your photo."}
+              </p>
+            </div>
+            <Button to="/captain/accepted" variant="ghost" size="sm" className="min-h-11 flex-shrink-0">
+              View all
+            </Button>
+          </div>
+          <TaskTable
+            tasks={[...activeTasks, ...submittedTasks]}
             basePath="/captain/tasks"
             showCreatedBy
           />
         </Card>
       )}
 
-      {/* Tasks Near You */}
-      <Card padding="md">
-        <div className="flex items-center justify-between mb-1">
-          <h2 className="text-[14px] font-bold text-surface-900">Tasks Near You</h2>
+      {activeTasks.length === 0 && submittedTasks.length === 0 && available.length > 0 && (
+        <div className="grid gap-3 sm:grid-cols-3">
+          {[
+            { icon: MapPinIcon, title: "Check the location", desc: "Open a request and confirm it is reachable for you." },
+            { icon: CameraIcon, title: "Take a proof photo", desc: "Use the in-app camera within 100 m of the pin." },
+            { icon: IndianRupeeIcon, title: "Earn per visit", desc: "Completed visits stay in your history and are settled weekly." },
+          ].map((item) => {
+            const Icon = item.icon;
+            return (
+              <div key={item.title} className="rounded-xl border border-surface-200 bg-white p-4">
+                <Icon size={17} className="text-accent-600" />
+                <p className="mt-2.5 text-sm font-semibold text-surface-900">{item.title}</p>
+                <p className="mt-1 text-xs leading-relaxed text-surface-500">{item.desc}</p>
+              </div>
+            );
+          })}
         </div>
-        <p className="text-[12px] text-surface-400 mb-4">Browse and accept available verification tasks.</p>
-        
-        {available.length > 0 ? (
-          <TaskTable
-            tasks={available.slice(0, 5)}
-            basePath="/captain/tasks"
-            showCreatedBy
-          />
-        ) : (
-          <div className="text-center py-6">
-             <p className="text-[13px] text-surface-500 font-medium">No tasks available nearby right now.</p>
-             <p className="text-[12px] text-surface-400 mt-1">We'll notify you when a new request is created.</p>
+      )}
+
+      {activeTasks.length === 0 && submittedTasks.length === 0 && available.length === 0 && (
+        <Card className="border-accent-100 bg-accent-50/40">
+          <div className="flex items-start gap-3">
+            <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-xl bg-accent-100 text-accent-700">
+              <SearchIcon size={18} />
+            </div>
+            <div>
+              <h2 className="text-sm font-semibold text-surface-900">You're all caught up</h2>
+              <p className="mt-1 text-[13px] leading-relaxed text-surface-600">
+                There are no open requests near you right now. Keep this page
+                open or check back later — new visits are posted through the day.
+              </p>
+            </div>
           </div>
-        )}
-      </Card>
+        </Card>
+      )}
     </div>
   );
 }

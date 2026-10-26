@@ -1,4 +1,14 @@
 export { ApiError } from "./api-error";
+export { normalizePhone, formatPhone } from "./phone";
+export {
+  generateOtp,
+  hashOtp,
+  otpMatches,
+  OTP_TTL_SECONDS,
+  OTP_RESEND_SECONDS,
+  OTP_MAX_SENDS_PER_HOUR,
+  OTP_MAX_ATTEMPTS,
+} from "./otp";
 export { haversineDistance, MAX_DISTANCE_METERS } from "./haversine";
 export { signToken, verifyToken } from "./jwt";
 export type { JwtPayload } from "./jwt";

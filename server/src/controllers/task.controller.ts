@@ -1,7 +1,8 @@
 import { Request, Response, NextFunction } from "express";
+import { unlink } from "node:fs/promises";
 import { TaskService } from "../services";
 import { createTaskSchema, submitTaskSchema, taskFilterSchema } from "../validators";
-import { ApiError, resolveGoogleMapsUrl } from "../utils";
+import { ApiError, logger, resolveGoogleMapsUrl } from "../utils";
 import { getIO } from "../sockets";
 
 /** Express 5 types `req.params` values as `string | string[]`; named route params are always strings at runtime. */
@@ -100,6 +101,7 @@ export class TaskController {
   }
 
   static async submitTask(req: Request, res: Response, next: NextFunction) {
+    let evidenceSaved = false;
     try {
       if (!req.file) {
         throw ApiError.badRequest("Evidence image is required");
@@ -114,6 +116,7 @@ export class TaskController {
         input,
         imagePath
       );
+      evidenceSaved = true;
 
       const io = getIO();
       io.to(`task:${task.id}`).emit("task:submitted", {
@@ -124,6 +127,18 @@ export class TaskController {
 
       res.status(200).json({ success: true, data: task });
     } catch (error) {
+      // Remove an upload that was rejected before it became the saved proof.
+      if (req.file && !evidenceSaved) {
+        await unlink(req.file.path).catch((cleanupError) => {
+          logger.warn("Could not remove rejected evidence upload", {
+            path: req.file?.path,
+            reason:
+              cleanupError instanceof Error
+                ? cleanupError.message
+                : String(cleanupError),
+          });
+        });
+      }
       next(error);
     }
   }

@@ -7,7 +7,7 @@ export function PageLoader() {
         <div className="animate-pulse-soft">
           <LogoMark size="lg" />
         </div>
-        <p className="text-sm text-surface-400 font-medium tracking-wide">Loading…</p>
+        <p className="text-sm text-surface-500 font-medium tracking-wide">Loading…</p>
       </div>
     </div>
   );

@@ -22,19 +22,36 @@ enum TaskStatus {
 }
 
 model User {
-  id       String @id @default(cuid())
-  name     String
-  email    String @unique
-  password String
-  role     Role
+  id              String    @id @default(cuid())
+  name            String
+  phone           String    @unique
+  phoneVerifiedAt DateTime?
+  // Optional for receipts/report delivery. Auth is phone-first, no password.
+  email           String?   @unique
+  role            Role
 
   createdTasks  Task[] @relation("CreatedTasks")
   acceptedTasks Task[] @relation("AcceptedTasks")
 
-  captainProfile  CaptainProfile?
+  captainProfile   CaptainProfile?
   requesterProfile RequesterProfile?
 
   createdAt DateTime @default(now())
+}
+
+model PhoneOtp {
+  id              String   @id @default(cuid())
+  phone           String   @unique
+  codeHash        String
+  expiresAt       DateTime
+  attempts        Int      @default(0)
+  sendCount       Int      @default(1)
+  windowStartedAt DateTime @default(now())
+  lastSentAt      DateTime @default(now())
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@index([expiresAt])
 }
 
 model CaptainProfile {
@@ -64,7 +81,12 @@ model Task {
   targetLng   Float
   status      TaskStatus @default(OPEN)
 
-  evidenceImage String?
+  evidenceImage       String?
+  evidenceLat         Float?
+  evidenceLng         Float?
+  evidenceAccuracy    Float?
+  evidenceCapturedAt  DateTime?
+  evidenceSubmittedAt DateTime?
 
   createdById  String
   acceptedById String?

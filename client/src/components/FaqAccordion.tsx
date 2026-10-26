@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useId, useState } from "react";
 import { ChevronDownIcon } from "./Icons";
 
 interface FaqItem {
@@ -12,34 +12,39 @@ interface FaqAccordionProps {
 
 export function FaqAccordion({ items }: FaqAccordionProps) {
   const [activeIndex, setActiveIndex] = useState<number | null>(null);
-
-  const toggle = (index: number) => {
-    setActiveIndex(activeIndex === index ? null : index);
-  };
+  const baseId = useId();
 
   return (
     <div className="space-y-3">
       {items.map((faq, index) => {
         const isOpen = activeIndex === index;
+        const answerId = `${baseId}-answer-${index}`;
+
         return (
           <div
-            key={index}
-            className="bg-white border border-surface-200/80 rounded-lg overflow-hidden transition-all duration-300 shadow-sm"
+            key={faq.q}
+            className="overflow-hidden rounded-xl border border-surface-200 bg-white"
           >
             <button
               type="button"
-              onClick={() => toggle(index)}
-              className="w-full px-5 py-4 flex items-center justify-between text-left font-bold text-surface-900 hover:bg-surface-50 transition-colors text-xs cursor-pointer"
+              onClick={() => setActiveIndex(isOpen ? null : index)}
+              aria-expanded={isOpen}
+              aria-controls={answerId}
+              className="flex w-full items-center justify-between gap-4 px-5 py-4 text-left text-[15px] font-semibold text-surface-900 transition-colors hover:bg-surface-50"
             >
               <span>{faq.q}</span>
               <ChevronDownIcon
-                className={`w-4 h-4 text-surface-400 transition-transform duration-200 ${
+                size={18}
+                className={`flex-shrink-0 text-surface-500 transition-transform duration-200 ${
                   isOpen ? "rotate-180" : ""
                 }`}
               />
             </button>
             {isOpen && (
-              <div className="px-5 pb-4 pt-1 text-[11.5px] text-surface-650 leading-relaxed border-t border-surface-100">
+              <div
+                id={answerId}
+                className="border-t border-surface-100 px-5 pb-5 pt-3 text-sm leading-relaxed text-surface-600"
+              >
                 {faq.a}
               </div>
             )}

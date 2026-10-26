@@ -15,11 +15,22 @@ export {
   RefreshCwIcon,
   ChevronDownIcon,
   IndianRupeeIcon,
+  ArrowRightIcon,
+  ChevronLeftIcon,
+  CheckIcon,
+  ShieldCheckIcon,
+  HomeIcon,
+  SearchIcon,
+  NavigationIcon,
+  MenuIcon,
+  XIcon,
+  UserIcon,
 } from "./Icons";
 export { targetIcon, captainIcon, pickIcon } from "./MapIcons";
 export { StatusBadge } from "./StatusBadge";
 export { TaskTable } from "./TaskTable";
 export { ProtectedRoute } from "./ProtectedRoute";
+export { RouteEffects } from "./RouteEffects";
 export { ErrorBoundary } from "./ErrorBoundary";
 export { MapView } from "./MapView";
 export { LocationPicker } from "./LocationPicker";

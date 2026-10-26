@@ -1,26 +1,30 @@
 import api from "./api";
-import type { ApiResponse, AuthResponse } from "../types";
+import type {
+  ApiResponse,
+  AuthResponse,
+  OtpRequestResponse,
+  Role,
+} from "../types";
 
-export async function loginApi(
-  email: string,
-  password: string
-): Promise<AuthResponse> {
-  const { data } = await api.post<ApiResponse<AuthResponse>>("/auth/login", {
-    email,
-    password,
-  });
+export async function requestOtpApi(
+  phone: string
+): Promise<OtpRequestResponse> {
+  const { data } = await api.post<ApiResponse<OtpRequestResponse>>(
+    "/auth/otp/request",
+    { phone }
+  );
   return data.data;
 }
 
-export async function registerApi(
-  name: string,
-  email: string,
-  password: string,
-  role: "USER" | "CAPTAIN"
-): Promise<AuthResponse> {
+export async function verifyOtpApi(input: {
+  phone: string;
+  code: string;
+  name?: string;
+  role?: Role;
+}): Promise<AuthResponse> {
   const { data } = await api.post<ApiResponse<AuthResponse>>(
-    "/auth/register",
-    { name, email, password, role }
+    "/auth/otp/verify",
+    input
   );
   return data.data;
 }

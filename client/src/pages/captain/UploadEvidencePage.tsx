@@ -1,22 +1,21 @@
 import { useState, useRef, useEffect, useCallback, type FormEvent } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { Card, Button, PageLoader, useToast } from "../../components";
-import { useTaskDetail, useSubmitTask } from "../../hooks";
 import {
+  Card,
+  Button,
+  PageLoader,
+  useToast,
   CompassIcon,
   CameraIcon,
   CheckCircleIcon,
   AlertTriangleIcon,
   RefreshCwIcon,
-} from "../../components/Icons";
+  ShieldCheckIcon,
+} from "../../components";
+import { useTaskDetail, useSubmitTask } from "../../hooks";
 
-// Haversine formula to calculate distance on client side
-function calculateDistance(
-  lat1: number,
-  lon1: number,
-  lat2: number,
-  lon2: number
-): number {
+// Haversine distance (metres) between two coordinates.
+function calculateDistance(lat1: number, lon1: number, lat2: number, lon2: number): number {
   const R = 6371e3;
   const φ1 = (lat1 * Math.PI) / 180;
   const φ2 = (lat2 * Math.PI) / 180;
@@ -31,13 +30,14 @@ function calculateDistance(
 
 export function UploadEvidencePage() {
   const { id } = useParams<{ id: string }>();
-  const { data: task, isLoading } = useTaskDetail(id!);
+  const { data: task, isLoading, isError } = useTaskDetail(id!);
   const submitTask = useSubmitTask();
   const navigate = useNavigate();
   const { addToast } = useToast();
 
   // Camera
   const videoRef = useRef<HTMLVideoElement | null>(null);
+  const activeStreamRef = useRef<MediaStream | null>(null);
   const [cameraFacingMode, setCameraFacingMode] = useState<"user" | "environment">("environment");
   const [cameraError, setCameraError] = useState<string | null>(null);
   const [isCameraActive, setIsCameraActive] = useState(false);
@@ -57,18 +57,19 @@ export function UploadEvidencePage() {
   const [lockedLocation, setLockedLocation] = useState<{
     latitude: number;
     longitude: number;
+    accuracy: number | null;
+    capturedAt: string;
   } | null>(null);
 
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  // Live GPS watch
+  // Live GPS watch.
   useEffect(() => {
     if (!navigator.geolocation) {
-      setTimeout(() => {
-        setLocationError("Geolocation not supported by this browser.");
-      }, 0);
+      setTimeout(() => setLocationError("This browser cannot access your location."), 0);
       return;
     }
+
     const watchId = navigator.geolocation.watchPosition(
       (position) => {
         setCurrentLocation({
@@ -81,46 +82,51 @@ export function UploadEvidencePage() {
       (err) => {
         setLocationError(
           err.code === 1
-            ? "Location permission denied. Please enable in settings."
-            : "Unable to get location. Move to an open area."
+            ? "Location access is blocked. Allow location for this site in your browser settings."
+            : "Could not get your location. Move to an open area and try again."
         );
       },
       { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
     );
+
     return () => navigator.geolocation.clearWatch(watchId);
   }, []);
 
-  const activeStreamRef = useRef<MediaStream | null>(null);
-
-  // Camera manager
-  const startCamera = useCallback(async (facing: "user" | "environment" = "environment") => {
-    setCameraError(null);
-    try {
-      if (activeStreamRef.current) {
-        activeStreamRef.current.getTracks().forEach((t) => t.stop());
-        activeStreamRef.current = null;
+  // Camera manager.
+  const startCamera = useCallback(
+    async (facing: "user" | "environment" = "environment") => {
+      setCameraError(null);
+      try {
+        if (activeStreamRef.current) {
+          activeStreamRef.current.getTracks().forEach((track) => track.stop());
+          activeStreamRef.current = null;
+        }
+        const mediaStream = await navigator.mediaDevices.getUserMedia({
+          video: { facingMode: facing, width: { ideal: 1280 }, height: { ideal: 720 } },
+          audio: false,
+        });
+        activeStreamRef.current = mediaStream;
+        setIsCameraActive(true);
+        if (videoRef.current) videoRef.current.srcObject = mediaStream;
+      } catch (err) {
+        const errorName = err instanceof Error ? err.name : "";
+        let message = "Could not open the camera.";
+        if (errorName === "NotAllowedError") {
+          message = "Camera access is blocked. Allow camera access for this site, or upload a photo instead.";
+        } else if (errorName === "NotFoundError" || errorName === "DevicesNotFoundError") {
+          message = "No camera found on this device. You can upload a photo instead.";
+        }
+        setCameraError(message);
+        setIsCameraActive(false);
+        if (!preview) setUseFallback(true);
       }
-      const mediaStream = await navigator.mediaDevices.getUserMedia({
-        video: { facingMode: facing, width: { ideal: 1280 }, height: { ideal: 720 } },
-        audio: false,
-      });
-      activeStreamRef.current = mediaStream;
-      setIsCameraActive(true);
-      if (videoRef.current) videoRef.current.srcObject = mediaStream;
-    } catch (err) {
-      const errorName = err instanceof Error ? err.name : "";
-      let msg = "Failed to access camera.";
-      if (errorName === "NotAllowedError") msg = "Camera permission denied. Please allow camera access in settings.";
-      else if (errorName === "NotFoundError" || errorName === "DevicesNotFoundError") msg = "No camera found on this device.";
-      setCameraError(msg);
-      setIsCameraActive(false);
-      if (!preview) setUseFallback(true);
-    }
-  }, [preview]);
+    },
+    [preview]
+  );
 
   const stopCamera = useCallback(() => {
     if (activeStreamRef.current) {
-      activeStreamRef.current.getTracks().forEach((t) => t.stop());
+      activeStreamRef.current.getTracks().forEach((track) => track.stop());
       activeStreamRef.current = null;
     }
     setIsCameraActive(false);
@@ -139,25 +145,68 @@ export function UploadEvidencePage() {
     };
   }, [useFallback, preview, cameraFacingMode, task, startCamera, stopCamera]);
 
-  if (isLoading || !task) return <PageLoader />;
+  if (isLoading) return <PageLoader />;
 
-  const distance =
-    task && currentLocation
-      ? calculateDistance(task.targetLat, task.targetLng, currentLocation.latitude, currentLocation.longitude)
-      : null;
+  if (isError || !task) {
+    return (
+      <div className="mx-auto max-w-lg py-16 text-center">
+        <h1 className="text-xl font-bold text-surface-950">Request not found</h1>
+        <p className="mt-2 text-sm text-surface-500">
+          This request may no longer be available, or it may belong to another inspector.
+        </p>
+        <Button to="/captain/dashboard" className="mt-6">
+          Back to find work
+        </Button>
+      </div>
+    );
+  }
 
-  const isInRange = distance !== null && distance <= 100;
-  // Proximity as a capped percentage (for progress bar)
-  const proximityPct = distance !== null ? Math.max(0, Math.min(100, (1 - distance / 200) * 100)) : 0;
+  if (task.status !== "IN_PROGRESS") {
+    return (
+      <div className="mx-auto max-w-lg py-16 text-center">
+        <h1 className="text-xl font-bold text-surface-950">Proof is not open yet</h1>
+        <p className="mt-2 text-sm text-surface-500">
+          {task.status === "ACCEPTED"
+            ? "Start the visit first, then submit your proof photo when you reach the property."
+            : "This visit is already closed, or proof has already been submitted."}
+        </p>
+        <Button to={`/captain/tasks/${task.id}`} className="mt-6">
+          Back to visit
+        </Button>
+      </div>
+    );
+  }
+
+  const liveDistance = currentLocation
+    ? calculateDistance(
+        task.targetLat,
+        task.targetLng,
+        currentLocation.latitude,
+        currentLocation.longitude
+      )
+    : null;
+
+  const proofLocation = lockedLocation || currentLocation;
+  const proofDistance = proofLocation
+    ? calculateDistance(task.targetLat, task.targetLng, proofLocation.latitude, proofLocation.longitude)
+    : null;
+
+  const isInRange = proofDistance !== null && proofDistance <= 100;
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const f = e.target.files?.[0];
-    if (f) {
-      setFile(f);
-      const reader = new FileReader();
-      reader.onloadend = () => setPreview(reader.result as string);
-      reader.readAsDataURL(f);
-      if (currentLocation) setLockedLocation({ latitude: currentLocation.latitude, longitude: currentLocation.longitude });
+    const selected = e.target.files?.[0];
+    if (!selected) return;
+    setFile(selected);
+    const reader = new FileReader();
+    reader.onloadend = () => setPreview(reader.result as string);
+    reader.readAsDataURL(selected);
+    if (currentLocation) {
+      setLockedLocation({
+        latitude: currentLocation.latitude,
+        longitude: currentLocation.longitude,
+        accuracy: currentLocation.accuracy,
+        capturedAt: new Date().toISOString(),
+      });
     }
   };
 
@@ -169,22 +218,43 @@ export function UploadEvidencePage() {
 
   const capturePhoto = () => {
     if (!videoRef.current) return;
-    if (!currentLocation) { addToast("warning", "Waiting for GPS signal."); return; }
+    if (!currentLocation) {
+      addToast("warning", "Waiting for GPS. Move to an open area.");
+      return;
+    }
+
     const video = videoRef.current;
     const canvas = document.createElement("canvas");
     canvas.width = video.videoWidth || 1280;
     canvas.height = video.videoHeight || 720;
-    const ctx = canvas.getContext("2d");
-    if (ctx) {
-      if (cameraFacingMode === "user") { ctx.translate(canvas.width, 0); ctx.scale(-1, 1); }
-      ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+    const context = canvas.getContext("2d");
+
+    if (context) {
+      if (cameraFacingMode === "user") {
+        context.translate(canvas.width, 0);
+        context.scale(-1, 1);
+      }
+      context.drawImage(video, 0, 0, canvas.width, canvas.height);
       setPreview(canvas.toDataURL("image/jpeg", 0.95));
-      canvas.toBlob((blob) => {
-        if (blob) setFile(new File([blob], `evidence-${task.id}-${Date.now()}.jpg`, { type: "image/jpeg" }));
-      }, "image/jpeg", 0.95);
-      setLockedLocation({ latitude: currentLocation.latitude, longitude: currentLocation.longitude });
+      canvas.toBlob(
+        (blob) => {
+          if (blob) {
+            setFile(
+              new File([blob], `proof-${task.id}-${Date.now()}.jpg`, { type: "image/jpeg" })
+            );
+          }
+        },
+        "image/jpeg",
+        0.95
+      );
+      setLockedLocation({
+        latitude: currentLocation.latitude,
+        longitude: currentLocation.longitude,
+        accuracy: currentLocation.accuracy,
+        capturedAt: new Date().toISOString(),
+      });
       stopCamera();
-      addToast("info", "Photo captured!");
+      addToast("success", "Photo captured");
     }
   };
 
@@ -197,20 +267,43 @@ export function UploadEvidencePage() {
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
-    const finalLocation = lockedLocation || (currentLocation ? { latitude: currentLocation.latitude, longitude: currentLocation.longitude } : null);
-    if (!file) { addToast("error", "No photo captured."); return; }
-    if (!finalLocation) { addToast("error", "GPS location required to submit."); return; }
+    const finalLocation =
+      lockedLocation ||
+      (currentLocation
+        ? {
+            latitude: currentLocation.latitude,
+            longitude: currentLocation.longitude,
+            accuracy: currentLocation.accuracy,
+            capturedAt: new Date().toISOString(),
+          }
+        : null);
+
+    if (!file) {
+      addToast("error", "Take or upload a photo first.");
+      return;
+    }
+    if (!finalLocation) {
+      addToast("error", "GPS location is required to submit proof.");
+      return;
+    }
+
     setIsSubmitting(true);
     try {
       const formData = new FormData();
       formData.append("image", file);
       formData.append("latitude", finalLocation.latitude.toString());
       formData.append("longitude", finalLocation.longitude.toString());
+      formData.append("capturedAt", finalLocation.capturedAt);
+      if (finalLocation.accuracy !== null) {
+        formData.append("accuracy", finalLocation.accuracy.toString());
+      }
       await submitTask.mutateAsync({ id: task.id, formData });
-      addToast("success", "Evidence submitted!");
+      addToast("success", "Proof submitted. The requester will review it.");
       navigate(`/captain/tasks/${task.id}`);
     } catch (err) {
-      const errorMsg = (err as { response?: { data?: { message?: string } } }).response?.data?.message || "Submission failed.";
+      const errorMsg =
+        (err as { response?: { data?: { message?: string } } }).response?.data?.message ||
+        "Could not submit the proof. Please try again.";
       addToast("error", errorMsg);
     } finally {
       setIsSubmitting(false);
@@ -218,238 +311,226 @@ export function UploadEvidencePage() {
   };
 
   return (
-    <div className="max-w-xl mx-auto space-y-4">
-      <div className="flex items-center gap-3">
-        <Button to={`/captain/tasks/${task.id}`} variant="ghost" size="sm" aria-label="Back to task">
-          <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-          </svg>
+    <div className="mx-auto max-w-xl space-y-4">
+      <div>
+        <Button to={`/captain/tasks/${task.id}`} variant="ghost" size="sm" className="-ml-2 min-h-11">
+          <span aria-hidden="true">←</span>
+          Back to visit
         </Button>
-        <div>
-          <h1 className="text-[15px] font-bold text-surface-900 tracking-tight">Submit Evidence</h1>
-          <p className="text-xs text-surface-500">Capture a photo within 100m of the target</p>
-        </div>
+        <h1 className="mt-2 text-2xl font-bold tracking-tight text-surface-950">Submit proof</h1>
+        <p className="mt-1 text-sm text-surface-500">
+          Take a photo at the property. GPS must be within 100 metres of the pin.
+        </p>
       </div>
 
-      {/* Location & Proximity Panel */}
-      <Card padding="md">
-        <div className="flex items-center justify-between mb-3">
-          <h3 className="text-[11px] font-bold text-surface-400 uppercase tracking-wider">Your Location</h3>
+      {/* GPS status */}
+      <Card>
+        <div className="flex items-center justify-between gap-3">
+          <h2 className="text-sm font-bold text-surface-950">Your location</h2>
           {currentLocation && (
-            <span className="inline-flex items-center gap-1.5 text-[11px] text-emerald-700 font-semibold">
-              <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse-soft" />
-              GPS Active
+            <span className="inline-flex items-center gap-1.5 text-[11px] font-semibold text-primary-700">
+              <span className="h-1.5 w-1.5 animate-pulse-soft rounded-full bg-primary-500" />
+              GPS on
             </span>
           )}
         </div>
 
-        {/* Location status */}
         {locationError ? (
-          <div className="flex items-start gap-2 p-3 bg-red-50 border border-red-100 rounded-lg mb-3">
-            <AlertTriangleIcon size={16} className="text-red-500 flex-shrink-0 mt-0.5" />
-            <p className="text-[12.5px] text-red-700 font-medium">{locationError}</p>
+          <div className="mt-3 flex items-start gap-2 rounded-xl border border-danger-200 bg-danger-50 p-3">
+            <AlertTriangleIcon size={16} className="mt-0.5 flex-shrink-0 text-danger-600" />
+            <p className="text-[13px] font-medium leading-relaxed text-danger-700">{locationError}</p>
           </div>
         ) : !currentLocation ? (
-          <div className="flex items-center gap-2 p-3 bg-surface-50 border border-surface-100 rounded-lg mb-3">
-            <CompassIcon size={16} className="text-surface-400 animate-spin-slow flex-shrink-0" />
-            <p className="text-[12.5px] text-surface-500">Acquiring GPS signal…</p>
+          <div className="mt-3 flex items-center gap-2 rounded-xl border border-surface-200 bg-surface-50 p-3">
+            <CompassIcon size={16} className="animate-spin-slow flex-shrink-0 text-surface-500" />
+            <p className="text-[13px] text-surface-500">Getting your GPS location…</p>
           </div>
         ) : null}
 
-        {/* Distance meter */}
-        {distance !== null ? (
-          <div className={`p-4 rounded-lg border transition-colors ${isInRange ? "bg-emerald-50 border-emerald-100" : "bg-red-50 border-red-100"}`}>
-            <div className="flex items-center justify-between mb-2">
-              <div className="flex items-center gap-2">
+        {proofDistance !== null ? (
+          <div
+            className={`mt-3 rounded-xl border p-4 ${
+              isInRange ? "border-primary-100 bg-primary-50" : "border-danger-200 bg-danger-50"
+            }`}
+          >
+            <div className="flex items-start justify-between gap-3">
+              <div className="flex min-w-0 items-start gap-2">
                 {isInRange ? (
-                  <CheckCircleIcon size={18} className="text-emerald-600" />
+                  <CheckCircleIcon size={18} className="mt-0.5 flex-shrink-0 text-primary-700" />
                 ) : (
-                  <AlertTriangleIcon size={18} className="text-red-500" />
+                  <AlertTriangleIcon size={18} className="mt-0.5 flex-shrink-0 text-danger-600" />
                 )}
-                <span className={`text-[13px] font-bold ${isInRange ? "text-emerald-700" : "text-red-700"}`}>
-                  {isInRange ? "In range" : "Out of range"}
-                </span>
+                <div>
+                  <p className={`text-sm font-semibold ${isInRange ? "text-primary-900" : "text-danger-700"}`}>
+                    {isInRange ? "You're at the property" : "You're too far away"}
+                  </p>
+                  <p className={`mt-0.5 text-[12px] leading-relaxed ${isInRange ? "text-primary-800" : "text-danger-600"}`}>
+                    {isInRange
+                      ? "You can take and submit your proof photo."
+                      : "Move closer to the pin. Proof is only accepted within 100 m."}
+                  </p>
+                </div>
               </div>
-              <div className="flex items-center gap-1">
-                <span className={`text-[22px] font-bold tabular-nums leading-none ${isInRange ? "text-emerald-700" : "text-red-600"}`}>
-                  {Math.round(distance)}
-                </span>
-                <span className={`text-[12px] font-medium ${isInRange ? "text-emerald-600" : "text-red-500"}`}>m</span>
+              <div className="flex-shrink-0 text-right">
+                <p className={`whitespace-nowrap text-xl font-bold tabular-nums ${isInRange ? "text-primary-800" : "text-danger-700"}`}>
+                  {Math.round(proofDistance)} m
+                </p>
+                <p className={`whitespace-nowrap text-[10px] font-medium ${isInRange ? "text-primary-600" : "text-danger-500"}`}>
+                  from pin
+                </p>
               </div>
             </div>
 
-            {/* Progress bar — distance to target */}
-            <div className="h-1.5 bg-white/60 rounded-full overflow-hidden">
-              <div
-                className={`h-full rounded-full transition-all duration-500 ${isInRange ? "bg-emerald-500" : "bg-red-500"}`}
-                style={{ width: `${proximityPct}%` }}
-              />
-            </div>
-            <div className="flex justify-between mt-1.5">
-              <span className="text-[10px] text-surface-400">Far</span>
-              <span className="text-[10px] text-surface-400">100m radius</span>
-              <span className="text-[10px] text-surface-400">At target</span>
-            </div>
+            {!lockedLocation && liveDistance !== null && liveDistance <= 100 && currentLocation?.accuracy && (
+              <p className="mt-2 text-[11px] text-primary-700">
+                GPS accuracy: ±{Math.round(currentLocation.accuracy)} m
+              </p>
+            )}
           </div>
-        ) : currentLocation ? (
-          <div className="flex items-center gap-2 p-3 bg-amber-50 border border-amber-100 rounded-lg">
-            <CompassIcon size={16} className="text-amber-500 flex-shrink-0" />
-            <p className="text-[12.5px] text-amber-700 font-medium">Calculating distance…</p>
+        ) : currentLocation && proofLocation === null ? (
+          <div className="mt-3 flex items-center gap-2 rounded-xl border border-warning-100 bg-warning-50 p-3">
+            <CompassIcon size={16} className="flex-shrink-0 text-warning-600" />
+            <p className="text-[13px] font-medium text-warning-800">Calculating distance…</p>
           </div>
         ) : null}
+
+        <p className="mt-3 flex items-start gap-2 text-[11px] leading-relaxed text-surface-500">
+          <ShieldCheckIcon size={13} className="mt-0.5 flex-shrink-0" />
+          We record the GPS location, accuracy, and time with your photo. This cannot be edited later.
+        </p>
       </Card>
 
-      {/* Camera / Upload Panel */}
-      <Card padding="md">
+      {/* Camera / upload */}
+      <Card>
         <form onSubmit={handleSubmit} className="space-y-4">
           {!useFallback ? (
-            <div className="space-y-4">
-              {/* Tab switcher */}
-              <div className="flex items-center justify-between">
-                <h3 className="text-[11px] font-bold text-surface-400 uppercase tracking-wider">
-                  {preview ? "Photo Captured" : "Camera Viewfinder"}
-                </h3>
+            <div className="space-y-3">
+              <div className="flex items-center justify-between gap-3">
+                <h2 className="text-sm font-bold text-surface-950">
+                  {preview ? "Your photo" : "Take a photo"}
+                </h2>
                 <button
                   type="button"
                   onClick={() => setUseFallback(true)}
-                  className="text-[12px] text-primary-600 hover:text-primary-700 font-semibold cursor-pointer"
+                  className="inline-flex min-h-11 items-center px-1 text-[12px] font-semibold text-primary-700 hover:text-primary-800"
                 >
-                  Upload file instead
+                  Upload instead
                 </button>
               </div>
 
               {preview ? (
-                /* Captured photo preview */
-                <div className="relative rounded-lg overflow-hidden bg-black aspect-[4/3] sm:aspect-video flex items-center justify-center border border-surface-200">
-                  <img src={preview} alt="Captured" className="h-full object-contain" />
-
-                  {/* Captured badge */}
-                  <div className="absolute top-3 left-3 flex items-center gap-1.5 bg-black/60 backdrop-blur-sm px-2.5 py-1.5 rounded-lg border border-white/10">
-                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
-                    <span className="text-[10.5px] font-semibold text-white">Photo locked</span>
+                <div className="relative overflow-hidden rounded-xl border border-surface-200 bg-surface-950">
+                  <div className="flex aspect-video items-center justify-center">
+                    <img src={preview} alt="Captured proof" className="h-full object-contain" />
                   </div>
-
-                  {/* GPS overlay */}
+                  <div className="absolute left-3 top-3 inline-flex items-center gap-1.5 rounded-lg bg-surface-950/70 px-2.5 py-1.5 text-[10px] font-semibold text-white backdrop-blur-sm">
+                    <CheckCircleIcon size={12} className="text-primary-300" />
+                    Photo ready
+                  </div>
                   {lockedLocation && (
-                    <div className="absolute bottom-3 left-3 bg-black/60 backdrop-blur-sm px-2.5 py-1.5 rounded-lg border border-white/10">
-                      <p className="text-[10px] font-mono text-white/80">
-                        {lockedLocation.latitude.toFixed(5)}, {lockedLocation.longitude.toFixed(5)}
-                      </p>
+                    <div className="absolute bottom-3 left-3 rounded-lg bg-surface-950/70 px-2.5 py-1.5 font-mono text-[10px] text-white/90 backdrop-blur-sm">
+                      {lockedLocation.latitude.toFixed(5)}, {lockedLocation.longitude.toFixed(5)}
                     </div>
                   )}
                 </div>
               ) : (
-                /* Live viewfinder */
-                <div className="relative rounded-lg overflow-hidden bg-surface-950 aspect-[4/3] sm:aspect-video flex items-center justify-center border border-surface-900">
-                  <video
-                    ref={videoRef}
-                    autoPlay
-                    playsInline
-                    className={`w-full h-full object-cover ${cameraFacingMode === "user" ? "scale-x-[-1]" : ""}`}
-                  />
+                <div className="relative overflow-hidden rounded-xl border border-surface-900 bg-surface-950">
+                  <div className="flex aspect-video items-center justify-center">
+                    <video
+                      ref={videoRef}
+                      autoPlay
+                      playsInline
+                      muted
+                      className={`h-full w-full object-cover ${cameraFacingMode === "user" ? "scale-x-[-1]" : ""}`}
+                    />
+                  </div>
 
-                  {/* Minimal HUD overlay */}
-                  <div className="absolute inset-0 pointer-events-none">
-                    {/* LIVE indicator */}
-                    <div className="absolute top-3 left-3 flex items-center gap-1.5 bg-black/50 backdrop-blur-sm px-2.5 py-1.5 rounded-lg border border-white/10">
-                      <span className="w-1.5 h-1.5 rounded-full bg-red-500 animate-ping absolute" />
-                      <span className="w-1.5 h-1.5 rounded-full bg-red-500 relative" />
-                      <span className="text-[10.5px] font-bold text-white tracking-wider">LIVE</span>
-                    </div>
-
-                    {/* Camera switch button */}
-                    {isCameraActive && (
+                  {isCameraActive && (
+                    <>
+                      <div className="absolute left-3 top-3 inline-flex items-center gap-1.5 rounded-lg bg-surface-950/60 px-2.5 py-1.5 text-[10px] font-bold tracking-wide text-white backdrop-blur-sm">
+                        <span className="h-1.5 w-1.5 rounded-full bg-red-500" />
+                        LIVE
+                      </div>
                       <button
                         type="button"
                         onClick={toggleCameraFacing}
-                        className="absolute top-3 right-3 pointer-events-auto bg-black/50 hover:bg-black/70 backdrop-blur-sm text-white border border-white/10 p-2 rounded-full transition-all active:scale-90 cursor-pointer"
-                        title="Switch camera"
+                        className="absolute right-3 top-3 flex h-9 w-9 items-center justify-center rounded-full bg-surface-950/60 text-white backdrop-blur-sm transition-colors hover:bg-surface-950/80"
+                        aria-label="Switch camera"
                       >
                         <RefreshCwIcon size={15} />
                       </button>
-                    )}
+                    </>
+                  )}
 
-                    {/* Scanning bracket overlays */}
-                    <div className="absolute inset-5 border border-white/5 pointer-events-none">
-                      <div className="absolute top-0 left-0 w-3 h-3 border-t border-l border-white/40" />
-                      <div className="absolute top-0 right-0 w-3 h-3 border-t border-r border-white/40" />
-                      <div className="absolute bottom-0 left-0 w-3 h-3 border-b border-l border-white/40" />
-                      <div className="absolute bottom-0 right-0 w-3 h-3 border-b border-r border-white/40" />
-                    </div>
-
-                    {/* Crosshair guide */}
-                    <div className="absolute inset-0 flex items-center justify-center opacity-15">
-                      <div className="w-6 h-px bg-white" />
-                      <div className="h-6 w-px bg-white absolute" />
-                    </div>
-                  </div>
-
-                  {/* Camera error overlay */}
                   {cameraError && (
-                    <div className="absolute inset-0 bg-surface-900/95 flex flex-col items-center justify-center p-6 text-center">
-                      <CameraIcon size={28} className="text-red-400 mb-3" />
-                      <p className="text-[13px] font-semibold text-red-400 mb-1">Camera blocked</p>
-                      <p className="text-[12px] text-white/60 max-w-xs mb-4">{cameraError}</p>
-                      <Button type="button" size="sm" variant="secondary" onClick={() => startCamera(cameraFacingMode)}>
-                        Try again
-                      </Button>
+                    <div className="absolute inset-0 flex flex-col items-center justify-center bg-surface-950/95 p-6 text-center">
+                      <CameraIcon size={26} className="mb-3 text-danger-400" />
+                      <p className="text-sm font-semibold text-white">Camera unavailable</p>
+                      <p className="mt-1 max-w-xs text-xs leading-relaxed text-surface-300">{cameraError}</p>
+                      <div className="mt-4 flex gap-2">
+                        <Button
+                          type="button"
+                          size="sm"
+                          variant="secondary"
+                          onClick={() => startCamera(cameraFacingMode)}
+                        >
+                          Try again
+                        </Button>
+                        <Button type="button" size="sm" onClick={() => setUseFallback(true)}>
+                          Upload photo
+                        </Button>
+                      </div>
                     </div>
                   )}
                 </div>
               )}
 
-              {/* Shutter / Retake controls */}
-              <div className="flex justify-center py-1">
+              <div className="flex flex-col items-center gap-2 py-1">
                 {preview ? (
-                  <Button type="button" variant="secondary" onClick={retakePhoto} size="sm">
-                    <RefreshCwIcon size={14} className="mr-1.5 animate-spin-slow" />
-                    Retake Photo
+                  <Button type="button" variant="secondary" size="sm" className="min-h-11" onClick={retakePhoto}>
+                    <RefreshCwIcon size={14} />
+                    Retake photo
                   </Button>
                 ) : (
-                  /* Shutter button */
-                  <button
-                    type="button"
-                    onClick={capturePhoto}
-                    disabled={!currentLocation}
-                    title={currentLocation ? "Capture" : "Waiting for GPS…"}
-                    className={`
-                      w-16 h-16 rounded-full flex items-center justify-center
-                      border-4 border-white shadow-lg transition-all cursor-pointer
-                      active:scale-95 relative
-                      ${currentLocation ? "bg-red-600 hover:bg-red-700" : "bg-surface-300 border-surface-250 cursor-not-allowed"}
-                    `}
-                  >
-                    {currentLocation && (
-                      <span className="absolute inset-0 rounded-full bg-red-500 animate-ping opacity-25" />
-                    )}
-                    <span className="w-10 h-10 rounded-full bg-white block relative z-10" />
-                  </button>
+                  <>
+                    <button
+                      type="button"
+                      onClick={capturePhoto}
+                      disabled={!currentLocation || !!cameraError}
+                      className={`flex h-16 w-16 items-center justify-center rounded-full border-4 border-white shadow-lg transition-all active:scale-95 ${
+                        currentLocation && !cameraError ? "bg-danger-600 hover:bg-danger-700" : "bg-surface-300"
+                      }`}
+                      aria-label="Take photo"
+                    >
+                      <span className="block h-10 w-10 rounded-full bg-white" />
+                    </button>
+                    <p className="text-[11px] font-medium text-surface-500">
+                      {currentLocation ? "Tap to take a photo" : "Waiting for GPS…"}
+                    </p>
+                  </>
                 )}
               </div>
             </div>
           ) : (
-            /* File upload fallback */
-            <div className="space-y-4">
-              <div className="flex items-center justify-between">
-                <h3 className="text-[11px] font-bold text-surface-400 uppercase tracking-wider">
-                  Upload Photo
-                </h3>
+            <div className="space-y-3">
+              <div className="flex items-center justify-between gap-3">
+                <h2 className="text-sm font-bold text-surface-950">Upload a photo</h2>
                 <button
                   type="button"
                   onClick={() => setUseFallback(false)}
-                  className="text-[12px] text-primary-600 hover:text-primary-700 font-semibold cursor-pointer"
+                  className="inline-flex min-h-11 items-center px-1 text-[12px] font-semibold text-primary-700 hover:text-primary-800"
                 >
-                  Use live camera
+                  Use camera
                 </button>
               </div>
 
               <label
                 htmlFor="evidence-file"
-                className={`
-                  relative flex flex-col items-center justify-center w-full
-                  border border-dashed rounded-lg p-8 text-center cursor-pointer transition-colors
-                  ${preview ? "border-primary-200 bg-primary-50/10" : "border-surface-200 hover:border-primary-300 hover:bg-primary-50/10"}
-                `}
+                className={`flex w-full cursor-pointer flex-col items-center justify-center rounded-xl border border-dashed p-8 text-center transition-colors ${
+                  preview
+                    ? "border-primary-200 bg-primary-50/20"
+                    : "border-surface-300 bg-surface-50/40 hover:border-primary-400 hover:bg-primary-50/20"
+                }`}
               >
                 <input
                   type="file"
@@ -459,49 +540,54 @@ export function UploadEvidencePage() {
                   id="evidence-file"
                 />
                 {preview ? (
-                  <div className="space-y-3 w-full">
-                    <img src={preview} alt="Preview" className="max-h-48 mx-auto rounded-lg shadow-sm object-contain" />
-                    <p className="text-[12px] text-surface-500 truncate">{file?.name}</p>
-                    <Button type="button" size="sm" variant="secondary" onClick={(e) => { e.preventDefault(); retakePhoto(); }}>
+                  <div className="w-full space-y-3">
+                    <img src={preview} alt="Selected proof" className="mx-auto max-h-48 rounded-lg object-contain" />
+                    <p className="truncate text-xs text-surface-500">{file?.name}</p>
+                    <Button
+                      type="button"
+                      size="sm"
+                      variant="secondary"
+                      onClick={(event) => {
+                        event.preventDefault();
+                        retakePhoto();
+                      }}
+                    >
                       Remove
                     </Button>
                   </div>
                 ) : (
                   <>
-                    <div className="w-10 h-10 rounded-lg bg-surface-100 flex items-center justify-center mb-3">
-                      <CameraIcon size={20} className="text-surface-450" />
+                    <div className="mb-3 flex h-10 w-10 items-center justify-center rounded-xl bg-surface-100">
+                      <CameraIcon size={20} className="text-surface-500" />
                     </div>
-                    <p className="text-[13px] font-semibold text-surface-700">Tap to upload photo</p>
-                    <p className="text-[11px] text-surface-400 mt-1">JPG or PNG · max 5 MB</p>
+                    <p className="text-sm font-semibold text-surface-800">Tap to choose a photo</p>
+                    <p className="mt-1 text-xs text-surface-500">JPG or PNG · max 5 MB</p>
                   </>
                 )}
               </label>
             </div>
           )}
 
-          {/* Submit bar */}
-          <div className="flex gap-3 pt-2 border-t border-surface-100">
+          <div className="flex flex-col gap-2 border-t border-surface-150 pt-4 sm:flex-row">
             <Button
               type="button"
               variant="secondary"
-              className="flex-1 h-12"
-              onClick={() => { stopCamera(); navigate(`/captain/tasks/${task.id}`); }}
+              className="flex-1"
+              onClick={() => {
+                stopCamera();
+                navigate(`/captain/tasks/${task.id}`);
+              }}
             >
               Cancel
             </Button>
-            <Button
-              type="submit"
-              isLoading={isSubmitting}
-              disabled={!file || !isInRange}
-              className="flex-1 h-12"
-            >
-              Submit Evidence
+            <Button type="submit" isLoading={isSubmitting} disabled={!file || !isInRange} className="flex-1">
+              Submit proof
             </Button>
           </div>
 
-          {!isInRange && file && (
-            <p className="text-center text-[12px] text-red-600 font-semibold">
-              Move within 100m of the target to submit
+          {file && !isInRange && (
+            <p className="text-center text-[12px] font-medium text-danger-600">
+              Move within 100 m of the property to submit.
             </p>
           )}
         </form>
@@ -509,14 +595,3 @@ export function UploadEvidencePage() {
     </div>
   );
 }
-
-
-
-
-
-
-
-
-
-
-

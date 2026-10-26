@@ -10,6 +10,8 @@ export const createTaskSchema = z.object({
 export const submitTaskSchema = z.object({
   latitude: z.coerce.number().min(-90).max(90),
   longitude: z.coerce.number().min(-180).max(180),
+  accuracy: z.coerce.number().min(0).max(100_000).optional(),
+  capturedAt: z.string().datetime({ offset: true }).optional(),
 });
 
 export const taskFilterSchema = z

@@ -1,229 +1,307 @@
-import { Card, Button, CompassIcon, CameraIcon, ZapIcon, CheckCircleIcon, MarketingHeader, MarketingFooter, FaqAccordion } from "../components";
+import {
+  MarketingHeader,
+  MarketingFooter,
+  Button,
+  FaqAccordion,
+  CheckIcon,
+  ShieldCheckIcon,
+  NavigationIcon,
+  ClockIcon,
+  IndianRupeeIcon,
+} from "../components";
 
 interface Plan {
   id: string;
   name: string;
-  priceINR: number;
-  priceUSD: number;
+  priceINR: string;
+  priceUSD: string;
   turnaround: string;
-  useCase: string;
+  bestFor: string;
   features: string[];
+  recommended?: boolean;
 }
 
 const PLANS: Plan[] = [
   {
     id: "standard",
-    name: "Standard Visit",
-    priceINR: 999,
-    priceUSD: 12,
-    turnaround: "Within 24 - 48 hours",
-    useCase: "Ideal for vacant plots, basic exterior checks, and ensuring a property physically exists before transferring tokens.",
+    name: "Standard visit",
+    priceINR: "999",
+    priceUSD: "12",
+    turnaround: "Within 24–48 hours",
+    bestFor: "Vacant plots, basic exterior checks, and confirming a property exists.",
     features: [
-      "Flat rate anywhere in the city",
-      "Up to 10 verified photos",
-      "GPS-confirmed coordinates",
-      "Digital timestamped proof certificate",
-      "100% refund if not verified",
+      "Flat rate for the visit",
+      "One GPS-verified photo",
+      "Live visit tracking",
+      "Visit details in your dashboard",
+      "No travel or distance charges",
     ],
   },
   {
-    id: "premium",
-    name: "Premium Audit",
-    priceINR: 2499,
-    priceUSD: 30,
-    turnaround: "Priority (<12 hours)",
-    useCase: "Designed for NRIs and serious buyers who need comprehensive insights, interior walkthroughs, and custom spot-checks.",
+    id: "detailed",
+    name: "Detailed audit",
+    priceINR: "2,499",
+    priceUSD: "30",
+    turnaround: "Priority — within 12 hours",
+    bestFor: "NRIs and serious buyers who need a longer checklist and priority matching.",
     features: [
       "Everything in Standard",
-      "Full video walkthrough",
-      "Custom inspection checklist support",
-      "Detailed inspector field notes",
-      "Priority queue assignment",
+      "Priority inspector matching",
+      "Custom inspection checklist",
+      "Same 100 m proof standard",
     ],
+    recommended: true,
   },
 ];
 
-const NAV_ITEMS = [
-  { label: "How It Works", to: "/#how-it-works" },
-  { label: "Pricing", to: "/pricing", isActive: true },
+const INCLUDED = [
+  {
+    icon: ShieldCheckIcon,
+    title: "GPS-verified proof",
+    desc: "A photo only counts when taken within 100 m of your pin.",
+  },
+  {
+    icon: NavigationIcon,
+    title: "Live tracking",
+    desc: "Follow the inspector's trip to your property.",
+  },
+  {
+    icon: ClockIcon,
+    title: "Clear turnaround",
+    desc: "Know when to expect your visit report.",
+  },
+  {
+    icon: IndianRupeeIcon,
+    title: "Flat pricing",
+    desc: "No per-kilometre or hidden travel fees.",
+  },
+];
+
+const STEPS = [
+  {
+    title: "Choose a visit",
+    desc: "Pick the level of detail you need. Standard is enough for most plots; Detailed is for a longer checklist and priority matching.",
+  },
+  {
+    title: "Pin your property",
+    desc: "Share a Google Maps link or tap the exact location. Add instructions for the inspector.",
+  },
+  {
+    title: "Review the proof",
+    desc: "The photo and visit details appear in your dashboard with the location and time attached.",
+  },
 ];
 
 const FAQS = [
   {
-    q: "Are there any hidden distance fees or travel charges?",
-    a: "Absolutely not. The price you see is the final price. We do not charge per-kilometer distance fees within city limits. We handle inspector payouts on our end to ensure you get a flat, predictable rate.",
+    q: "Are there any travel or distance charges?",
+    a: "No. The price shown is the price for a visit within the city. We do not add per-kilometre travel fees on top.",
   },
   {
-    q: "What happens if no inspector accepts my task?",
-    a: "Our dispatch system immediately pushes your request to local, vetted inspectors in the specific neighborhood. In the rare event that no inspector claims the task within 48 hours, you will receive a full, automatic 100% refund. No questions asked.",
+    q: "What is the difference between Standard and Detailed?",
+    a: "Standard covers an exterior visit with one GPS-verified photo — ideal for a vacant plot or a basic existence check. Detailed adds priority matching, a custom checklist and a longer visit for a fuller inspection.",
   },
   {
-    q: "I live outside of India. Can I pay in USD?",
-    a: "Yes. Our payment gateway supports all major international credit cards and automatically converts the currency for you. The USD prices shown are estimates based on current exchange rates.",
+    q: "Can I ask the inspector to check specific things?",
+    a: "Yes. When you create a request, describe exactly what you need checked. The Detailed audit is best if you have a longer checklist or need a fuller inspection.",
   },
   {
-    q: "Can I instruct the inspector to check specific things?",
-    a: "Yes. With the Premium Audit package, you can submit a custom checklist (e.g. 'Check if the back boundary wall is intact' or 'Verify the number of pillars constructed on the first floor'). The inspector will provide explicit notes and photos against your custom requests.",
+    q: "Can I pay from outside India?",
+    a: "Pricing is shown in Indian rupees, with an approximate USD amount for reference. Arrangements for payment are confirmed before the visit.",
   },
-];
-
-const HOW_IT_WORKS = [
-  { step: 1, title: "Submit Coordinates", desc: "Share the property pin and choose your verification package." },
-  { step: 2, title: "Inspector Dispatched", desc: "A vetted local expert claims the task and travels to the exact GPS coordinates." },
-  { step: 3, title: "On-Site Capture", desc: "Photos and videos are snapped directly through our secured camera. Gallery uploads are blocked." },
-  { step: 4, title: "Proof Delivered", desc: "Review your watermarked, timestamped verification certificate on your dashboard." },
-];
-
-const TRUST_ITEMS = [
-  { icon: CameraIcon, title: "Tamper-Proof Evidence", desc: "We verify location bounds using device metrics. Inspectors cannot upload old gallery photos.", color: "emerald" },
-  { icon: ZapIcon, title: "Live Tracking", desc: "Track the assigned inspector live on the map as they navigate to your property.", color: "primary" },
-  { icon: CompassIcon, title: "100% Refund Guarantee", desc: "If the verification fails or the property is inaccessible, you receive your money back.", color: "accent" },
+  {
+    q: "What if no inspector accepts my request?",
+    a: "Most requests are accepted within a few hours. If no inspector is available in your area, your request stays open and we will update your dashboard. You can create another request at any time.",
+  },
 ];
 
 export function PricingPage() {
   return (
-    <div className="min-h-screen bg-surface-50 text-surface-900 font-sans selection:bg-primary-500 selection:text-white">
-      <MarketingHeader navItems={NAV_ITEMS} ctaLabel="Get Started" ctaTo="/verify/signup" />
+    <div className="flex min-h-screen flex-col bg-surface-50 font-sans text-surface-900">
+      <MarketingHeader
+        navItems={[
+          { label: "How it works", to: "/#how-it-works" },
+          { label: "Pricing", to: "/pricing", isActive: true },
+          { label: "For inspectors", to: "/captain" },
+        ]}
+        ctaLabel="Request a visit"
+        ctaTo="/verify/signup"
+      />
 
-      {/* Hero Section */}
-      <section className="pt-16 pb-12 text-center bg-white border-b border-surface-200">
-        <div className="max-w-4xl mx-auto px-4 space-y-4">
-          <div className="inline-flex px-3 py-1 bg-primary-50 border border-primary-100 rounded-full text-[10px] font-bold text-primary-600 uppercase tracking-wider">
-            Flat, Predictable Pricing
+      <main className="flex-1">
+        <section className="paper-bg border-b border-surface-200">
+          <div className="mx-auto max-w-4xl px-4 py-16 text-center sm:px-6 md:py-20 lg:px-8">
+            <p className="text-xs font-bold uppercase tracking-wider text-primary-700">
+              Simple, flat pricing
+            </p>
+            <h1 className="mt-3 text-4xl font-extrabold tracking-[-0.035em] text-surface-950 sm:text-5xl">
+              Pay for the visit.
+              <br className="hidden sm:block" /> Not the travel.
+            </h1>
+            <p className="mx-auto mt-4 max-w-xl text-base leading-relaxed text-surface-600">
+              Choose what you need, pin your property, and get photo proof.
+              No subscriptions, no add-ons, no per-kilometre charges.
+            </p>
           </div>
-          <h1 className="text-3xl sm:text-4xl md:text-5xl font-black text-surface-900 tracking-tight leading-none max-w-2xl mx-auto">
-            Peace of Mind for <br/> Your Remote Investments
-          </h1>
-          <p className="text-sm md:text-base text-surface-550 max-w-xl mx-auto font-normal">
-            No complex travel fees. No hidden add-ons. Just transparent, flat-rate verification tailored for remote buyers.
-          </p>
-        </div>
-      </section>
+        </section>
 
-      {/* Main Content */}
-      <main className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-8 items-stretch max-w-4xl mx-auto">
-          {PLANS.map((plan) => (
-            <Card
-              key={plan.id}
-              padding="lg"
-              className={`flex flex-col justify-between relative border-2 ${
-                plan.id === "premium"
-                  ? "border-primary-500 shadow-md ring-4 ring-primary-50"
-                  : "border-surface-200 hover:border-surface-300 bg-white"
-              }`}
-            >
-              {plan.id === "premium" && (
-                <span className="absolute -top-3.5 left-1/2 -translate-x-1/2 px-3 py-1 bg-primary-600 text-white text-[10px] font-black rounded-full uppercase tracking-widest shadow-sm">
-                  Recommended for NRIs
-                </span>
-              )}
-              
-              <div className="space-y-6">
-                <div>
-                  <h3 className="text-lg font-bold text-surface-900 tracking-tight">{plan.name}</h3>
-                  <p className="text-xs text-surface-400 mt-1 font-semibold uppercase tracking-wider">{plan.turnaround}</p>
-                </div>
-                
-                <div className="flex items-baseline gap-2 py-2">
-                  <span className="text-4xl font-black text-surface-900">₹{plan.priceINR}</span>
-                  <span className="text-sm text-surface-450 font-bold">/ visit</span>
-                  <span className="text-xs text-surface-400 bg-surface-100 px-2 py-0.5 rounded-md ml-1 font-mono">
-                    ~${plan.priceUSD} USD
-                  </span>
-                </div>
-                
-                <p className="text-[13px] text-surface-650 leading-relaxed font-normal min-h-[60px]">
-                  {plan.useCase}
-                </p>
-                
-                <hr className="border-surface-150" />
-                
-                <ul className="space-y-3.5 text-sm text-surface-700 font-medium">
-                  {plan.features.map((feat, idx) => (
-                    <li key={idx} className="flex items-start gap-2.5">
-                      <CheckCircleIcon size={18} className="text-emerald-600 flex-shrink-0 mt-0.5" />
-                      <span>{feat}</span>
-                    </li>
-                  ))}
-                </ul>
-              </div>
-              
-              <div className="pt-10">
-                <Button
-                  to="/verify/signup"
-                  className="w-full"
-                  size="md"
+        <section className="border-b border-surface-200 bg-white">
+          <div className="mx-auto max-w-5xl px-4 py-12 sm:px-6 md:py-16 lg:px-8">
+            <div className="grid items-stretch gap-5 md:grid-cols-2">
+              {PLANS.map((plan) => (
+                <div
+                  key={plan.id}
+                  className={`relative flex flex-col rounded-2xl border bg-white p-6 sm:p-7 ${
+                    plan.recommended
+                      ? "border-primary-600 ring-4 ring-primary-50"
+                      : "border-surface-200"
+                  }`}
                 >
-                  Request {plan.name}
-                </Button>
-              </div>
-            </Card>
-          ))}
-        </div>
+                  {plan.recommended && (
+                    <span className="absolute -top-3 left-6 rounded-full bg-primary-700 px-3 py-1 text-[10px] font-bold uppercase tracking-wider text-white">
+                      Best for NRIs
+                    </span>
+                  )}
 
-        {/* How Pricing Works */}
-        <section className="py-20 mt-8">
-          <div className="text-center max-w-2xl mx-auto mb-12 space-y-1">
-            <h2 className="text-[11px] font-bold text-primary-500 uppercase tracking-widest">Pricing Transparency</h2>
-            <h3 className="text-2xl font-bold text-surface-900 tracking-tight">How Verification Works</h3>
-          </div>
+                  <div>
+                    <h2 className="text-xl font-bold tracking-tight text-surface-950">
+                      {plan.name}
+                    </h2>
+                    <p className="mt-1 text-[13px] font-medium text-surface-500">
+                      {plan.turnaround}
+                    </p>
+                  </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
-            {HOW_IT_WORKS.map((item) => (
-              <div key={item.step} className="space-y-3 text-center p-2">
-                <div className="w-10 h-10 rounded-full bg-primary-50 text-primary-600 border border-primary-100 flex items-center justify-center font-black mx-auto text-sm">
-                  {item.step}
+                  <div className="mt-5 flex flex-wrap items-baseline gap-x-2 gap-y-1">
+                    <span className="text-4xl font-extrabold tracking-tight text-surface-950">
+                      ₹{plan.priceINR}
+                    </span>
+                    <span className="text-sm font-medium text-surface-500">/ visit</span>
+                    <span className="rounded-md bg-surface-100 px-2 py-0.5 text-[11px] font-medium text-surface-500">
+                      approx. ${plan.priceUSD}
+                    </span>
+                  </div>
+
+                  <p className="mt-4 text-sm leading-relaxed text-surface-600">
+                    {plan.bestFor}
+                  </p>
+
+                  <div className="my-6 border-t border-surface-150" />
+
+                  <ul className="flex-1 space-y-3">
+                    {plan.features.map((feature) => (
+                      <li key={feature} className="flex items-start gap-2.5 text-sm text-surface-700">
+                        <CheckIcon size={15} className="mt-0.5 flex-shrink-0 text-primary-600" />
+                        <span>{feature}</span>
+                      </li>
+                    ))}
+                  </ul>
+
+                  <Button
+                    to="/verify/signup"
+                    variant={plan.recommended ? "primary" : "secondary"}
+                    className="mt-7 w-full"
+                  >
+                    Request this visit
+                  </Button>
                 </div>
-                <h4 className="text-sm font-bold text-surface-900">{item.title}</h4>
-                <p className="text-[11px] text-surface-500 leading-relaxed">{item.desc}</p>
-              </div>
-            ))}
+              ))}
+            </div>
+
+            <div className="mt-4 flex items-start gap-2.5 rounded-xl border border-surface-200 bg-surface-50 p-4 text-[13px] leading-relaxed text-surface-600">
+              <ShieldCheckIcon size={16} className="mt-0.5 flex-shrink-0 text-primary-600" />
+              <p>
+                Every visit includes GPS verification, a photo with a recorded
+                capture time, and access to your complete visit history. You only
+                request a visit when you are ready.
+              </p>
+            </div>
           </div>
         </section>
 
-        {/* Why Users Trust InstantLocate */}
-        <section className="py-16 bg-surface-100/30 rounded-2xl px-6 sm:px-10 border border-surface-200">
-          <div className="text-center max-w-xl mx-auto mb-10 space-y-1">
-            <h2 className="text-[11px] font-bold text-primary-500 uppercase tracking-widest">Built-In Safety</h2>
-            <h3 className="text-2xl font-bold text-surface-900 tracking-tight">Why Remote Buyers Trust Us</h3>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            {TRUST_ITEMS.map((item, idx) => {
-              const Icon = item.icon;
-              const colorMap: Record<string, { bg: string; border: string; text: string }> = {
-                emerald: { bg: "bg-emerald-50", border: "border-emerald-100", text: "text-emerald-600" },
-                primary: { bg: "bg-primary-50", border: "border-primary-100", text: "text-primary-600" },
-                accent: { bg: "bg-accent-50", border: "border-accent-100", text: "text-accent-650" },
-              };
-              const c = colorMap[item.color];
-              return (
-                <div key={idx} className="flex gap-4 items-start">
-                  <div className={`w-10 h-10 rounded-xl ${c.bg} border ${c.border} ${c.text} flex items-center justify-center flex-shrink-0 mt-0.5 shadow-sm`}>
-                    <Icon size={20} />
+        <section className="border-b border-surface-200 bg-surface-50">
+          <div className="mx-auto max-w-5xl px-4 py-14 sm:px-6 md:py-16 lg:px-8">
+            <h2 className="text-center text-2xl font-bold tracking-tight text-surface-950">
+              Included with every visit
+            </h2>
+            <div className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+              {INCLUDED.map((item) => {
+                const Icon = item.icon;
+                return (
+                  <div key={item.title} className="rounded-2xl border border-surface-200 bg-white p-5">
+                    <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary-50 text-primary-700">
+                      <Icon size={18} />
+                    </div>
+                    <h3 className="mt-4 text-sm font-semibold text-surface-900">{item.title}</h3>
+                    <p className="mt-1 text-[13px] leading-relaxed text-surface-600">{item.desc}</p>
                   </div>
-                  <div className="space-y-1.5">
-                    <h4 className="text-sm font-bold text-surface-900">{item.title}</h4>
-                    <p className="text-[11.5px] text-surface-555 leading-relaxed font-normal">{item.desc}</p>
-                  </div>
-                </div>
-              );
-            })}
+                );
+              })}
+            </div>
           </div>
         </section>
 
-        {/* FAQs Section */}
-        <section className="py-20 mt-4 max-w-3xl mx-auto">
-          <div className="text-center mb-10 space-y-1">
-            <h2 className="text-[11px] font-bold text-primary-500 uppercase tracking-widest">FAQ</h2>
-            <h3 className="text-2xl font-bold text-surface-900 tracking-tight">Pricing FAQ</h3>
+        <section className="border-b border-surface-200 bg-white">
+          <div className="mx-auto max-w-5xl px-4 py-14 sm:px-6 md:py-16 lg:px-8">
+            <div className="mx-auto max-w-xl text-center">
+              <p className="text-xs font-bold uppercase tracking-wider text-primary-700">
+                How it works
+              </p>
+              <h2 className="mt-3 text-2xl font-bold tracking-tight text-surface-950 sm:text-3xl">
+                From request to proof
+              </h2>
+            </div>
+
+            <div className="mt-9 grid gap-8 sm:grid-cols-3">
+              {STEPS.map((step, index) => (
+                <div key={step.title}>
+                  <div className="flex h-9 w-9 items-center justify-center rounded-full bg-primary-50 text-sm font-bold text-primary-700">
+                    {index + 1}
+                  </div>
+                  <h3 className="mt-4 text-[15px] font-semibold text-surface-900">{step.title}</h3>
+                  <p className="mt-1.5 text-sm leading-relaxed text-surface-600">{step.desc}</p>
+                </div>
+              ))}
+            </div>
           </div>
-          <FaqAccordion items={FAQS} />
+        </section>
+
+        <section className="bg-surface-50">
+          <div className="mx-auto max-w-3xl px-4 py-14 sm:px-6 md:py-20 lg:px-8">
+            <div className="text-center">
+              <p className="text-xs font-bold uppercase tracking-wider text-primary-700">FAQ</p>
+              <h2 className="mt-3 text-2xl font-bold tracking-tight text-surface-950 sm:text-3xl">
+                Pricing questions
+              </h2>
+            </div>
+            <div className="mt-8">
+              <FaqAccordion items={FAQS} />
+            </div>
+          </div>
+        </section>
+
+        <section className="bg-primary-900">
+          <div className="mx-auto flex max-w-5xl flex-col items-start justify-between gap-5 px-4 py-10 sm:px-6 md:flex-row md:items-center lg:px-8">
+            <div>
+              <h2 className="text-xl font-bold text-white sm:text-2xl">
+                Ready to see your property?
+              </h2>
+              <p className="mt-1 text-sm text-primary-100">
+                Pin the location and tell us what to check. It takes about two minutes.
+              </p>
+            </div>
+            <Button
+              to="/verify/signup"
+              variant="inverse"
+              className="flex-shrink-0"
+            >
+              Request a visit
+            </Button>
+          </div>
         </section>
       </main>
 
-      <MarketingFooter tagline="Secure Remote Inspections & Verification." />
+      <MarketingFooter />
     </div>
   );
 }

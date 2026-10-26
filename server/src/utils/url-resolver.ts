@@ -73,7 +73,7 @@ async function followRedirects(
         {
           headers: {
             "User-Agent":
-              "Mozilla/5.0 (compatible; InstantLocate/1.0; +https://instantlocate.app)",
+              "Mozilla/5.0 (compatible; TrackProof/1.0)",
           },
         },
         (res) => {

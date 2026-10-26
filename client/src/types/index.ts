@@ -10,10 +10,15 @@ export type TaskStatus =
 export interface User {
   id: string;
   name: string;
-  email: string;
+  phone: string;
+  email?: string | null;
   role: Role;
   createdAt: string;
 }
+
+export type TaskUser = Pick<User, "id" | "name" | "role"> & {
+  phone?: string;
+};
 
 export interface Task {
   id: string;
@@ -23,10 +28,15 @@ export interface Task {
   targetLng: number;
   status: TaskStatus;
   evidenceImage: string | null;
+  evidenceLat: number | null;
+  evidenceLng: number | null;
+  evidenceAccuracy: number | null;
+  evidenceCapturedAt: string | null;
+  evidenceSubmittedAt: string | null;
   createdById: string;
   acceptedById: string | null;
-  createdBy: Pick<User, "id" | "name" | "email" | "role">;
-  acceptedBy: Pick<User, "id" | "name" | "email" | "role"> | null;
+  createdBy: TaskUser;
+  acceptedBy: TaskUser | null;
   locationLogs?: LocationLog[];
   createdAt: string;
   updatedAt: string;
@@ -44,6 +54,13 @@ interface LocationLog {
 export interface AuthResponse {
   user: User;
   token: string;
+  isNew?: boolean;
+}
+
+export interface OtpRequestResponse {
+  expiresIn: number;
+  resendAfter: number;
+  devOtp?: string;
 }
 
 export interface ApiResponse<T> {
