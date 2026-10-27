@@ -230,13 +230,14 @@ appears on authenticated pages so you can switch roles or reset the data without
 signing out.
 
 Demo login uses the seeded accounts above. The reset endpoint deletes demo visits
-and restores exactly three prepared Bengaluru visits:
+and restores four prepared Bengaluru visits:
 
 | Status | Visit | What it lets you test |
 |--------|-------|-----------------------|
 | `OPEN` | Vacant plot check — Whitefield | Inspector accepting a request |
 | `ACCEPTED` | Construction progress — Sarjapur | Starting a visit and live location |
 | `SUBMITTED` | 2BHK rental check — Indiranagar | Reviewing proof and completing a visit |
+| `COMPLETED` | Shop shutter check — Jayanagar | Browsing past visits and completed proof |
 
 The submitted visit includes an illustrative sample proof image at
 `/uploads/demo-proof.svg`, so the full review flow works offline from the camera.
@@ -302,7 +303,7 @@ it never reveals whether a phone number already has an account.
 | `POST` | `/api/auth/otp/request` | Public | Send a 6-digit code to a mobile number |
 | `POST` | `/api/auth/otp/verify` | Public | Verify the code and receive a JWT |
 | `POST` | `/api/auth/demo` | Demo only | One-tap login as `USER` or `CAPTAIN` |
-| `POST` | `/api/auth/demo/reset` | Demo only | Delete demo visits and restore the three prepared ones |
+| `POST` | `/api/auth/demo/reset` | Demo only | Delete demo visits and restore the four prepared ones |
 
 Demo endpoints return `403` in production and are rate-limited in development.
 

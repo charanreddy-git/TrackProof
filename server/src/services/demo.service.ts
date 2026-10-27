@@ -253,13 +253,31 @@ export class DemoService {
           evidenceCapturedAt: new Date(Date.now() - 1000 * 60 * 32),
           evidenceSubmittedAt: new Date(Date.now() - 1000 * 60 * 25),
         },
+        {
+          title: "Shop shutter check — Jayanagar",
+          description:
+            "A completed sample visit. Open it from Past visits to see how the proof and GPS details are kept after completion.",
+          targetLat: 12.9308,
+          targetLng: 77.5838,
+          createdById: requester.user.id,
+          acceptedById: inspector.user.id,
+          status: "COMPLETED",
+          evidenceImage: DEMO_EVIDENCE_PATH,
+          evidenceLat: 12.93084,
+          evidenceLng: 77.58372,
+          evidenceAccuracy: 5,
+          evidenceCapturedAt: new Date(Date.now() - 1000 * 60 * 60 * 26),
+          evidenceSubmittedAt: new Date(Date.now() - 1000 * 60 * 60 * 25),
+          createdAt: new Date(Date.now() - 1000 * 60 * 60 * 30),
+          updatedAt: new Date(Date.now() - 1000 * 60 * 60 * 24),
+        },
       ],
     });
 
-    logger.info("Demo data reset", { tasks: 3 });
+    logger.info("Demo data reset", { tasks: 4 });
 
     return {
-      tasks: 3,
+      tasks: 4,
       accounts: Object.entries(DEMO_ACCOUNTS).map(([role, account]) => ({
         role,
         name: account.name,

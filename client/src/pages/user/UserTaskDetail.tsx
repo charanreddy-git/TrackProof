@@ -16,22 +16,7 @@ import {
 import { useTaskDetail, useCompleteTask, useTaskUpdates } from "../../hooks";
 import { useQueryClient } from "@tanstack/react-query";
 import type { TaskStatus } from "../../types";
-
-const TASK_STEPS: { status: TaskStatus; label: string; desc: string }[] = [
-  { status: "OPEN", label: "Request sent", desc: "Finding a local inspector" },
-  { status: "ACCEPTED", label: "Inspector assigned", desc: "Your inspector is confirmed" },
-  { status: "IN_PROGRESS", label: "On the way", desc: "Travelling to the property" },
-  { status: "SUBMITTED", label: "Proof ready", desc: "Review the photo and details" },
-  { status: "COMPLETED", label: "Completed", desc: "You have reviewed the visit" },
-];
-
-const statusOrder: Record<TaskStatus, number> = {
-  OPEN: 0,
-  ACCEPTED: 1,
-  IN_PROGRESS: 2,
-  SUBMITTED: 3,
-  COMPLETED: 4,
-};
+import { STATUS_ORDER, TASK_STEPS, visitRef } from "../../utils/task";
 
 function formatDateTime(value: string): string {
   return new Date(value).toLocaleString("en-IN", {
@@ -41,10 +26,6 @@ function formatDateTime(value: string): string {
     hour: "numeric",
     minute: "2-digit",
   });
-}
-
-function visitRef(id: string): string {
-  return `#${id.slice(-5).toUpperCase()}`;
 }
 
 export function UserTaskDetail() {
@@ -81,7 +62,7 @@ export function UserTaskDetail() {
         <p className="mt-2 text-[13px] leading-relaxed text-surface-600">
           It may have been removed, or you may not have access to it.
         </p>
-        <Button to="/user" className="mt-6">
+        <Button to="/user/tasks" className="mt-6">
           Back to my visits
         </Button>
       </div>
@@ -102,13 +83,13 @@ export function UserTaskDetail() {
 
   const API_URL = import.meta.env.VITE_API_URL || "";
   const baseUrl = API_URL.replace("/api", "");
-  const currentStep = statusOrder[task.status];
+  const currentStep = STATUS_ORDER[task.status];
   const mapsLink = `https://www.google.com/maps/search/?api=1&query=${task.targetLat},${task.targetLng}`;
 
   return (
     <div className="mx-auto max-w-6xl">
       <div className="flex flex-wrap items-center justify-between gap-3">
-        <Button to="/user" variant="ghost" size="sm" className="-ml-2 min-h-11">
+        <Button to="/user/tasks" variant="ghost" size="sm" className="-ml-2 min-h-11">
           <span aria-hidden="true">←</span>
           My visits
         </Button>
@@ -311,7 +292,7 @@ export function UserTaskDetail() {
 
             <ol className="mt-4 space-y-0.5">
               {TASK_STEPS.map((step, index) => {
-                const done = statusOrder[step.status] < currentStep;
+                const done = STATUS_ORDER[step.status] < currentStep;
                 const active = step.status === task.status;
 
                 return (
@@ -345,7 +326,7 @@ export function UserTaskDetail() {
                         {step.label}
                       </p>
                       <p className="mt-0.5 text-[10.5px] leading-relaxed text-surface-500">
-                        {step.desc}
+                        {step.description}
                       </p>
                     </div>
                     {active && (

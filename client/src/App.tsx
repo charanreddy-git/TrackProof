@@ -5,7 +5,13 @@ import { AuthProvider } from "./contexts";
 import { ToastProvider, ProtectedRoute, ErrorBoundary, RouteEffects, DemoToolbar } from "./components";
 import { AuthLayout, DashboardLayout } from "./layouts";
 import { LoginPage, RegisterPage } from "./pages/auth";
-import { UserDashboard, CreateTaskPage, UserTaskDetail, TrackCaptainPage } from "./pages/user";
+import {
+  UserDashboard,
+  UserVisitsPage,
+  CreateTaskPage,
+  UserTaskDetail,
+  TrackCaptainPage,
+} from "./pages/user";
 import {
   CaptainDashboard,
   AcceptedTasksPage,
@@ -57,7 +63,7 @@ function App() {
                 >
                   <Route path="/user" element={<UserDashboard />} />
                   <Route path="/user/create-task" element={<CreateTaskPage />} />
-                  <Route path="/user/tasks" element={<UserDashboard />} />
+                  <Route path="/user/tasks" element={<UserVisitsPage />} />
                   <Route path="/user/tasks/:id" element={<UserTaskDetail />} />
                   <Route path="/user/track/:id" element={<TrackCaptainPage />} />
                 </Route>

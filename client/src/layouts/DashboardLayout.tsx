@@ -39,6 +39,11 @@ export function DashboardLayout() {
   const isInspector = user?.role === "CAPTAIN";
   const navItems = isInspector ? captainNav : userNav;
   const isCameraFlow = location.pathname.endsWith("/upload");
+  // These pages carry their own large page title, so the mobile app bar only
+  // needs the logo and account shortcut.
+  const hideMobilePageTitle =
+    location.pathname === "/user/tasks" ||
+    location.pathname === "/captain/accepted";
 
   const handleLogout = () => {
     logout();
@@ -156,9 +161,11 @@ export function DashboardLayout() {
           <div className="flex h-15 items-center justify-between gap-3 px-4 sm:h-[76px] sm:px-6 lg:px-8">
             <div className="flex min-w-0 items-center gap-2.5 sm:hidden">
               <LogoMark size="sm" />
-              <span className="truncate text-[1.05rem] font-extrabold tracking-[-0.035em] text-surface-950">
-                {pageTitle}
-              </span>
+              {!hideMobilePageTitle && (
+                <span className="truncate text-[1.05rem] font-extrabold tracking-[-0.035em] text-surface-950">
+                  {pageTitle}
+                </span>
+              )}
             </div>
 
             <div className="hidden min-w-0 sm:block">
@@ -174,7 +181,7 @@ export function DashboardLayout() {
               <button
                 type="button"
                 onClick={() => setAccountOpen(!accountOpen)}
-                className="flex h-10 w-10 items-center justify-center rounded-full border-2 border-white bg-primary-100 text-[12px] font-extrabold text-primary-800 shadow-sm transition-transform hover:scale-105"
+                className="flex h-11 w-11 items-center justify-center rounded-full border-2 border-white bg-primary-100 text-[12px] font-extrabold text-primary-800 shadow-sm transition-transform hover:scale-105"
                 aria-label="Account menu"
                 aria-expanded={accountOpen}
                 aria-haspopup="menu"

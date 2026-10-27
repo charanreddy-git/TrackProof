@@ -86,7 +86,7 @@ export function TaskTable({
 
           <div className="min-w-0 flex-1">
             <div className="flex flex-wrap items-center gap-2">
-              <p className="min-w-0 max-w-full truncate text-[13.5px] font-bold text-surface-950 transition-colors group-hover:text-primary-800 sm:text-[14.5px]">
+              <p className="line-clamp-2 min-w-0 max-w-full break-words text-[13.5px] font-bold leading-snug text-surface-950 transition-colors group-hover:text-primary-800 sm:text-[14.5px]">
                 {task.title}
               </p>
               <span className="hidden rounded-full bg-surface-100 px-2 py-0.5 text-[10px] font-semibold text-surface-500 md:inline">
@@ -97,8 +97,11 @@ export function TaskTable({
               {showAcceptedBy && task.acceptedBy && (
                 <span className="truncate">Inspector {task.acceptedBy.name}</span>
               )}
-              {showCreatedBy && <span className="truncate">By {task.createdBy.name}</span>}
-              {(showAcceptedBy || showCreatedBy) && (
+              {showCreatedBy && task.createdBy && (
+                <span className="truncate">By {task.createdBy.name}</span>
+              )}
+              {((showAcceptedBy && !!task.acceptedBy) ||
+                (showCreatedBy && !!task.createdBy)) && (
                 <span className="text-surface-300" aria-hidden="true">·</span>
               )}
               <span>{formatTaskTime(task.createdAt)}</span>

@@ -1,29 +1,104 @@
-import { TaskTable, PageLoader, Button } from "../../components";
+import { Link } from "react-router-dom";
+import {
+  TaskTable,
+  PageLoader,
+  Button,
+  VisitProgress,
+} from "../../components";
 import { useAuth } from "../../contexts";
 import { useTaskList } from "../../hooks";
 import {
-  CheckIcon,
-  MapPinIcon,
-  CameraIcon,
   ArrowRightIcon,
-  SearchIcon,
   ClipboardIcon,
-  CompassIcon,
-  CheckCircleIcon,
-  ShieldCheckIcon,
+  MapPinIcon,
+  SearchIcon,
 } from "../../components/Icons";
+import { visitRef } from "../../utils/task";
+import type { Task } from "../../types";
 
-function todayLabel(): string {
-  return new Date().toLocaleDateString("en-IN", {
-    weekday: "long",
-    day: "numeric",
-    month: "short",
-  });
+function activeCopy(task: Task): {
+  eyebrow: string;
+  description: string;
+  cta: string;
+  to: string;
+  secondaryTo?: string;
+} {
+  if (task.status === "IN_PROGRESS") {
+    return {
+      eyebrow: "Visit in progress",
+      description:
+        "You’re on the way. Take the proof photo only within 100 m of the pin.",
+      cta: "Submit proof",
+      to: `/captain/tasks/${task.id}/upload`,
+      secondaryTo: `/captain/tasks/${task.id}`,
+    };
+  }
+
+  return {
+    eyebrow: "Ready to start",
+    description:
+      "You’re assigned. Open the visit when you’re ready to head to the property.",
+    cta: "Open visit",
+    to: `/captain/tasks/${task.id}`,
+  };
+}
+
+function ActiveVisitCard({ task }: { task: Task }) {
+  const copy = activeCopy(task);
+
+  return (
+    <section className="rounded-3xl border border-primary-200 bg-white p-4 shadow-card sm:p-5">
+      <div className="flex items-center justify-between gap-3">
+        <span className="inline-flex items-center gap-1.5 rounded-full bg-accent-100 px-2.5 py-1 text-[10.5px] font-bold text-accent-900">
+          <span
+            className={`h-1.5 w-1.5 rounded-full bg-accent-500 ${
+              task.status === "IN_PROGRESS" ? "animate-pulse-soft" : ""
+            }`}
+            aria-hidden="true"
+          />
+          {copy.eyebrow}
+        </span>
+        <span className="text-[10px] font-semibold tabular-nums text-surface-400">
+          {visitRef(task.id)}
+        </span>
+      </div>
+
+      <h2 className="mt-3 line-clamp-2 text-[1.3rem] font-extrabold leading-tight tracking-[-0.03em] text-surface-950">
+        {task.title}
+      </h2>
+      <p className="mt-1.5 text-[11.5px] leading-relaxed text-surface-600">
+        {copy.description}
+      </p>
+
+      <VisitProgress status={task.status} className="mt-4" />
+
+      <div className="mt-4 flex flex-col gap-2 sm:flex-row">
+        <Button
+          to={copy.to}
+          variant="accent"
+          className="min-h-11 flex-1 justify-between px-4 sm:justify-center"
+        >
+          {copy.cta}
+          <ArrowRightIcon size={15} />
+        </Button>
+        {copy.secondaryTo && (
+          <Button
+            to={copy.secondaryTo}
+            variant="secondary"
+            className="min-h-11 sm:w-auto"
+          >
+            Details
+          </Button>
+        )}
+      </div>
+    </section>
+  );
 }
 
 export function CaptainDashboard() {
   const { data: allTasks, isLoading: loadingAll } = useTaskList();
-  const { data: availableTasks, isLoading: loadingAvailable } = useTaskList("available");
+  const { data: availableTasks, isLoading: loadingAvailable } =
+    useTaskList("available");
   const { user } = useAuth();
 
   if (loadingAll || loadingAvailable) return <PageLoader />;
@@ -32,239 +107,108 @@ export function CaptainDashboard() {
   const available = availableTasks || [];
   const firstName = user?.name?.split(" ")[0] || "there";
 
-  const activeTasks = tasks.filter((task) =>
-    ["ACCEPTED", "IN_PROGRESS"].includes(task.status)
-  );
-  const submittedTasks = tasks.filter((task) => task.status === "SUBMITTED");
-  const completedTasks = tasks.filter((task) => task.status === "COMPLETED");
+  const activeTasks = tasks
+    .filter((task) => ["ACCEPTED", "IN_PROGRESS"].includes(task.status))
+    .sort((a, b) => {
+      if (a.status === b.status) return 0;
+      return a.status === "IN_PROGRESS" ? -1 : 1;
+    });
+  const featuredTask = activeTasks[0] ?? null;
+  const extraActive = activeTasks.length - (featuredTask ? 1 : 0);
 
-  const summary = [
-    {
-      label: "Available now",
-      value: available.length,
-      icon: SearchIcon,
-      tint: "bg-accent-50 text-accent-700",
-      highlight: available.length > 0,
-    },
-    {
-      label: "Active visits",
-      value: activeTasks.length,
-      icon: CompassIcon,
-      tint: "bg-info-50 text-info-700",
-    },
-    {
-      label: "Awaiting review",
-      value: submittedTasks.length,
-      icon: CameraIcon,
-      tint: "bg-primary-50 text-primary-700",
-    },
-    {
-      label: "Completed",
-      value: completedTasks.length,
-      icon: CheckCircleIcon,
-      tint: "bg-success-50 text-success-700",
-    },
-  ];
+  const subtitle = (() => {
+    if (available.length > 0) {
+      return `${available.length} request${available.length === 1 ? "" : "s"} nearby${
+        activeTasks.length > 0
+          ? ` · ${activeTasks.length} active`
+          : ""
+      }`;
+    }
+    if (activeTasks.length > 0) {
+      return `${activeTasks.length} active visit${activeTasks.length === 1 ? "" : "s"} · new requests appear here`;
+    }
+    return "No open requests right now. New ones appear through the day.";
+  })();
 
   return (
-    <div className="mx-auto max-w-6xl">
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
-        <div>
-          <p className="inline-flex items-center gap-2 rounded-full bg-white px-3 py-1 text-[11px] font-semibold text-surface-500 shadow-sm">
-            <span className="h-1.5 w-1.5 rounded-full bg-accent-500" />
-            {todayLabel()}
-          </p>
-          <h1 className="mt-2.5 text-[2.1rem] font-extrabold leading-[1.03] tracking-[-0.04em] text-surface-950 sm:text-[2.6rem]">
-            Find work near you, {firstName}.
+    <div className="mx-auto max-w-3xl">
+      <div className="flex items-start justify-between gap-3">
+        <div className="min-w-0">
+          <h1 className="text-[2rem] font-extrabold leading-[1.05] tracking-[-0.04em] text-surface-950 sm:text-[2.4rem]">
+            Hi {firstName}
           </h1>
-          <p className="mt-2 text-[13.5px] leading-relaxed text-surface-600">
-            {available.length > 0
-              ? `${available.length} property visit${available.length > 1 ? "s" : ""} available around you right now.`
-              : "No open visits on the board right now. New requests appear through the day."}
+          <p className="mt-1.5 max-w-md text-[12.5px] leading-relaxed text-surface-600">
+            {subtitle}
           </p>
         </div>
-        <Button to="/captain/accepted" variant="secondary" className="w-full flex-shrink-0 sm:w-auto">
+        <Button
+          to="/captain/accepted"
+          variant="secondary"
+          className="min-h-11 flex-shrink-0 px-4"
+        >
+          <ClipboardIcon size={15} />
           My visits
-          <ArrowRightIcon size={15} />
         </Button>
       </div>
 
-      <div className="mt-5 grid grid-cols-2 gap-2.5 lg:grid-cols-4">
-        {summary.map((stat) => {
-          const Icon = stat.icon;
-          return (
-            <div
-              key={stat.label}
-              className={`rounded-2xl border bg-white p-3.5 shadow-sm ${
-                stat.highlight ? "border-accent-200" : "border-surface-200"
-              }`}
+      {featuredTask && (
+        <div className="mt-5">
+          <ActiveVisitCard task={featuredTask} />
+          {extraActive > 0 && (
+            <Link
+              to="/captain/accepted"
+              className="mt-2 inline-flex min-h-11 items-center gap-1.5 px-1 text-[11.5px] font-bold text-primary-700"
             >
-              <div className="flex items-center justify-between gap-2">
-                <span className={`flex h-8 w-8 items-center justify-center rounded-lg ${stat.tint}`}>
-                  <Icon size={16} />
-                </span>
-                {stat.highlight && (
-                  <span className="rounded-full bg-accent-100 px-2 py-0.5 text-[9.5px] font-bold text-accent-800">
-                    Open
-                  </span>
-                )}
-              </div>
-              <p className="mt-3 text-[1.9rem] font-extrabold leading-none tracking-[-0.04em] text-surface-950">
-                {stat.value}
-              </p>
-              <p className="mt-1.5 text-[11px] font-semibold text-surface-500">{stat.label}</p>
-            </div>
-          );
-        })}
-      </div>
-
-      <div className="mt-5 grid grid-cols-1 gap-5 lg:grid-cols-[1.45fr_0.55fr]">
-        <div className="space-y-5 min-w-0">
-          <section>
-            <div className="mb-3 flex items-end justify-between gap-3">
-              <div>
-                <p className="text-[11.5px] font-bold text-primary-700">Open requests</p>
-                <h2 className="mt-0.5 text-[1.5rem] font-extrabold tracking-[-0.03em] text-surface-950">
-                  Available visits
-                </h2>
-              </div>
-              {available.length > 0 && (
-                <span className="rounded-full bg-accent-100 px-2.5 py-1 text-[10px] font-bold text-accent-800">
-                  {available.length} nearby
-                </span>
-              )}
-            </div>
-
-            <TaskTable
-              tasks={available}
-              basePath="/captain/tasks"
-              showCreatedBy
-              emptyMessage="The board is quiet"
-              emptyDescription="New visits will appear here when requesters book them."
-            />
-
-            {available.length === 0 && (
-              <div className="mt-3 flex items-start gap-2.5 rounded-2xl border border-surface-200 bg-white px-3.5 py-3 shadow-sm">
-                <span className="mt-1.5 h-1.5 w-1.5 flex-shrink-0 rounded-full bg-surface-400" />
-                <p className="text-[11.5px] leading-relaxed text-surface-500">
-                  Keep this page open and check back — there is nothing to refresh
-                  manually. New requests arrive during the day.
-                </p>
-              </div>
-            )}
-          </section>
-
-          {(activeTasks.length > 0 || submittedTasks.length > 0) && (
-            <section>
-              <div className="mb-3 flex items-end justify-between gap-3">
-                <div>
-                  <p className="text-[11.5px] font-bold text-primary-700">In your hands</p>
-                  <h2 className="mt-0.5 text-[1.5rem] font-extrabold tracking-[-0.03em] text-surface-950">
-                    Active visits
-                  </h2>
-                </div>
-                <Button to="/captain/accepted" variant="ghost" size="sm">
-                  View all
-                </Button>
-              </div>
-
-              <TaskTable
-                tasks={[...activeTasks, ...submittedTasks]}
-                basePath="/captain/tasks"
-                showCreatedBy
-              />
-            </section>
+              {extraActive} more active visit{extraActive === 1 ? "" : "s"}
+              <ArrowRightIcon size={13} />
+            </Link>
           )}
+        </div>
+      )}
 
-          {available.length === 0 &&
-            activeTasks.length === 0 &&
-            submittedTasks.length === 0 && (
-              <div className="overflow-hidden rounded-3xl border border-surface-200 bg-white shadow-card">
-                <div className="bg-accent-50/80 p-5 sm:p-6">
-                  <span className="flex h-11 w-11 items-center justify-center rounded-xl bg-white text-accent-700 shadow-sm">
-                    <ClipboardIcon size={21} />
-                  </span>
-                  <h2 className="mt-4 text-[1.45rem] font-extrabold leading-tight tracking-[-0.03em] text-surface-950">
-                    Nothing on the board yet.
-                  </h2>
-                  <p className="mt-2 max-w-md text-[12.5px] leading-relaxed text-surface-600">
-                    Your accepted visits and completed work stay in your history. New
-                    requests appear here as soon as a requester books one.
-                  </p>
-                  <Button to="/captain/accepted" variant="secondary" size="sm" className="mt-4">
-                    Open my visits
-                  </Button>
-                </div>
-              </div>
-            )}
+      <section className={featuredTask ? "mt-6" : "mt-5"}>
+        <div className="mb-3 flex items-center justify-between gap-3">
+          <div>
+            <h2 className="text-[1.25rem] font-extrabold tracking-[-0.03em] text-surface-950">
+              Available near you
+            </h2>
+            <p className="mt-0.5 text-[11px] font-medium text-surface-500">
+              New requests appear automatically.
+            </p>
+          </div>
+          <span className="inline-flex flex-shrink-0 items-center gap-1.5 rounded-full bg-accent-100 px-2.5 py-1 text-[10.5px] font-bold text-accent-900">
+            <SearchIcon size={11} />
+            {available.length}
+          </span>
         </div>
 
-        <aside className="min-w-0 space-y-3.5">
-          <div className="rounded-3xl bg-primary-900 p-5 text-white shadow-card">
-            <p className="flex items-center gap-1.5 text-[11px] font-bold text-accent-300">
-              <MapPinIcon size={13} />
-              Before you accept
-            </p>
-            <h2 className="mt-2.5 text-[1.35rem] font-extrabold leading-tight tracking-[-0.03em]">
-              Check you can reach the pin.
-            </h2>
-            <div className="mt-3 space-y-2">
-              {[
-                "Open the map and confirm the route",
-                "Make sure you can arrive within a few hours",
-                "Keep location on while travelling",
-                "Take proof only within 100 m",
-              ].map((item) => (
-                <p key={item} className="flex items-start gap-2 text-[11px] leading-relaxed text-primary-200">
-                  <CheckIcon size={12} className="mt-0.5 flex-shrink-0 text-accent-400" />
-                  {item}
-                </p>
-              ))}
-            </div>
-            <p className="mt-3 border-t border-white/15 pt-3 text-[10.5px] leading-relaxed text-primary-300">
-              Completed work stays in your visit history and settles on the current
-              payout cycle.
-            </p>
-          </div>
+        <TaskTable
+          tasks={available}
+          basePath="/captain/tasks"
+          showCreatedBy
+          emptyMessage="No requests nearby"
+          emptyDescription="Keep this page open — new visits appear here through the day."
+        />
+      </section>
 
-          <div className="rounded-2xl border border-surface-200 bg-white p-4 shadow-sm">
-            <p className="flex items-center gap-1.5 text-[11.5px] font-bold text-surface-800">
-              <ShieldCheckIcon size={14} className="text-primary-600" />
-              The proof standard
-            </p>
-            <div className="mt-3 flex items-end gap-2 border-b border-surface-100 pb-3">
-              <p className="text-[2.9rem] font-extrabold leading-[0.8] tracking-[-0.055em] text-surface-950">100</p>
-              <div className="pb-0.5">
-                <p className="text-[11px] font-bold text-primary-700">metres</p>
-                <p className="text-[10px] font-medium text-surface-500">maximum radius</p>
-              </div>
-            </div>
-            <div className="mt-3 space-y-2">
-              {[
-                { icon: MapPinIcon, text: "The pin is the destination, not the area." },
-                { icon: CameraIcon, text: "The server checks GPS at upload." },
-                { icon: CheckIcon, text: "Proof can’t be moved after submission." },
-              ].map(({ icon: Icon, text }) => (
-                <p key={text} className="flex items-start gap-2 text-[11px] leading-relaxed text-surface-600">
-                  <Icon size={12} className="mt-0.5 flex-shrink-0 text-primary-600" />
-                  {text}
-                </p>
-              ))}
-            </div>
-          </div>
-
-          <div className="rounded-2xl bg-surface-100 p-4">
-            <p className="text-[11.5px] font-bold text-surface-800">Inspector support</p>
-            <p className="mt-1 text-[11px] leading-relaxed text-surface-500">
-              Stuck on a visit? Write to{" "}
-              <a href="mailto:field@trackproof.in" className="font-bold text-primary-700 underline underline-offset-2">
-                field@trackproof.in
-              </a>
-              .
-            </p>
-          </div>
-        </aside>
-      </div>
+      {!featuredTask && available.length === 0 && (
+        <div className="mt-5 flex items-start gap-2.5 rounded-2xl bg-surface-100 px-4 py-3">
+          <MapPinIcon
+            size={15}
+            className="mt-0.5 flex-shrink-0 text-primary-600"
+          />
+          <p className="text-[11.5px] leading-relaxed text-surface-600">
+            Your accepted visits and completed work stay in{" "}
+            <Link
+              to="/captain/accepted"
+              className="font-bold text-primary-700 underline underline-offset-4"
+            >
+              My visits
+            </Link>
+            .
+          </p>
+        </div>
+      )}
     </div>
   );
 }

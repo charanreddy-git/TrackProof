@@ -39,5 +39,6 @@ export { MarketingHeader } from "./MarketingHeader";
 export { MarketingFooter } from "./MarketingFooter";
 export { FaqAccordion } from "./FaqAccordion";
 export { SampleDossier } from "./SampleDossier";
+export { VisitProgress } from "./VisitProgress";
 export { DemoAccessPanel } from "./DemoAccessPanel";
 export { DemoToolbar } from "./DemoToolbar";

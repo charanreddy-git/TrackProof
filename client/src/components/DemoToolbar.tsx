@@ -61,7 +61,7 @@ export function DemoToolbar() {
 
   const handleReset = async () => {
     const confirmed = window.confirm(
-      "Reset the demo? This clears the current demo visits and restores three prepared ones."
+      "Reset the demo? This clears the current demo visits and restores four prepared ones."
     );
     if (!confirmed) return;
 

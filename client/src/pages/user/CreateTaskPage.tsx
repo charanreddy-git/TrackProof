@@ -199,7 +199,7 @@ export function CreateTaskPage() {
     <div className="mx-auto max-w-3xl">
       <Button to="/user" variant="ghost" size="sm" className="-ml-2 min-h-11">
         <span aria-hidden="true">←</span>
-        My visits
+        Home
       </Button>
 
       <div className="mt-3 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
