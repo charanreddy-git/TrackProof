@@ -1,7 +1,8 @@
 import { useEffect, useState, type FormEvent } from "react";
 import { Link, useLocation, useNavigate, useSearchParams } from "react-router-dom";
 import { useAuth } from "../../contexts";
-import { Button, Input, useToast } from "../../components";
+import { Button, DemoAccessPanel, Input, useToast } from "../../components";
+import { CompassIcon, HomeIcon } from "../../components/Icons";
 import type { Role } from "../../types";
 import { formatPhone, normalizePhoneInput } from "../../utils/phone";
 
@@ -41,7 +42,7 @@ export function RegisterPage({ forcedRole }: RegisterPageProps = {}) {
   const [resendIn, setResendIn] = useState(0);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
-  const { requestOtp, verifyOtp } = useAuth();
+  const { requestOtp, verifyOtp, authMode } = useAuth();
   const navigate = useNavigate();
   const { addToast } = useToast();
 
@@ -143,27 +144,35 @@ export function RegisterPage({ forcedRole }: RegisterPageProps = {}) {
 
   return (
     <div>
-      <h1 className="text-2xl font-bold tracking-tight text-surface-950">
+      <DemoAccessPanel returnTo={returnTo} />
+
+      <div>
+        <p className="text-[12px] font-bold text-primary-700">
+          {isInspector ? "Inspector sign up" : "Create your account"}
+        </p>
+        <h1 className="mt-1.5 text-[2rem] font-extrabold leading-tight tracking-[-0.035em] text-surface-950">
+          {step === "details"
+            ? isInspector
+              ? "Start earning nearby"
+              : "Book your first visit"
+            : "Verify your number"}
+        </h1>
+      </div>
+
+      <p className="mt-2 text-[13px] leading-relaxed text-surface-600">
         {step === "details"
           ? isInspector
-            ? "Work as an inspector"
-            : "Request a property visit"
-          : "Verify your number"}
-      </h1>
-      <p className="mt-1 text-sm text-surface-500">
-        {step === "details"
-          ? isInspector
-            ? "Find nearby property visits and get paid for completed checks."
+            ? "Find property visits in your area and get paid for each completed check."
             : "Pin a property, follow the visit, and get photo proof in one place."
           : `We sent a 6-digit code to ${formatPhone(phone)}.`}
       </p>
 
       {step === "details" ? (
-        <form onSubmit={handleDetailsSubmit} className="mt-6 space-y-4">
+        <form onSubmit={handleDetailsSubmit} className="mt-5 space-y-4">
           {error && (
             <div
               role="alert"
-              className="rounded-xl border border-danger-200 bg-danger-50 px-3.5 py-3 text-sm text-danger-700"
+              className="rounded-xl border border-danger-200 bg-danger-50 px-3.5 py-3 text-[12.5px] font-medium text-danger-700"
             >
               {error}
             </div>
@@ -171,7 +180,7 @@ export function RegisterPage({ forcedRole }: RegisterPageProps = {}) {
 
           {showRolePicker && (
             <div>
-              <p className="mb-2 text-sm font-semibold text-surface-800">
+              <p className="mb-2 text-[12.5px] font-bold text-surface-700">
                 How will you use TrackProof?
               </p>
               <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
@@ -179,34 +188,44 @@ export function RegisterPage({ forcedRole }: RegisterPageProps = {}) {
                   type="button"
                   onClick={() => setRole("USER")}
                   aria-pressed={role === "USER"}
-                  className={`min-h-11 rounded-xl border px-3.5 py-3 text-left transition-colors ${
+                  className={`flex min-h-16 items-start gap-2.5 rounded-xl border-2 p-3 text-left transition-colors ${
                     role === "USER"
-                      ? "border-primary-600 bg-primary-50/60 ring-2 ring-primary-500/10"
+                      ? "border-primary-500 bg-primary-50"
                       : "border-surface-200 hover:border-surface-300"
                   }`}
                 >
-                  <span className="block text-sm font-semibold text-surface-900">
-                    Check a property
+                  <span className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-lg bg-white text-primary-700">
+                    <HomeIcon size={16} />
                   </span>
-                  <span className="mt-0.5 block text-[11px] leading-snug text-surface-500">
-                    For owners and buyers
+                  <span>
+                    <span className="block text-[12.5px] font-bold text-surface-900">
+                      Check a property
+                    </span>
+                    <span className="mt-0.5 block text-[10.5px] leading-snug text-surface-500">
+                      For owners, buyers, and NRIs
+                    </span>
                   </span>
                 </button>
                 <button
                   type="button"
                   onClick={() => setRole("CAPTAIN")}
                   aria-pressed={role === "CAPTAIN"}
-                  className={`min-h-11 rounded-xl border px-3.5 py-3 text-left transition-colors ${
+                  className={`flex min-h-16 items-start gap-2.5 rounded-xl border-2 p-3 text-left transition-colors ${
                     role === "CAPTAIN"
-                      ? "border-accent-500 bg-accent-50/60 ring-2 ring-accent-500/10"
+                      ? "border-accent-400 bg-accent-50"
                       : "border-surface-200 hover:border-surface-300"
                   }`}
                 >
-                  <span className="block text-sm font-semibold text-surface-900">
-                    Inspect properties
+                  <span className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-lg bg-white text-accent-700">
+                    <CompassIcon size={16} />
                   </span>
-                  <span className="mt-0.5 block text-[11px] leading-snug text-surface-500">
-                    Earn per visit
+                  <span>
+                    <span className="block text-[12.5px] font-bold text-surface-900">
+                      Inspect properties
+                    </span>
+                    <span className="mt-0.5 block text-[10.5px] leading-snug text-surface-500">
+                      Earn per completed visit
+                    </span>
                   </span>
                 </button>
               </div>
@@ -236,8 +255,8 @@ export function RegisterPage({ forcedRole }: RegisterPageProps = {}) {
             inputMode="tel"
             helperText={
               isInspector
-                ? "We'll verify this number and use it for visit updates."
-                : "We'll verify this number and text you visit updates."
+                ? "We’ll verify this number and use it for visit updates."
+                : "We’ll verify this number and text you visit updates."
             }
             id="register-phone"
           />
@@ -251,29 +270,27 @@ export function RegisterPage({ forcedRole }: RegisterPageProps = {}) {
             {isInspector ? "Continue as inspector" : "Continue"}
           </Button>
 
-          <p className="text-center text-xs leading-relaxed text-surface-500">
-            We'll send a one-time code. No password needed.
+          <p className="text-center text-[10.5px] leading-relaxed text-surface-500">
+            We’ll send a one-time code. No password needed.
           </p>
         </form>
       ) : (
-        <form onSubmit={handleVerify} className="mt-6 space-y-4">
+        <form onSubmit={handleVerify} className="mt-5 space-y-4">
           {error && (
             <div
               role="alert"
-              className="rounded-xl border border-danger-200 bg-danger-50 px-3.5 py-3 text-sm text-danger-700"
+              className="rounded-xl border border-danger-200 bg-danger-50 px-3.5 py-3 text-[12.5px] font-medium text-danger-700"
             >
               {error}
             </div>
           )}
 
           {devOtp && (
-            <div className="rounded-xl border border-dashed border-accent-400 bg-accent-50 px-3.5 py-3 text-sm text-surface-800">
-              <p className="font-semibold">Local development code</p>
-              <p className="mt-0.5 font-mono text-lg tracking-[0.3em]">
-                {devOtp}
-              </p>
-              <p className="mt-1 text-xs text-surface-600">
-                Shown only because SMS_PROVIDER=console. It is never returned in
+            <div className="rounded-xl border border-dashed border-accent-300 bg-accent-50 px-3.5 py-3 text-surface-800">
+              <p className="text-[11px] font-bold text-accent-800">Local test code</p>
+              <p className="mt-1 text-lg font-extrabold tracking-[0.28em]">{devOtp}</p>
+              <p className="mt-1 text-[10.5px] leading-relaxed text-surface-500">
+                Shown only because SMS is set to console. It is never returned in
                 production.
               </p>
             </div>
@@ -293,7 +310,7 @@ export function RegisterPage({ forcedRole }: RegisterPageProps = {}) {
             maxLength={6}
             pattern="[0-9]{6}"
             id="register-code"
-            className="text-center text-xl font-semibold tracking-[0.45em]"
+            className="text-center text-xl font-bold tracking-[0.4em]"
             autoFocus
           />
 
@@ -311,7 +328,7 @@ export function RegisterPage({ forcedRole }: RegisterPageProps = {}) {
             <Button
               type="button"
               variant="ghost"
-              className="w-full min-h-11"
+              className="w-full"
               onClick={() => void sendCode()}
               disabled={resendIn > 0 || isLoading}
             >
@@ -320,7 +337,7 @@ export function RegisterPage({ forcedRole }: RegisterPageProps = {}) {
             <Button
               type="button"
               variant="ghost"
-              className="w-full min-h-11"
+              className="w-full"
               onClick={changeDetails}
               disabled={isLoading}
             >
@@ -330,15 +347,17 @@ export function RegisterPage({ forcedRole }: RegisterPageProps = {}) {
         </form>
       )}
 
-      <p className="mt-6 border-t border-surface-150 pt-5 text-center text-sm text-surface-500">
-        Already have an account?{" "}
-        <Link
-          to={`/login${signinSuffix}`}
-          className="inline-flex min-h-11 items-center px-1 font-semibold text-primary-700 hover:text-primary-800"
-        >
-          Sign in
-        </Link>
-      </p>
+      {authMode !== "demo" && (
+        <p className="mt-6 border-t border-surface-200 pt-5 text-center text-[12px] font-medium text-surface-500">
+          Already have an account?{" "}
+          <Link
+            to={`/login${signinSuffix}`}
+            className="inline-flex min-h-11 items-center px-1 font-bold text-primary-700 hover:text-primary-800"
+          >
+            Sign in
+          </Link>
+        </p>
+      )}
     </div>
   );
 }

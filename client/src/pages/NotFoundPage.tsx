@@ -1,5 +1,6 @@
 import { Link } from "react-router-dom";
 import { Logo, Button } from "../components";
+import { CompassIcon, MapPinIcon, ShieldCheckIcon } from "../components/Icons";
 
 const HELPFUL_LINKS = [
   { label: "How TrackProof works", to: "/#how-it-works" },
@@ -10,55 +11,80 @@ const HELPFUL_LINKS = [
 
 export function NotFoundPage() {
   return (
-    <div className="flex min-h-screen flex-col bg-surface-50">
+    <div className="paper-bg flex min-h-screen flex-col">
       <header className="mx-auto flex w-full max-w-6xl items-center justify-between px-4 py-5 sm:px-6">
         <Logo />
         <Link
           to="/"
-          className="inline-flex min-h-11 items-center rounded-lg px-3 text-sm font-semibold text-surface-600 transition-colors hover:bg-surface-100 hover:text-surface-900"
+          className="inline-flex min-h-11 items-center rounded-full px-3 text-[12.5px] font-semibold text-surface-600 transition-colors hover:bg-white hover:text-surface-950"
         >
           Back to home
+          <span aria-hidden="true" className="ml-1.5">
+            →
+          </span>
         </Link>
       </header>
 
       <main className="flex flex-1 items-center justify-center px-4 pb-16 pt-6 sm:px-6">
         <div className="w-full max-w-lg animate-slide-up text-center">
-          <p className="text-[13px] font-bold uppercase tracking-[0.18em] text-accent-700">
-            Error 404
+          <div className="relative mx-auto flex h-28 w-28 items-center justify-center">
+            <span
+              aria-hidden="true"
+              className="absolute inset-0 rounded-[2rem] bg-accent-200/70 rotate-6"
+            />
+            <span className="relative flex h-24 w-24 items-center justify-center rounded-3xl bg-white shadow-card">
+              <MapPinIcon size={38} className="text-primary-700" />
+            </span>
+          </div>
+
+          <p className="mt-7 text-[12px] font-bold text-primary-700">
+            Page not found
           </p>
-          <h1 className="mt-3 text-3xl font-bold tracking-tight text-surface-900 sm:text-4xl">
-            We couldn’t find that page
+          <h1 className="mt-2 text-[2.2rem] font-extrabold leading-[1.05] tracking-[-0.04em] text-surface-950 sm:text-[2.7rem]">
+            This page has moved on.
           </h1>
-          <p className="mx-auto mt-4 max-w-sm text-[15px] leading-relaxed text-surface-500">
-            The link may be old or mistyped. Your visits and reports are safe — head
-            back to your dashboard or start a new request.
+          <p className="mx-auto mt-3 max-w-md text-[13.5px] leading-[1.7] text-surface-600">
+            The link may be old or mistyped. Your visits and proof are safe —
+            head back home or book a property visit.
           </p>
 
-          <div className="mt-8 flex flex-col justify-center gap-3 sm:flex-row">
+          <div className="mt-6 flex flex-col justify-center gap-2 sm:flex-row">
             <Button to="/" size="lg">
               Go to home
             </Button>
             <Button to="/verify" variant="secondary" size="lg">
-              Request a visit
+              Book a visit
             </Button>
           </div>
 
-          <div className="mt-12 border-t border-surface-200 pt-6">
-            <p className="text-xs font-semibold uppercase tracking-wider text-surface-500">
-              Popular pages
+          <div className="mt-11 rounded-2xl border border-surface-200 bg-white p-4 text-left shadow-sm">
+            <p className="flex items-center gap-1.5 text-[11.5px] font-bold text-surface-700">
+              <CompassIcon size={14} className="text-primary-600" />
+              Looking for something?
             </p>
-            <nav className="mt-3 flex flex-wrap justify-center gap-x-5 gap-y-2">
+            <nav className="mt-2 divide-y divide-surface-100">
               {HELPFUL_LINKS.map((link) => (
                 <Link
                   key={link.to}
                   to={link.to}
-                  className="inline-flex min-h-11 items-center px-1 text-sm font-medium text-primary-800 underline-offset-4 hover:underline"
+                  className="group flex min-h-11 items-center justify-between gap-2 py-2 text-[12.5px] font-semibold text-surface-700 transition-colors hover:text-primary-800"
                 >
                   {link.label}
+                  <span
+                    aria-hidden="true"
+                    className="text-surface-400 transition-transform group-hover:translate-x-0.5"
+                  >
+                    →
+                  </span>
                 </Link>
               ))}
             </nav>
           </div>
+
+          <p className="mt-5 flex items-center justify-center gap-1.5 text-[10.5px] font-medium text-surface-500">
+            <ShieldCheckIcon size={12} className="text-primary-600" />
+            GPS-verified proof · private by default
+          </p>
         </div>
       </main>
     </div>

@@ -2,7 +2,7 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 
 import { AuthProvider } from "./contexts";
-import { ToastProvider, ProtectedRoute, ErrorBoundary, RouteEffects } from "./components";
+import { ToastProvider, ProtectedRoute, ErrorBoundary, RouteEffects, DemoToolbar } from "./components";
 import { AuthLayout, DashboardLayout } from "./layouts";
 import { LoginPage, RegisterPage } from "./pages/auth";
 import { UserDashboard, CreateTaskPage, UserTaskDetail, TrackCaptainPage } from "./pages/user";
@@ -88,6 +88,7 @@ function App() {
                 {/* Catch-all 404 */}
                 <Route path="*" element={<NotFoundPage />} />
               </Routes>
+              <DemoToolbar />
             </ToastProvider>
           </AuthProvider>
       </BrowserRouter>

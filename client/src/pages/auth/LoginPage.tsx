@@ -1,7 +1,7 @@
 import { useEffect, useState, type FormEvent } from "react";
 import { Link, useNavigate, useLocation } from "react-router-dom";
 import { useAuth } from "../../contexts";
-import { Button, Input, useToast } from "../../components";
+import { Button, DemoAccessPanel, Input, useToast } from "../../components";
 import { formatPhone, normalizePhoneInput } from "../../utils/phone";
 
 type Step = "phone" | "code";
@@ -26,7 +26,7 @@ export function LoginPage() {
   const [resendIn, setResendIn] = useState(0);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
-  const { requestOtp, verifyOtp } = useAuth();
+  const { requestOtp, verifyOtp, authMode } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
   const { addToast } = useToast();
@@ -112,21 +112,29 @@ export function LoginPage() {
 
   return (
     <div>
-      <h1 className="text-2xl font-bold tracking-tight text-surface-950">
-        {step === "phone" ? "Welcome back" : "Enter your code"}
-      </h1>
-      <p className="mt-1 text-sm text-surface-500">
+      <DemoAccessPanel returnTo={returnTo} />
+
+      <div>
+        <p className="text-[12px] font-bold text-primary-700">
+          {authMode === "demo" ? "Phone sign in" : "Welcome back"}
+        </p>
+        <h1 className="mt-1.5 text-[2rem] font-extrabold leading-tight tracking-[-0.035em] text-surface-950">
+          {step === "phone" ? "Sign in to TrackProof" : "Enter your code"}
+        </h1>
+      </div>
+
+      <p className="mt-2 text-[13px] leading-relaxed text-surface-600">
         {step === "phone"
-          ? "Sign in with your mobile number. No password needed."
-          : `We sent a 6-digit code to ${formatPhone(phone)}.`}
+          ? "Use your mobile number. We’ll send a 6-digit code — no password to remember."
+          : `We sent a code to ${formatPhone(phone)}. It expires in a few minutes.`}
       </p>
 
       {step === "phone" ? (
-        <form onSubmit={sendCode} className="mt-6 space-y-4">
+        <form onSubmit={sendCode} className="mt-5 space-y-4">
           {error && (
             <div
               role="alert"
-              className="rounded-xl border border-danger-200 bg-danger-50 px-3.5 py-3 text-sm text-danger-700"
+              className="rounded-xl border border-danger-200 bg-danger-50 px-3.5 py-3 text-[12.5px] font-medium text-danger-700"
             >
               {error}
             </div>
@@ -141,7 +149,7 @@ export function LoginPage() {
             required
             autoComplete="tel"
             inputMode="tel"
-            helperText="Outside India? Include your country code."
+            helperText="Outside India? Add your country code."
             id="login-phone"
             autoFocus
           />
@@ -155,38 +163,38 @@ export function LoginPage() {
             Send code
           </Button>
 
-          <p className="text-center text-xs leading-relaxed text-surface-500">
+          <p className="text-center text-[10.5px] leading-relaxed text-surface-500">
             By continuing, you agree to receive a one-time verification SMS.
             Standard message rates may apply.
           </p>
         </form>
       ) : (
-        <form onSubmit={handleVerify} className="mt-6 space-y-4">
+        <form onSubmit={handleVerify} className="mt-5 space-y-4">
           {error && (
             <div
               role="alert"
-              className="rounded-xl border border-danger-200 bg-danger-50 px-3.5 py-3 text-sm text-danger-700"
+              className="rounded-xl border border-danger-200 bg-danger-50 px-3.5 py-3 text-[12.5px] font-medium text-danger-700"
             >
               <p>{error}</p>
               {error.toLowerCase().includes("no account") && (
                 <Link
                   to={`/register${signupSuffix}`}
-                  className="mt-2 inline-flex min-h-11 items-center font-semibold text-primary-700 hover:text-primary-800"
+                  className="mt-2 inline-flex min-h-11 items-center font-bold text-danger-700 underline underline-offset-4"
                 >
-                  Create an account →
+                  Create an account
                 </Link>
               )}
             </div>
           )}
 
           {devOtp && (
-            <div className="rounded-xl border border-dashed border-accent-400 bg-accent-50 px-3.5 py-3 text-sm text-surface-800">
-              <p className="font-semibold">Local development code</p>
-              <p className="mt-0.5 font-mono text-lg tracking-[0.3em]">
+            <div className="rounded-xl border border-dashed border-accent-300 bg-accent-50 px-3.5 py-3 text-surface-800">
+              <p className="text-[11px] font-bold text-accent-800">Local test code</p>
+              <p className="mt-1 text-[1.4rem] font-extrabold tracking-[0.28em] text-surface-950">
                 {devOtp}
               </p>
-              <p className="mt-1 text-xs text-surface-600">
-                Shown only because SMS_PROVIDER=console. It is never returned in
+              <p className="mt-1 text-[10.5px] leading-relaxed text-surface-500">
+                Shown only because SMS is set to console. It is never returned in
                 production.
               </p>
             </div>
@@ -206,7 +214,7 @@ export function LoginPage() {
             maxLength={6}
             pattern="[0-9]{6}"
             id="login-code"
-            className="text-center text-xl font-semibold tracking-[0.45em]"
+            className="text-center text-xl font-bold tracking-[0.4em]"
             autoFocus
           />
 
@@ -224,7 +232,7 @@ export function LoginPage() {
             <Button
               type="button"
               variant="ghost"
-              className="w-full min-h-11"
+              className="w-full"
               onClick={() => void sendCode()}
               disabled={resendIn > 0 || isLoading}
             >
@@ -233,7 +241,7 @@ export function LoginPage() {
             <Button
               type="button"
               variant="ghost"
-              className="w-full min-h-11"
+              className="w-full"
               onClick={changeNumber}
               disabled={isLoading}
             >
@@ -243,25 +251,25 @@ export function LoginPage() {
         </form>
       )}
 
-      <div className="mt-6 border-t border-surface-150 pt-5">
-        <p className="text-center text-sm font-medium text-surface-700">
-          New to TrackProof?
-        </p>
-        <div className="mt-3 grid grid-cols-2 gap-2">
-          <Link
-            to={`/verify/signup${signupSuffix}`}
-            className="inline-flex min-h-11 items-center justify-center rounded-xl border border-surface-200 px-3 py-2.5 text-center text-xs font-semibold text-surface-700 transition-colors hover:bg-surface-50"
-          >
-            Request a visit
-          </Link>
-          <Link
-            to={`/captain/signup${signupSuffix}`}
-            className="inline-flex min-h-11 items-center justify-center rounded-xl border border-surface-200 px-3 py-2.5 text-center text-xs font-semibold text-surface-700 transition-colors hover:bg-surface-50"
-          >
-            Work as inspector
-          </Link>
+      {authMode !== "demo" && (
+        <div className="mt-6 border-t border-surface-200 pt-5">
+          <p className="text-[12px] font-semibold text-surface-500">New to TrackProof?</p>
+          <div className="mt-2.5 grid grid-cols-2 gap-2">
+            <Link
+              to={`/verify/signup${signupSuffix}`}
+              className="inline-flex min-h-12 items-center justify-center rounded-xl border-2 border-surface-200 px-3 py-2.5 text-center text-[12px] font-bold text-surface-800 transition-colors hover:border-primary-300 hover:bg-primary-50"
+            >
+              Book a visit
+            </Link>
+            <Link
+              to={`/captain/signup${signupSuffix}`}
+              className="inline-flex min-h-12 items-center justify-center rounded-xl border-2 border-surface-200 px-3 py-2.5 text-center text-[12px] font-bold text-surface-800 transition-colors hover:border-primary-300 hover:bg-primary-50"
+            >
+              Earn as inspector
+            </Link>
+          </div>
         </div>
-      </div>
+      )}
     </div>
   );
 }

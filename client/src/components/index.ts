@@ -38,3 +38,6 @@ export { LiveTracker } from "./LiveTracker";
 export { MarketingHeader } from "./MarketingHeader";
 export { MarketingFooter } from "./MarketingFooter";
 export { FaqAccordion } from "./FaqAccordion";
+export { SampleDossier } from "./SampleDossier";
+export { DemoAccessPanel } from "./DemoAccessPanel";
+export { DemoToolbar } from "./DemoToolbar";

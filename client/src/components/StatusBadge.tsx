@@ -3,32 +3,37 @@ import { CheckIcon } from "./Icons";
 
 const statusConfig: Record<
   TaskStatus,
-  { label: string; classes: string; dot: string | null }
+  { label: string; shortLabel: string; classes: string; dot: string }
 > = {
   OPEN: {
-    label: "New request",
-    classes: "bg-surface-100 text-surface-700 ring-1 ring-surface-200",
+    label: "Waiting for inspector",
+    shortLabel: "Waiting",
+    classes: "border-surface-200 bg-surface-100 text-surface-600",
     dot: "bg-surface-400",
   },
   ACCEPTED: {
     label: "Inspector assigned",
-    classes: "bg-info-50 text-info-700 ring-1 ring-info-100",
+    shortLabel: "Assigned",
+    classes: "border-info-100 bg-info-50 text-info-700",
     dot: "bg-info-500",
   },
   IN_PROGRESS: {
     label: "On the way",
-    classes: "bg-warning-50 text-warning-700 ring-1 ring-warning-100",
+    shortLabel: "On the way",
+    classes: "border-warning-100 bg-warning-50 text-warning-700",
     dot: "bg-warning-500",
   },
   SUBMITTED: {
     label: "Proof ready",
-    classes: "bg-violet-50 text-violet-700 ring-1 ring-violet-100",
-    dot: "bg-violet-500",
+    shortLabel: "Proof ready",
+    classes: "border-accent-200 bg-accent-50 text-accent-800",
+    dot: "bg-accent-500",
   },
   COMPLETED: {
     label: "Completed",
-    classes: "bg-success-50 text-success-700 ring-1 ring-success-100",
-    dot: null,
+    shortLabel: "Completed",
+    classes: "border-success-100 bg-success-50 text-success-700",
+    dot: "bg-success-500",
   },
 };
 
@@ -39,26 +44,30 @@ interface StatusBadgeProps {
 
 export function StatusBadge({ status, size = "sm" }: StatusBadgeProps) {
   const config = statusConfig[status];
-  const sizeClass = size === "md" ? "px-2.5 py-1 text-xs" : "px-2 py-0.5 text-[11px]";
+  const sizeClass =
+    size === "md"
+      ? "gap-2 px-3.5 py-2 text-[12px]"
+      : "gap-1.5 px-2.5 py-1.5 text-[11px]";
 
   return (
     <span
       className={`
-        inline-flex items-center gap-1.5 font-semibold rounded-full whitespace-nowrap
+        inline-flex items-center whitespace-nowrap rounded-full border font-semibold
         ${config.classes}
         ${sizeClass}
       `}
     >
-      {config.dot ? (
+      {status === "COMPLETED" ? (
+        <CheckIcon size={size === "md" ? 13 : 11} className="flex-shrink-0" />
+      ) : (
         <span
-          className={`w-1.5 h-1.5 rounded-full flex-shrink-0 ${config.dot} ${
+          className={`h-1.5 w-1.5 flex-shrink-0 rounded-full ${config.dot} ${
             status === "IN_PROGRESS" ? "animate-pulse-soft" : ""
           }`}
         />
-      ) : (
-        <CheckIcon size={11} className="flex-shrink-0" />
       )}
-      {config.label}
+      <span className="sm:hidden">{config.shortLabel}</span>
+      <span className="hidden sm:inline">{config.label}</span>
     </span>
   );
 }

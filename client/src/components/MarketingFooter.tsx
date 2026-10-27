@@ -1,5 +1,6 @@
 import { Link } from "react-router-dom";
 import { Logo } from "./Logo";
+import { ShieldCheckIcon } from "./Icons";
 
 interface MarketingFooterProps {
   variant?: "primary" | "accent";
@@ -10,44 +11,56 @@ interface MarketingFooterProps {
 export function MarketingFooter({
   variant = "primary",
   logoLabel = "TrackProof",
-  tagline = "Property verification without the travel. Built for buyers in India and NRIs.",
+  tagline = "Local inspectors visit your property and send back a dated, GPS-verified photo — so you can decide without making the trip.",
 }: MarketingFooterProps) {
   const footerLinks = {
-    Product: [
+    Explore: [
       { label: "How it works", to: "/#how-it-works" },
       { label: "Pricing", to: "/pricing" },
-      { label: "For inspectors", to: "/captain" },
+      { label: "Sample visit", to: "/verify" },
     ],
-    Account: [
+    "Your account": [
       { label: "Sign in", to: "/login" },
-      { label: "Request a visit", to: "/verify/signup" },
-      { label: "Become an inspector", to: "/captain/signup" },
+      { label: "Book a property visit", to: "/verify/signup" },
+      { label: "Earn as an inspector", to: "/captain/signup" },
     ],
   };
 
   return (
-    <footer className="border-t border-surface-200 bg-white">
-      <div className="mx-auto max-w-6xl px-4 py-12 sm:px-6 lg:px-8">
-        <div className="grid grid-cols-1 gap-10 sm:grid-cols-3">
-          <div className="space-y-4 sm:col-span-1">
+    <footer className="border-t border-surface-200 bg-surface-100">
+      <div className="mx-auto max-w-6xl px-4 py-12 sm:px-6 sm:py-16 lg:px-8">
+        <div className="grid gap-10 lg:grid-cols-[1.4fr_0.6fr_0.6fr] lg:gap-16">
+          <div>
             <Logo size="sm" variant={variant} label={logoLabel} />
-            <p className="max-w-xs text-sm leading-relaxed text-surface-500">
+            <p className="mt-6 max-w-md text-[16px] font-semibold leading-relaxed text-surface-800">
+              A real person. A real visit. A proof you can keep.
+            </p>
+            <p className="mt-2 max-w-sm text-[13px] leading-relaxed text-surface-500">
               {tagline}
             </p>
-            <p className="text-xs font-medium text-surface-500">Made in India 🇮🇳</p>
+            <div className="mt-6 flex flex-wrap items-center gap-2">
+              <span className="inline-flex items-center gap-1.5 rounded-full bg-white px-3 py-1.5 text-[11.5px] font-semibold text-primary-800 shadow-sm">
+                <ShieldCheckIcon size={13} />
+                GPS-verified
+              </span>
+              <span className="rounded-full bg-white px-3 py-1.5 text-[11.5px] font-semibold text-surface-700 shadow-sm">
+                Made in India
+              </span>
+              <span className="rounded-full bg-white px-3 py-1.5 text-[11.5px] font-semibold text-surface-700 shadow-sm">
+                UPI-friendly
+              </span>
+            </div>
           </div>
 
           {Object.entries(footerLinks).map(([section, links]) => (
-            <div key={section} className="space-y-3">
-              <h4 className="text-xs font-bold uppercase tracking-wider text-surface-500">
-                {section}
-              </h4>
-              <ul className="space-y-1">
+            <div key={section}>
+              <h4 className="text-[12px] font-bold text-surface-500">{section}</h4>
+              <ul className="mt-3 space-y-1">
                 {links.map((link) => (
-                  <li key={link.to}>
+                  <li key={`${section}-${link.to}`}>
                     <Link
                       to={link.to}
-                      className="inline-flex min-h-11 items-center text-sm text-surface-600 transition-colors hover:text-surface-900"
+                      className="inline-flex min-h-10 items-center text-[13.5px] font-semibold text-surface-700 transition-colors hover:text-primary-700"
                     >
                       {link.label}
                     </Link>
@@ -58,12 +71,14 @@ export function MarketingFooter({
           ))}
         </div>
 
-        <div className="mt-10 flex flex-col items-start justify-between gap-2 border-t border-surface-150 pt-6 sm:flex-row sm:items-center">
-          <p className="text-xs text-surface-500">
-            &copy; {new Date().getFullYear()} TrackProof. All rights reserved.
-          </p>
-          <p className="text-xs text-surface-500">
-            GPS-verified property proof across India.
+        <div className="mt-10 flex flex-col gap-3 border-t border-surface-200 pt-5 text-[11.5px] text-surface-500 sm:flex-row sm:items-center sm:justify-between">
+          <p>&copy; {new Date().getFullYear()} TrackProof. All rights reserved.</p>
+          <p className="flex flex-wrap items-center gap-x-2 gap-y-1">
+            <span>Private photo proof</span>
+            <span aria-hidden="true">·</span>
+            <span>100 m GPS check</span>
+            <span aria-hidden="true">·</span>
+            <span>Visits across India</span>
           </p>
         </div>
       </div>

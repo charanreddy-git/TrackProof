@@ -44,8 +44,8 @@ async function main() {
         title: demoTitle,
         description:
           "Check the flat condition, water supply, parking, and ask the caretaker for access. Photos of each room requested.",
-        latitude: 12.9719,
-        longitude: 77.6412,
+        targetLat: 12.9719,
+        targetLng: 77.6412,
         createdById: requester.id,
       },
     });

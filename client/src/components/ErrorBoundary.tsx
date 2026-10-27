@@ -1,5 +1,7 @@
 import { Component, type ReactNode, type ErrorInfo } from "react";
 import { Logo } from "./Logo";
+import { Button } from "./ui";
+import { AlertTriangleIcon, ShieldCheckIcon } from "./Icons";
 
 interface Props {
   children: ReactNode;
@@ -27,43 +29,50 @@ export class ErrorBoundary extends Component<Props, State> {
   render() {
     if (this.state.hasError) {
       return (
-        <div className="flex min-h-screen flex-col bg-surface-50">
+        <div className="paper-bg flex min-h-screen flex-col">
           <header className="mx-auto flex w-full max-w-6xl items-center px-4 py-5 sm:px-6">
             <Logo />
           </header>
 
           <main className="flex flex-1 items-center justify-center px-4 pb-16 pt-6 sm:px-6">
             <div className="w-full max-w-md animate-slide-up text-center">
-              <p className="text-[13px] font-bold uppercase tracking-[0.18em] text-danger-600">
-                Something went wrong
-              </p>
-              <h1 className="mt-3 text-3xl font-bold tracking-tight text-surface-900">
-                This page hit a snag
+              <div className="relative mx-auto flex h-24 w-24 items-center justify-center">
+                <span
+                  aria-hidden="true"
+                  className="absolute inset-0 rotate-6 rounded-3xl bg-danger-100"
+                />
+                <span className="relative flex h-20 w-20 items-center justify-center rounded-2xl bg-white shadow-card">
+                  <AlertTriangleIcon size={32} className="text-danger-600" />
+                </span>
+              </div>
+
+              <h1 className="mt-6 text-[2rem] font-extrabold leading-tight tracking-[-0.04em] text-surface-950">
+                Something went wrong.
               </h1>
-              <p className="mx-auto mt-4 max-w-sm text-[15px] leading-relaxed text-surface-500">
-                Reloading usually fixes it. Your requests and reports are not affected.
+              <p className="mt-2.5 text-[13.5px] leading-relaxed text-surface-600">
+                A quick reload usually fixes it. Your visits and proof are not
+                affected.
               </p>
 
               {this.state.message && (
-                <p className="mx-auto mt-5 max-w-sm truncate rounded-xl border border-surface-200 bg-white px-3 py-2 font-mono text-xs text-surface-500">
+                <p className="mt-5 break-words rounded-xl border border-surface-200 bg-white px-3.5 py-2.5 text-left text-[11.5px] leading-relaxed text-surface-500 shadow-sm">
                   {this.state.message}
                 </p>
               )}
 
-              <div className="mt-8 flex flex-col justify-center gap-3 sm:flex-row">
-                <button
-                  onClick={() => window.location.reload()}
-                  className="inline-flex h-12 cursor-pointer items-center justify-center rounded-xl bg-primary-700 px-6 text-[15px] font-semibold text-white shadow-sm transition-colors hover:bg-primary-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500/40 focus-visible:ring-offset-2"
-                >
+              <div className="mt-6 flex flex-col justify-center gap-2 sm:flex-row">
+                <Button onClick={() => window.location.reload()}>
                   Reload page
-                </button>
-                <a
-                  href="/"
-                  className="inline-flex h-12 items-center justify-center rounded-xl border border-surface-200 bg-white px-6 text-[15px] font-semibold text-surface-800 transition-colors hover:border-surface-300 hover:bg-surface-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500/40 focus-visible:ring-offset-2"
-                >
+                </Button>
+                <Button to="/" variant="secondary">
                   Go to home
-                </a>
+                </Button>
               </div>
+
+              <p className="mt-6 flex items-center justify-center gap-1.5 text-[10.5px] font-medium text-surface-500">
+                <ShieldCheckIcon size={12} className="text-primary-600" />
+                Your visit history is safe
+              </p>
             </div>
           </main>
         </div>

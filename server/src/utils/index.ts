@@ -14,3 +14,10 @@ export { signToken, verifyToken } from "./jwt";
 export type { JwtPayload } from "./jwt";
 export { logger } from "./logger";
 export { resolveGoogleMapsUrl } from "./url-resolver";
+export {
+  DEMO_ACCOUNTS,
+  getAuthMode,
+  isDemoAuthEnabled,
+  requireDemoAuth,
+} from "./auth-mode";
+export type { AuthMode, DemoRole } from "./auth-mode";

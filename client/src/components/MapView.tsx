@@ -1,18 +1,7 @@
 import { MapContainer, TileLayer, Marker, Popup } from "react-leaflet";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
-
-// Fix Leaflet default icon issue with bundlers
-import markerIcon2x from "leaflet/dist/images/marker-icon-2x.png";
-import markerIcon from "leaflet/dist/images/marker-icon.png";
-import markerShadow from "leaflet/dist/images/marker-shadow.png";
-
-delete (L.Icon.Default.prototype as unknown as { _getIconUrl: unknown })._getIconUrl;
-L.Icon.Default.mergeOptions({
-  iconRetinaUrl: markerIcon2x,
-  iconUrl: markerIcon,
-  shadowUrl: markerShadow,
-});
+import { pickIcon } from "./MapIcons";
 
 interface MapViewProps {
   center?: [number, number];
@@ -20,7 +9,7 @@ interface MapViewProps {
   markers?: Array<{
     position: [number, number];
     label?: string;
-    icon?: L.Icon;
+    icon?: L.Icon | L.DivIcon;
   }>;
   className?: string;
   height?: string;
@@ -39,7 +28,7 @@ export function MapView({
     <MapContainer
       center={center}
       zoom={zoom}
-      className={`rounded-xl overflow-hidden ${className}`}
+      className={`overflow-hidden ${className}`}
       style={{ height, width: "100%" }}
       scrollWheelZoom={true}
     >
@@ -48,7 +37,7 @@ export function MapView({
         url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
       />
       {markers.map((marker, idx) => (
-        <Marker key={idx} position={marker.position} icon={marker.icon}>
+        <Marker key={idx} position={marker.position} icon={(marker.icon ?? pickIcon) as L.Icon}>
           {marker.label && <Popup>{marker.label}</Popup>}
         </Marker>
       ))}

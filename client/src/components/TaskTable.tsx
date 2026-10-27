@@ -1,6 +1,6 @@
 import { Link } from "react-router-dom";
 import { StatusBadge } from "./StatusBadge";
-import { ClipboardIcon, ArrowRightIcon } from "./Icons";
+import { ArrowRightIcon, ClipboardIcon, MapPinIcon } from "./Icons";
 import type { Task } from "../types";
 
 interface TaskTableProps {
@@ -25,13 +25,17 @@ function formatTaskTime(dateStr: string): string {
   if (hours < 24) return `${hours} hr ago`;
 
   const days = Math.floor(hours / 24);
-  if (days < 7) return `${days} day${days === 1 ? "" : "s"} ago`;
+  if (days < 7) return `${days} day${days === 1 ? "" : "s"}`;
 
   return date.toLocaleDateString("en-IN", {
-    day: "numeric",
+    day: "2-digit",
     month: "short",
     year: date.getFullYear() === new Date().getFullYear() ? undefined : "numeric",
   });
+}
+
+function visitReference(task: Task): string {
+  return `#${task.id.slice(-5).toUpperCase()}`;
 }
 
 export function TaskTable({
@@ -39,26 +43,29 @@ export function TaskTable({
   basePath,
   showCreatedBy = false,
   showAcceptedBy = false,
-  emptyMessage = "No requests yet",
-  emptyDescription = "New requests will appear here.",
+  emptyMessage = "No visits yet",
+  emptyDescription = "New visit requests will appear here.",
   emptyAction,
 }: TaskTableProps) {
   if (tasks.length === 0) {
     return (
-      <div className="flex flex-col items-center justify-center gap-3 py-12 text-center">
-        <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-surface-100">
-          <ClipboardIcon size={22} className="text-surface-500" />
+      <div className="flex flex-col items-center justify-center gap-4 rounded-2xl border border-dashed border-surface-300 bg-white/60 px-5 py-12 text-center">
+        <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-primary-50">
+          <ClipboardIcon size={24} className="text-primary-600" />
         </div>
         <div className="space-y-1">
-          <p className="text-sm font-semibold text-surface-800">{emptyMessage}</p>
-          <p className="max-w-xs text-[13px] leading-relaxed text-surface-500">{emptyDescription}</p>
+          <p className="text-[16px] font-bold text-surface-900">{emptyMessage}</p>
+          <p className="mx-auto max-w-xs text-[12.5px] leading-relaxed text-surface-500">
+            {emptyDescription}
+          </p>
         </div>
         {emptyAction && (
           <Link
             to={emptyAction.to}
-            className="mt-1 inline-flex h-10 items-center gap-1.5 rounded-xl bg-primary-700 px-4 text-sm font-semibold text-white transition-colors hover:bg-primary-800"
+            className="mt-1 inline-flex h-11 items-center gap-2 rounded-xl bg-primary-800 px-4 text-[12.5px] font-bold text-white transition-colors hover:bg-primary-900"
           >
             {emptyAction.label}
+            <ArrowRightIcon size={14} />
           </Link>
         )}
       </div>
@@ -66,33 +73,45 @@ export function TaskTable({
   }
 
   return (
-    <div className="divide-y divide-surface-100">
+    <div className="space-y-2.5">
       {tasks.map((task) => (
         <Link
           key={task.id}
           to={`${basePath}/${task.id}`}
-          className="group flex items-center gap-3 py-3.5 transition-colors first:pt-1 last:pb-1 hover:bg-surface-50/60 sm:gap-4"
+          className="group flex min-w-0 items-center gap-3 rounded-2xl border border-surface-200 bg-white p-3.5 shadow-sm transition-all hover:-translate-y-0.5 hover:border-primary-200 hover:shadow-card sm:gap-4 sm:p-4"
         >
+          <span className="flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-xl bg-primary-50 text-primary-700">
+            <MapPinIcon size={19} />
+          </span>
+
           <div className="min-w-0 flex-1">
-            <p className="truncate text-sm font-semibold text-surface-900 transition-colors group-hover:text-primary-800">
-              {task.title}
-            </p>
-            <div className="mt-1.5 flex flex-wrap items-center gap-x-2.5 gap-y-1.5 text-xs text-surface-500">
-              <StatusBadge status={task.status} />
+            <div className="flex flex-wrap items-center gap-2">
+              <p className="min-w-0 max-w-full truncate text-[13.5px] font-bold text-surface-950 transition-colors group-hover:text-primary-800 sm:text-[14.5px]">
+                {task.title}
+              </p>
+              <span className="hidden rounded-full bg-surface-100 px-2 py-0.5 text-[10px] font-semibold text-surface-500 md:inline">
+                {visitReference(task)}
+              </span>
+            </div>
+            <div className="mt-1 flex flex-wrap items-center gap-x-2 gap-y-0.5 text-[11.5px] font-medium text-surface-500">
               {showAcceptedBy && task.acceptedBy && (
-                <span className="truncate">Inspector: {task.acceptedBy.name}</span>
+                <span className="truncate">Inspector {task.acceptedBy.name}</span>
               )}
-              {showCreatedBy && (
-                <span className="truncate">By {task.createdBy.name}</span>
+              {showCreatedBy && <span className="truncate">By {task.createdBy.name}</span>}
+              {(showAcceptedBy || showCreatedBy) && (
+                <span className="text-surface-300" aria-hidden="true">·</span>
               )}
-              <span className="text-surface-500">{formatTaskTime(task.createdAt)}</span>
+              <span>{formatTaskTime(task.createdAt)}</span>
             </div>
           </div>
 
-          <ArrowRightIcon
-            size={16}
-            className="flex-shrink-0 text-surface-300 transition-colors group-hover:text-surface-600"
-          />
+          <div className="flex flex-shrink-0 items-center gap-2">
+            <StatusBadge status={task.status} />
+            <ArrowRightIcon
+              size={16}
+              className="hidden flex-shrink-0 text-surface-300 transition-all group-hover:translate-x-0.5 group-hover:text-primary-700 sm:block"
+            />
+          </div>
         </Link>
       ))}
     </div>

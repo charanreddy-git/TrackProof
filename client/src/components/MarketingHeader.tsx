@@ -22,20 +22,14 @@ export function MarketingHeader({
   variant = "primary",
   logoLabel = "TrackProof",
   navItems = [],
-  ctaLabel = "Request a visit",
+  ctaLabel = "Book a visit",
   ctaTo = "/verify/signup",
 }: MarketingHeaderProps) {
   const location = useLocation();
   const routeKey = `${location.pathname}${location.hash}`;
-  // The menu closes automatically when the route changes; no effect needed.
   const [mobileMenu, setMobileMenu] = useState({ open: false, routeKey: "" });
   const mobileOpen = mobileMenu.open && mobileMenu.routeKey === routeKey;
   const setMobileOpen = (open: boolean) => setMobileMenu({ open, routeKey });
-
-  const ctaClasses =
-    variant === "accent"
-      ? "bg-accent-400 hover:bg-accent-300 text-surface-950"
-      : "bg-primary-700 hover:bg-primary-800 text-white";
 
   const isItemActive = (item: NavItem) => {
     if (item.isActive) return true;
@@ -44,18 +38,18 @@ export function MarketingHeader({
     return location.pathname.startsWith(item.to);
   };
 
-  const linkClasses = (active: boolean) =>
-    `inline-flex min-h-11 items-center rounded-lg px-1 text-sm font-medium transition-colors ${
-      active ? "text-primary-800" : "text-surface-600 hover:text-surface-900"
-    }`;
+  const renderDesktopItem = (item: NavItem) => {
+    const active = isItemActive(item);
 
-  const renderItem = (item: NavItem) =>
-    item.isAnchor ? (
+    return item.isAnchor ? (
       <a
         key={item.to}
         href={item.to}
-        onClick={() => setMobileOpen(false)}
-        className={linkClasses(false)}
+        className={`inline-flex min-h-11 items-center rounded-full px-4 text-[14px] font-semibold transition-colors ${
+          active
+            ? "bg-primary-50 text-primary-800"
+            : "text-surface-600 hover:bg-surface-100 hover:text-surface-950"
+        }`}
       >
         {item.label}
       </a>
@@ -63,35 +57,64 @@ export function MarketingHeader({
       <Link
         key={item.to}
         to={item.to}
-        onClick={() => setMobileOpen(false)}
-        className={linkClasses(isItemActive(item))}
-        aria-current={isItemActive(item) ? "page" : undefined}
+        className={`inline-flex min-h-11 items-center rounded-full px-4 text-[14px] font-semibold transition-colors ${
+          active
+            ? "bg-primary-50 text-primary-800"
+            : "text-surface-600 hover:bg-surface-100 hover:text-surface-950"
+        }`}
+        aria-current={active ? "page" : undefined}
       >
         {item.label}
       </Link>
     );
+  };
+
+  const mobileLink = (item: NavItem) => {
+    const active = isItemActive(item);
+    const className = `flex min-h-13 items-center justify-between rounded-xl px-4 py-3 text-[15px] font-semibold transition-colors ${
+      active ? "bg-primary-50 text-primary-800" : "text-surface-800 hover:bg-surface-100"
+    }`;
+
+    return item.isAnchor ? (
+      <a key={item.to} href={item.to} onClick={() => setMobileOpen(false)} className={className}>
+        {item.label}
+        <span aria-hidden="true" className="text-surface-400">↗</span>
+      </a>
+    ) : (
+      <Link
+        key={item.to}
+        to={item.to}
+        onClick={() => setMobileOpen(false)}
+        className={className}
+        aria-current={active ? "page" : undefined}
+      >
+        {item.label}
+        <span aria-hidden="true" className="text-surface-400">→</span>
+      </Link>
+    );
+  };
 
   return (
-    <header className="sticky top-0 z-50 border-b border-surface-200/80 bg-surface-50/90 backdrop-blur-lg">
-      <div className="mx-auto flex h-16 max-w-6xl items-center justify-between gap-4 px-4 sm:px-6 lg:px-8">
-        <Logo variant={variant} label={logoLabel} />
+    <header className="sticky top-0 z-50 border-b border-surface-200/80 bg-surface-50/90 backdrop-blur-xl">
+      <div className="mx-auto flex h-[68px] max-w-6xl items-center justify-between gap-3 px-4 sm:h-[76px] sm:px-6 lg:px-8">
+        <Logo variant={variant} label={logoLabel} size="sm" />
 
         {navItems.length > 0 && (
-          <nav className="hidden items-center gap-6 md:flex" aria-label="Main navigation">
-            {navItems.map(renderItem)}
+          <nav className="hidden items-center gap-1 md:flex" aria-label="Main navigation">
+            {navItems.map(renderDesktopItem)}
           </nav>
         )}
 
         <div className="hidden items-center gap-2 md:flex">
           <Link
             to="/login"
-            className="inline-flex min-h-11 items-center rounded-lg px-3 text-sm font-semibold text-surface-650 transition-colors hover:bg-surface-100 hover:text-surface-900"
+            className="inline-flex min-h-11 items-center rounded-full px-4 text-[14px] font-semibold text-surface-600 transition-colors hover:bg-surface-100 hover:text-surface-950"
           >
             Sign in
           </Link>
           <Link
             to={ctaTo}
-            className={`rounded-xl px-4 py-2.5 text-sm font-semibold shadow-sm transition-colors ${ctaClasses}`}
+            className="inline-flex h-11 items-center justify-center rounded-xl bg-accent-400 px-5 text-[14px] font-bold text-primary-950 shadow-[0_4px_0_#d29500] transition-all hover:bg-accent-300 active:translate-y-0.5 active:shadow-[0_2px_0_#d29500]"
           >
             {ctaLabel}
           </Link>
@@ -100,7 +123,7 @@ export function MarketingHeader({
         <div className="flex items-center gap-1 md:hidden">
           <Link
             to="/login"
-            className="inline-flex min-h-11 items-center rounded-lg px-2.5 text-sm font-semibold text-surface-650"
+            className="inline-flex min-h-11 items-center rounded-full px-3 text-[13px] font-semibold text-surface-700"
           >
             Sign in
           </Link>
@@ -108,7 +131,7 @@ export function MarketingHeader({
             <button
               type="button"
               onClick={() => setMobileOpen(!mobileOpen)}
-              className="inline-flex h-11 w-11 items-center justify-center rounded-xl text-surface-650 transition-colors hover:bg-surface-100"
+              className="inline-flex h-11 w-11 items-center justify-center rounded-xl text-surface-700 transition-colors hover:bg-surface-100"
               aria-label={mobileOpen ? "Close menu" : "Open menu"}
               aria-expanded={mobileOpen}
             >
@@ -119,21 +142,20 @@ export function MarketingHeader({
       </div>
 
       {mobileOpen && navItems.length > 0 && (
-        <div className="border-t border-surface-200 bg-surface-50 md:hidden">
-          <nav className="mx-auto flex max-w-6xl flex-col gap-1 px-4 py-4" aria-label="Mobile navigation">
-            {navItems.map((item) => (
-              <div key={item.to} className="py-0.5">
-                {renderItem(item)}
-              </div>
-            ))}
-            <Link
-              to={ctaTo}
-              onClick={() => setMobileOpen(false)}
-              className={`mt-3 block rounded-xl px-4 py-3 text-center text-sm font-semibold shadow-sm ${ctaClasses}`}
-            >
-              {ctaLabel}
-            </Link>
+        <div className="border-t border-surface-200 bg-surface-50 px-3 pb-5 pt-2 md:hidden">
+          <nav className="mx-auto max-w-6xl space-y-1" aria-label="Mobile navigation">
+            {navItems.map(mobileLink)}
           </nav>
+          <Link
+            to={ctaTo}
+            onClick={() => setMobileOpen(false)}
+            className="mt-3 flex h-13 items-center justify-center rounded-xl bg-accent-400 px-5 text-[15px] font-bold text-primary-950 shadow-[0_4px_0_#d29500]"
+          >
+            {ctaLabel}
+          </Link>
+          <p className="mt-3 text-center text-[12px] font-medium text-surface-500">
+            Local inspectors across India · from ₹999
+          </p>
         </div>
       )}
     </header>

@@ -24,33 +24,33 @@ export function Button({
   ...props
 }: ButtonProps) {
   const baseClasses =
-    "inline-flex items-center justify-center font-semibold rounded-xl transition-colors duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500/40 focus-visible:ring-offset-2 disabled:opacity-50 disabled:pointer-events-none cursor-pointer no-underline whitespace-nowrap";
+    "inline-flex items-center justify-center rounded-xl font-bold tracking-[-0.01em] transition-all duration-150 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-accent-400/40 focus-visible:ring-offset-2 focus-visible:ring-offset-surface-50 disabled:opacity-50 disabled:pointer-events-none cursor-pointer no-underline whitespace-nowrap active:translate-y-px";
 
   const variantClasses = {
     primary:
-      "bg-primary-700 text-white hover:bg-primary-800 shadow-sm",
+      "bg-primary-800 text-white shadow-sm hover:bg-primary-900 hover:shadow-md",
     accent:
-      "bg-accent-400 text-surface-950 hover:bg-accent-300 shadow-sm",
+      "bg-accent-400 text-primary-950 shadow-[0_5px_0_#d29500] hover:bg-accent-300 hover:shadow-[0_4px_0_#d29500] active:translate-y-0.5 active:shadow-[0_2px_0_#d29500]",
     secondary:
-      "bg-white text-surface-800 border border-surface-200 hover:bg-surface-50 hover:border-surface-300",
+      "bg-white text-primary-900 border-2 border-surface-200 hover:border-primary-700 hover:bg-primary-50/40",
     inverse:
-      "bg-white text-primary-900 hover:bg-primary-50 shadow-sm",
+      "bg-white text-primary-950 shadow-sm hover:bg-accent-50",
     danger:
-      "bg-danger-600 text-white hover:bg-danger-700 shadow-sm",
+      "bg-danger-600 text-white shadow-sm hover:bg-danger-700",
     ghost:
-      "text-surface-550 hover:text-surface-900 hover:bg-surface-100",
+      "text-surface-600 hover:text-primary-900 hover:bg-surface-100",
   };
 
   const sizeClasses = {
-    sm: "h-9 px-3 text-[13px] gap-1.5",
-    md: "h-11 px-4 text-sm gap-2",
-    lg: "h-12 px-6 text-[15px] gap-2",
+    sm: "h-10 px-4 text-[13px] gap-1.5",
+    md: "h-12 px-5 text-[14px] gap-2",
+    lg: "h-14 px-6 text-[15px] gap-2",
   };
 
   const classes = `${baseClasses} ${variantClasses[variant]} ${sizeClasses[size]} ${className}`;
 
   const spinner = (
-    <svg className="animate-spin h-4 w-4 flex-shrink-0" fill="none" viewBox="0 0 24 24" aria-hidden="true">
+    <svg className="h-4 w-4 flex-shrink-0 animate-spin" fill="none" viewBox="0 0 24 24" aria-hidden="true">
       <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
       <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
     </svg>

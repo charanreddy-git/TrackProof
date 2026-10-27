@@ -64,7 +64,7 @@ export function LocationPicker({
         center={position || defaultCenter}
         zoom={position ? 15 : 5}
         style={{ height, width: "100%" }}
-        className="rounded-xl overflow-hidden border border-surface-200"
+        className="overflow-hidden"
         scrollWheelZoom={false}
       >
         <TileLayer

@@ -1,5 +1,6 @@
 /* eslint-disable react-refresh/only-export-components */
 import { useState, useEffect, useCallback, createContext, useContext, type ReactNode } from "react";
+import { AlertTriangleIcon, CheckCircleIcon, ClockIcon, ShieldCheckIcon } from "../Icons";
 
 type ToastType = "success" | "error" | "info" | "warning";
 
@@ -36,8 +37,7 @@ export function ToastProvider({ children }: { children: ReactNode }) {
   return (
     <ToastContext.Provider value={{ addToast }}>
       {children}
-      {/* On mobile: above the bottom nav (bottom-20). On desktop: bottom-4 right-4 */}
-      <div className="fixed bottom-20 left-4 right-4 z-[100] space-y-2 lg:bottom-4 lg:left-auto lg:right-4 lg:max-w-sm lg:w-full pointer-events-none">
+      <div className="pointer-events-none fixed bottom-24 left-4 right-4 z-[100] space-y-2 sm:bottom-5 sm:left-auto sm:right-5 sm:w-full sm:max-w-sm">
         {toasts.map((toast) => (
           <ToastItem
             key={toast.id}
@@ -52,60 +52,62 @@ export function ToastProvider({ children }: { children: ReactNode }) {
 
 function ToastItem({ toast, onRemove }: { toast: Toast; onRemove: () => void }) {
   useEffect(() => {
-    const timer = setTimeout(onRemove, 4000);
+    const timer = setTimeout(onRemove, 4500);
     return () => clearTimeout(timer);
   }, [onRemove]);
 
-  const config: Record<ToastType, { icon: string; bg: string; iconBg: string; border: string }> = {
+  const config: Record<
+    ToastType,
+    { label: string; icon: typeof CheckCircleIcon; iconClass: string; bg: string }
+  > = {
     success: {
-      icon: "✓",
-      bg: "bg-white",
-      iconBg: "bg-emerald-500",
-      border: "border-l-emerald-500",
+      label: "Done",
+      icon: CheckCircleIcon,
+      iconClass: "text-primary-700",
+      bg: "bg-primary-50",
     },
     error: {
-      icon: "✕",
-      bg: "bg-white",
-      iconBg: "bg-red-500",
-      border: "border-l-red-500",
+      label: "Couldn’t do that",
+      icon: AlertTriangleIcon,
+      iconClass: "text-danger-600",
+      bg: "bg-danger-50",
     },
     info: {
-      icon: "i",
-      bg: "bg-white",
-      iconBg: "bg-blue-500",
-      border: "border-l-blue-500",
+      label: "Update",
+      icon: ClockIcon,
+      iconClass: "text-info-600",
+      bg: "bg-info-50",
     },
     warning: {
-      icon: "!",
-      bg: "bg-white",
-      iconBg: "bg-amber-500",
-      border: "border-l-amber-500",
+      label: "Heads up",
+      icon: ShieldCheckIcon,
+      iconClass: "text-warning-600",
+      bg: "bg-warning-50",
     },
   };
 
   const c = config[toast.type];
+  const Icon = c.icon;
 
   return (
     <div
-      className={`
-        pointer-events-auto flex items-center gap-3 px-4 py-3 rounded-xl
-        border border-surface-100 border-l-4 ${c.border}
-        ${c.bg} shadow-elevated toast-enter
-      `}
+      className="pointer-events-auto flex items-start gap-3 rounded-2xl border border-surface-200 bg-white px-3.5 py-3 shadow-elevated toast-enter"
+      role="status"
     >
-      <span
-        className={`flex-shrink-0 w-6 h-6 rounded-full ${c.iconBg} text-white text-xs flex items-center justify-center font-bold`}
-      >
-        {c.icon}
+      <span className={`mt-0.5 flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full ${c.bg}`}>
+        <Icon size={17} className={c.iconClass} />
       </span>
-      <p className="text-sm font-medium text-surface-900 flex-1 leading-snug">{toast.message}</p>
+      <div className="min-w-0 flex-1">
+        <p className="text-[11.5px] font-bold text-surface-500">{c.label}</p>
+        <p className="mt-0.5 text-[13px] font-semibold leading-snug text-surface-900">{toast.message}</p>
+      </div>
       <button
         onClick={onRemove}
-        className="text-surface-500 hover:text-surface-600 transition-colors cursor-pointer flex-shrink-0"
-        aria-label="Dismiss"
+        className="-mr-1 flex h-8 w-8 flex-shrink-0 cursor-pointer items-center justify-center rounded-full text-surface-400 transition-colors hover:bg-surface-100 hover:text-surface-800"
+        aria-label="Dismiss notification"
       >
-        <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+        <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.4} d="M6 18L18 6M6 6l12 12" />
         </svg>
       </button>
     </div>

@@ -26,9 +26,8 @@ export function Card({
     <div
       id={id}
       className={`
-        bg-white rounded-2xl border border-surface-200
-        shadow-card
-        ${hover ? "hover:shadow-card-hover hover:border-surface-300 transition-all duration-200" : ""}
+        rounded-2xl border border-surface-200 bg-white shadow-card
+        ${hover ? "transition-all duration-200 hover:-translate-y-0.5 hover:border-primary-300 hover:shadow-card-hover" : ""}
         ${paddingClasses[padding]}
         ${className}
       `}

@@ -1,10 +1,31 @@
 import api from "./api";
 import type {
   ApiResponse,
+  AuthModeResponse,
   AuthResponse,
+  DemoResetResponse,
   OtpRequestResponse,
   Role,
 } from "../types";
+
+export async function fetchAuthModeApi(): Promise<AuthModeResponse> {
+  const { data } = await api.get<ApiResponse<AuthModeResponse>>("/auth/mode");
+  return data.data;
+}
+
+export async function demoLoginApi(role: Role): Promise<AuthResponse> {
+  const { data } = await api.post<ApiResponse<AuthResponse>>("/auth/demo", {
+    role,
+  });
+  return data.data;
+}
+
+export async function resetDemoApi(): Promise<DemoResetResponse> {
+  const { data } = await api.post<ApiResponse<DemoResetResponse>>(
+    "/auth/demo/reset"
+  );
+  return data.data;
+}
 
 export async function requestOtpApi(
   phone: string

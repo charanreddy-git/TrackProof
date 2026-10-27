@@ -1,4 +1,21 @@
 export type Role = "USER" | "CAPTAIN";
+export type AuthMode = "otp" | "demo";
+
+export interface DemoAccount {
+  role: Role;
+  name: string;
+  phone: string;
+}
+
+export interface AuthModeResponse {
+  mode: AuthMode;
+  demo: DemoAccount[];
+}
+
+export interface DemoResetResponse {
+  tasks: number;
+  accounts: DemoAccount[];
+}
 
 export type TaskStatus =
   | "OPEN"

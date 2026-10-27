@@ -1,7 +1,6 @@
 import { useState, type FormEvent } from "react";
 import { useNavigate } from "react-router-dom";
 import {
-  Card,
   Button,
   Input,
   LocationPicker,
@@ -9,6 +8,7 @@ import {
   CheckIcon,
   MapPinIcon,
   CompassIcon,
+  ShieldCheckIcon,
 } from "../../components";
 import { useCreateTask } from "../../hooks";
 import { api } from "../../services";
@@ -43,6 +43,37 @@ const SUGGESTIONS = [
   "Check water and electricity",
   "Photograph the surroundings",
 ];
+
+function StepCard({
+  number,
+  title,
+  description,
+  children,
+}: {
+  number: string;
+  title: string;
+  description: string;
+  children: React.ReactNode;
+}) {
+  return (
+    <section className="rounded-3xl border border-surface-200 bg-white p-4 shadow-card sm:p-5">
+      <div className="flex items-start gap-3">
+        <span className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-full bg-primary-800 text-[12px] font-extrabold text-white">
+          {number}
+        </span>
+        <div className="min-w-0">
+          <h2 className="text-[1.25rem] font-extrabold leading-tight tracking-[-0.025em] text-surface-950 sm:text-[1.4rem]">
+            {title}
+          </h2>
+          <p className="mt-1 max-w-xl text-[12px] leading-relaxed text-surface-600">
+            {description}
+          </p>
+        </div>
+      </div>
+      <div className="mt-4">{children}</div>
+    </section>
+  );
+}
 
 export function CreateTaskPage() {
   const [instructions, setInstructions] = useState("");
@@ -165,38 +196,39 @@ export function CreateTaskPage() {
   };
 
   return (
-    <div className="mx-auto max-w-3xl space-y-5">
-      <div>
-        <Button to="/user" variant="ghost" size="sm" className="-ml-2 min-h-11">
-          <span aria-hidden="true">←</span>
-          My requests
-        </Button>
-        <h1 className="mt-2 text-2xl font-bold tracking-tight text-surface-950">
-          Request a property visit
-        </h1>
-        <p className="mt-1 text-sm text-surface-500">
-          Set the exact location and tell the inspector what you need checked.
-        </p>
+    <div className="mx-auto max-w-3xl">
+      <Button to="/user" variant="ghost" size="sm" className="-ml-2 min-h-11">
+        <span aria-hidden="true">←</span>
+        My visits
+      </Button>
+
+      <div className="mt-3 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+        <div>
+          <p className="text-[12px] font-bold text-primary-700">
+            Takes about 2 minutes
+          </p>
+          <h1 className="mt-1.5 text-[2.2rem] font-extrabold leading-[1.02] tracking-[-0.04em] text-surface-950 sm:text-[2.7rem]">
+            Book a property visit
+          </h1>
+          <p className="mt-2 max-w-lg text-[13px] leading-relaxed text-surface-600">
+            Set the exact pin and tell us what to check. A local inspector takes
+            it from there.
+          </p>
+        </div>
+        <span className="inline-flex items-center gap-1.5 self-start rounded-full bg-white px-3 py-1.5 text-[11px] font-bold text-surface-700 shadow-sm sm:self-auto">
+          <ShieldCheckIcon size={13} className="text-primary-600" />
+          From ₹999 · pay per visit
+        </span>
       </div>
 
-      <form onSubmit={handleSubmit} className="space-y-4">
-        {/* Location */}
-        <Card>
-          <div className="flex items-start gap-3">
-            <span className="flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-full bg-primary-50 text-xs font-bold text-primary-800">
-              1
-            </span>
-            <div>
-              <h2 className="text-base font-bold text-surface-950">Where is the property?</h2>
-              <p className="mt-0.5 text-[13px] leading-relaxed text-surface-500">
-                The inspector travels to this exact pin. A Google Maps link is the
-                most accurate way to set it.
-              </p>
-            </div>
-          </div>
-
-          <div className="mt-5 space-y-4">
-            <div className="rounded-xl border border-surface-200 bg-surface-50 p-4">
+      <form onSubmit={handleSubmit} className="mt-5 space-y-4">
+        <StepCard
+          number="1"
+          title="Where is the property?"
+          description="The inspector travels to this exact pin — not the neighbourhood. A Google Maps link is the easiest way to get it right."
+        >
+          <div className="space-y-4">
+            <div className="rounded-2xl bg-surface-50 p-3.5">
               <Input
                 label="Google Maps link"
                 value={mapsUrl}
@@ -208,7 +240,7 @@ export function CreateTaskPage() {
                 id="maps-url-input"
                 helperText="In Google Maps: search the property → Share → Copy link."
               />
-              <div className="mt-3 flex flex-wrap items-center gap-2">
+              <div className="mt-3 flex flex-wrap items-center gap-2.5">
                 <Button
                   type="button"
                   onClick={handleResolveUrl}
@@ -220,33 +252,43 @@ export function CreateTaskPage() {
                   Find this location
                 </Button>
                 {locationSelected && (
-                  <span className="inline-flex items-center gap-1.5 text-[13px] font-medium text-primary-700">
-                    <CheckIcon size={14} />
+                  <span className="inline-flex items-center gap-1.5 rounded-full bg-primary-100 px-2.5 py-1 text-[10.5px] font-bold text-primary-800">
+                    <CheckIcon size={11} />
                     Location set
                   </span>
                 )}
               </div>
               {urlError && (
-                <p className="mt-2 text-[13px] font-medium text-danger-600">{urlError}</p>
+                <p className="mt-2 text-[12px] font-medium leading-relaxed text-danger-700">
+                  {urlError}
+                </p>
               )}
+            </div>
+
+            <div className="flex items-center gap-3">
+              <span className="h-px flex-1 bg-surface-200" />
+              <span className="text-[10.5px] font-semibold text-surface-400">
+                or
+              </span>
+              <span className="h-px flex-1 bg-surface-200" />
             </div>
 
             <div>
               <div className="mb-2 flex flex-wrap items-center justify-between gap-2">
-                <p className="text-sm font-semibold text-surface-800">
-                  Or tap the exact spot on the map
+                <p className="text-[12px] font-bold text-surface-700">
+                  Tap the exact spot on the map
                 </p>
                 <button
                   type="button"
                   onClick={handleUseCurrentLocation}
                   disabled={isLocating}
-                  className="inline-flex min-h-11 items-center gap-1.5 px-1 text-[13px] font-semibold text-primary-700 transition-colors hover:text-primary-800 disabled:opacity-50"
+                  className="inline-flex min-h-10 items-center gap-1.5 rounded-full bg-primary-50 px-3 text-[11.5px] font-bold text-primary-800 transition-colors hover:bg-primary-100 disabled:opacity-50"
                 >
-                  <CompassIcon size={14} />
+                  <CompassIcon size={13} />
                   {isLocating ? "Finding you…" : "Use my location"}
                 </button>
               </div>
-              <div className="overflow-hidden rounded-xl border border-surface-200">
+              <div className="overflow-hidden rounded-2xl border border-surface-200">
                 <LocationPicker
                   latitude={latitude}
                   longitude={longitude}
@@ -254,70 +296,70 @@ export function CreateTaskPage() {
                     setLatitude(lat);
                     setLongitude(lng);
                   }}
-                  height="260px"
+                  height="280px"
                 />
               </div>
 
               {locationSelected ? (
-                <div className="mt-2.5 flex flex-wrap items-center justify-between gap-2 rounded-xl bg-primary-50 px-3.5 py-2.5 text-[13px]">
-                  <span className="inline-flex items-center gap-1.5 font-semibold text-primary-800">
-                    <MapPinIcon size={14} />
-                    Location set
+                <div className="mt-2 flex flex-wrap items-center justify-between gap-2 rounded-xl bg-primary-50 px-3.5 py-2.5">
+                  <span className="inline-flex items-center gap-1.5 text-[11px] font-bold text-primary-800">
+                    <MapPinIcon size={12} />
+                    Pin set
                   </span>
-                  <span className="font-mono text-xs text-primary-700">
-                    {latitude.toFixed(6)}, {longitude.toFixed(6)}
+                  <span className="text-[10.5px] font-semibold tabular-nums text-primary-700">
+                    {latitude.toFixed(4)}, {longitude.toFixed(4)}
                   </span>
                 </div>
               ) : (
-                <p className="mt-2.5 flex items-center gap-1.5 text-[13px] text-surface-500">
-                  <MapPinIcon size={14} className="text-surface-500" />
-                  No location set yet. Use a link or tap the map.
+                <p className="mt-2 flex items-center gap-1.5 text-[11px] font-medium text-surface-500">
+                  <MapPinIcon size={12} />
+                  No pin set yet — use a link or tap the map.
                 </p>
               )}
             </div>
           </div>
-        </Card>
+        </StepCard>
 
-        {/* Instructions */}
-        <Card>
-          <div className="flex items-start gap-3">
-            <span className="flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-full bg-primary-50 text-xs font-bold text-primary-800">
-              2
-            </span>
-            <div>
-              <h2 className="text-base font-bold text-surface-950">What should we check?</h2>
-              <p className="mt-0.5 text-[13px] leading-relaxed text-surface-500">
-                Be specific. The inspector will follow these instructions on site.
-              </p>
-            </div>
-          </div>
-
-          <div className="mt-5 space-y-3">
+        <StepCard
+          number="2"
+          title="What should the inspector check?"
+          description="Be specific. The inspector follows these notes on site, so write them like you’re briefing someone at the gate."
+        >
+          <div className="space-y-3">
             <div className="flex flex-wrap items-center justify-between gap-x-3 gap-y-1">
-              <label htmlFor="task-instructions" className="text-sm font-semibold text-surface-800">
-                Instructions for the inspector
+              <label
+                htmlFor="task-instructions"
+                className="text-[12.5px] font-bold text-surface-700"
+              >
+                Notes for the inspector
               </label>
               <span
-                className={`whitespace-nowrap text-[12px] font-medium tabular-nums ${
-                  instructionLength >= 10 ? "text-primary-700" : "text-surface-500"
+                className={`whitespace-nowrap rounded-full px-2 py-0.5 text-[10px] font-bold ${
+                  instructionLength >= 10
+                    ? "bg-primary-50 text-primary-700"
+                    : "bg-surface-100 text-surface-500"
                 }`}
               >
-                {instructionLength >= 10 ? "Ready" : `${10 - instructionLength} more characters`}
+                {instructionLength >= 10
+                  ? "Looks good"
+                  : `${10 - instructionLength} more characters`}
               </span>
             </div>
             <textarea
               id="task-instructions"
               value={instructions}
               onChange={(e) => setInstructions(e.target.value)}
-              placeholder="For example: Check the boundary wall, take a photo of the main gate, and confirm the road is approachable by car."
+              placeholder="For example: Check the boundary wall, photograph the main gate, and confirm the road is approachable by car."
               required
-              rows={5}
-              className="w-full resize-none rounded-xl border border-surface-200 bg-white px-3.5 py-3 text-base text-surface-900 placeholder:text-surface-500 transition-colors focus:border-primary-500 focus:outline-none focus:ring-4 focus:ring-primary-500/10 sm:text-[15px]"
+              rows={6}
+              className="w-full resize-none rounded-2xl border-2 border-surface-200 bg-surface-50 px-4 py-3 text-base leading-relaxed text-surface-900 transition-colors placeholder:text-surface-400 hover:border-surface-300 focus:border-primary-500 focus:bg-white focus:outline-none focus:ring-4 focus:ring-primary-500/10 sm:text-[14px]"
             />
 
             <div>
-              <p className="text-[12px] font-medium text-surface-500">Quick add</p>
-              <div className="mt-2 flex flex-wrap gap-2">
+              <p className="text-[11px] font-bold text-surface-500">
+                Quick add
+              </p>
+              <div className="mt-2 flex flex-wrap gap-1.5">
                 {SUGGESTIONS.map((suggestion) => {
                   const selected = instructions.includes(suggestion);
                   return (
@@ -326,13 +368,17 @@ export function CreateTaskPage() {
                       type="button"
                       onClick={() => toggleSuggestion(suggestion)}
                       aria-pressed={selected}
-                      className={`inline-flex min-h-11 items-center gap-1.5 rounded-full border px-3 text-[12px] font-medium transition-colors ${
+                      className={`inline-flex min-h-10 items-center gap-1.5 rounded-full border px-3 text-[11.5px] font-semibold transition-colors ${
                         selected
                           ? "border-primary-300 bg-primary-50 text-primary-800"
-                          : "border-surface-200 bg-white text-surface-600 hover:border-surface-300 hover:bg-surface-50"
+                          : "border-surface-200 bg-white text-surface-600 hover:border-primary-300 hover:bg-primary-50/40"
                       }`}
                     >
-                      {selected ? <CheckIcon size={12} /> : <span aria-hidden="true">+</span>}
+                      {selected ? (
+                        <CheckIcon size={11} />
+                      ) : (
+                        <span aria-hidden="true" className="text-[13px] leading-none">+</span>
+                      )}
                       {suggestion}
                     </button>
                   );
@@ -340,30 +386,45 @@ export function CreateTaskPage() {
               </div>
             </div>
 
-            <p className="text-[12px] leading-relaxed text-surface-500">
-              Do not include private information such as bank details. The
-              inspector will only check what is visible or safe to access.
+            <p className="rounded-xl bg-surface-50 px-3.5 py-2.5 text-[11px] leading-relaxed text-surface-500">
+              Please don’t include private information like bank details. The
+              inspector only checks what is visible or safe to access.
             </p>
           </div>
-        </Card>
+        </StepCard>
 
-        <div className="flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
-          <Button
-            type="button"
-            variant="secondary"
-            className="sm:w-auto"
-            onClick={() => navigate("/user")}
-          >
-            Cancel
-          </Button>
-          <Button
-            type="submit"
-            isLoading={createTask.isPending}
-            disabled={!locationSelected || instructionLength < 10}
-            className="sm:w-auto"
-          >
-            Request visit
-          </Button>
+        <div className="flex items-start gap-2.5 rounded-2xl border border-primary-200 bg-primary-50 p-3.5">
+          <ShieldCheckIcon size={16} className="mt-0.5 flex-shrink-0 text-primary-700" />
+          <p className="text-[11.5px] leading-relaxed text-primary-900/80">
+            <strong className="font-bold text-primary-900">
+              Proof within 100 metres.
+            </strong>{" "}
+            The photo must be taken within 100 m of this pin. The server checks
+            the distance, and saves the location and capture time with the photo.
+          </p>
+        </div>
+
+        <div className="flex flex-col-reverse gap-2 rounded-2xl border border-surface-200 bg-white p-3.5 shadow-sm sm:flex-row sm:items-center sm:justify-between">
+          <p className="text-[11px] font-medium leading-relaxed text-surface-500">
+            Free to request · payment is confirmed before the visit
+          </p>
+          <div className="flex flex-col-reverse gap-2 sm:flex-row">
+            <Button
+              type="button"
+              variant="secondary"
+              onClick={() => navigate("/user")}
+            >
+              Cancel
+            </Button>
+            <Button
+              type="submit"
+              variant="accent"
+              isLoading={createTask.isPending}
+              disabled={!locationSelected || instructionLength < 10}
+            >
+              Request visit
+            </Button>
+          </div>
         </div>
       </form>
     </div>

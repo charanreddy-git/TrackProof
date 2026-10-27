@@ -35,3 +35,9 @@ export const verifyOtpSchema = z.object({
 
 export type RequestOtpInput = z.infer<typeof requestOtpSchema>;
 export type VerifyOtpInput = z.infer<typeof verifyOtpSchema>;
+
+export const demoLoginSchema = z.object({
+  role: roleSchema,
+});
+
+export type DemoLoginInput = z.infer<typeof demoLoginSchema>;

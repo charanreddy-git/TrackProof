@@ -8,12 +8,21 @@ import {
   type ReactNode,
 } from "react";
 import type {
+  AuthMode,
   AuthResponse,
+  DemoAccount,
+  DemoResetResponse,
   OtpRequestResponse,
   Role,
   User,
 } from "../types";
-import { requestOtpApi, verifyOtpApi } from "../services";
+import {
+  demoLoginApi,
+  fetchAuthModeApi,
+  requestOtpApi,
+  resetDemoApi,
+  verifyOtpApi,
+} from "../services";
 import { connectSocket, disconnectSocket } from "../sockets";
 
 interface VerifyOtpOptions {
@@ -26,12 +35,16 @@ interface AuthContextType {
   token: string | null;
   isAuthenticated: boolean;
   isLoading: boolean;
+  authMode: AuthMode;
+  demoAccounts: DemoAccount[];
   requestOtp: (phone: string) => Promise<OtpRequestResponse>;
   verifyOtp: (
     phone: string,
     code: string,
     options?: VerifyOtpOptions
   ) => Promise<AuthResponse>;
+  demoLogin: (role: Role) => Promise<AuthResponse>;
+  resetDemo: () => Promise<DemoResetResponse>;
   logout: () => void;
 }
 
@@ -67,7 +80,31 @@ function readSavedSession(): AuthSession {
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [session, setSession] = useState<AuthSession>(readSavedSession);
+  const [authMode, setAuthMode] = useState<AuthMode>("otp");
+  const [demoAccounts, setDemoAccounts] = useState<DemoAccount[]>([]);
   const { user, token } = session;
+
+  // The server is the source of truth for demo mode. In production it always
+  // reports "otp", even if AUTH_MODE=demo is set in the environment.
+  useEffect(() => {
+    let active = true;
+
+    fetchAuthModeApi()
+      .then((result) => {
+        if (!active) return;
+        setAuthMode(result.mode);
+        setDemoAccounts(result.demo);
+      })
+      .catch(() => {
+        if (!active) return;
+        setAuthMode("otp");
+        setDemoAccounts([]);
+      });
+
+    return () => {
+      active = false;
+    };
+  }, []);
 
   // Socket connection is an external system, so it belongs in an effect.
   // The session itself is restored synchronously from localStorage.
@@ -98,6 +135,19 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     [saveSession]
   );
 
+  const demoLogin = useCallback(
+    async (role: Role) => {
+      const result = await demoLoginApi(role);
+      saveSession(result);
+      return result;
+    },
+    [saveSession]
+  );
+
+  const resetDemo = useCallback(async () => {
+    return resetDemoApi();
+  }, []);
+
   const logout = useCallback(() => {
     setSession({ user: null, token: null });
     localStorage.removeItem("token");
@@ -111,8 +161,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         token,
         isAuthenticated: !!token && !!user,
         isLoading: false,
+        authMode,
+        demoAccounts,
         requestOtp,
         verifyOtp,
+        demoLogin,
+        resetDemo,
         logout,
       }}
     >
