@@ -181,7 +181,7 @@ export function RegisterPage({ forcedRole }: RegisterPageProps = {}) {
           {showRolePicker && (
             <div>
               <p className="mb-2 text-[12.5px] font-bold text-surface-700">
-                How will you use TrackProof?
+                How will you use PinProof?
               </p>
               <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
                 <button

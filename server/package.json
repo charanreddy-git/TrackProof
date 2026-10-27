@@ -1,7 +1,7 @@
 {
-  "name": "trackproof-server",
+  "name": "pinproof-server",
   "version": "1.0.0",
-  "description": "TrackProof backend — Express + Prisma + Socket.IO",
+  "description": "PinProof backend — Express + Prisma + Socket.IO",
   "main": "dist/server.js",
   "scripts": {
     "dev": "tsx watch src/server.ts",

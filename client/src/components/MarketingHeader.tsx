@@ -20,7 +20,7 @@ interface MarketingHeaderProps {
 
 export function MarketingHeader({
   variant = "primary",
-  logoLabel = "TrackProof",
+  logoLabel = "PinProof",
   navItems = [],
   ctaLabel = "Book a visit",
   ctaTo = "/verify/signup",

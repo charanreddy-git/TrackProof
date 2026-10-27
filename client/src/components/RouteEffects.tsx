@@ -2,28 +2,28 @@ import { useEffect } from "react";
 import { useLocation } from "react-router-dom";
 
 const PAGE_TITLES: Record<string, string> = {
-  "/": "TrackProof — Property verification without the travel",
-  "/verify": "Request a property visit — TrackProof",
-  "/pricing": "Simple pricing — TrackProof",
-  "/captain": "Inspect properties near you — TrackProof",
-  "/login": "Sign in — TrackProof",
-  "/register": "Create your account — TrackProof",
-  "/verify/signup": "Request a property visit — TrackProof",
-  "/captain/signup": "Join as an inspector — TrackProof",
-  "/user": "Your requests — TrackProof",
-  "/user/create-task": "Request a visit — TrackProof",
-  "/user/tasks": "Your requests — TrackProof",
-  "/captain/dashboard": "Find inspection work — TrackProof",
-  "/captain/accepted": "Your visits — TrackProof",
+  "/": "PinProof — Property verification without the travel",
+  "/verify": "Request a property visit — PinProof",
+  "/pricing": "Simple pricing — PinProof",
+  "/captain": "Inspect properties near you — PinProof",
+  "/login": "Sign in — PinProof",
+  "/register": "Create your account — PinProof",
+  "/verify/signup": "Request a property visit — PinProof",
+  "/captain/signup": "Join as an inspector — PinProof",
+  "/user": "Your requests — PinProof",
+  "/user/create-task": "Request a visit — PinProof",
+  "/user/tasks": "Your requests — PinProof",
+  "/captain/dashboard": "Find inspection work — PinProof",
+  "/captain/accepted": "Your visits — PinProof",
 };
 
 function getTitle(pathname: string): string {
   if (PAGE_TITLES[pathname]) return PAGE_TITLES[pathname];
-  if (pathname.startsWith("/captain/tasks/") && pathname.endsWith("/upload")) return "Submit proof — TrackProof";
-  if (pathname.startsWith("/user/tasks/")) return "Visit details — TrackProof";
-  if (pathname.startsWith("/user/track/")) return "Live visit tracking — TrackProof";
-  if (pathname.startsWith("/captain/tasks/")) return "Visit details — TrackProof";
-  return "Page not found — TrackProof";
+  if (pathname.startsWith("/captain/tasks/") && pathname.endsWith("/upload")) return "Submit proof — PinProof";
+  if (pathname.startsWith("/user/tasks/")) return "Visit details — PinProof";
+  if (pathname.startsWith("/user/track/")) return "Live visit tracking — PinProof";
+  if (pathname.startsWith("/captain/tasks/")) return "Visit details — PinProof";
+  return "Page not found — PinProof";
 }
 
 /** Resets scroll on route changes, honours in-page anchors, and keeps tab titles useful. */

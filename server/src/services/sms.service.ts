@@ -3,7 +3,7 @@ import { logger } from "../utils";
 const isProduction = process.env.NODE_ENV === "production";
 
 function otpMessage(code: string): string {
-  return `Your TrackProof verification code is ${code}. It expires in 5 minutes. Never share this code with anyone.`;
+  return `Your PinProof verification code is ${code}. It expires in 5 minutes. Never share this code with anyone.`;
 }
 
 function required(name: string): string {

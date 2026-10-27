@@ -73,7 +73,7 @@ async function followRedirects(
         {
           headers: {
             "User-Agent":
-              "Mozilla/5.0 (compatible; TrackProof/1.0)",
+              "Mozilla/5.0 (compatible; PinProof/1.0)",
           },
         },
         (res) => {

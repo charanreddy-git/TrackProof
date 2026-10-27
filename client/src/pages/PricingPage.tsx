@@ -307,8 +307,8 @@ export function PricingPage() {
               </h2>
               <p className="mt-3 max-w-xs text-[12.5px] leading-relaxed text-surface-500">
                 Still unsure? Write to{" "}
-                <a href="mailto:hello@trackproof.in" className="font-bold text-primary-700 underline underline-offset-4">
-                  hello@trackproof.in
+                <a href="mailto:hello@pinproof.in" className="font-bold text-primary-700 underline underline-offset-4">
+                  hello@pinproof.in
                 </a>
                 .
               </p>

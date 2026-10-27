@@ -119,7 +119,7 @@ export function LoginPage() {
           {authMode === "demo" ? "Phone sign in" : "Welcome back"}
         </p>
         <h1 className="mt-1.5 text-[2rem] font-extrabold leading-tight tracking-[-0.035em] text-surface-950">
-          {step === "phone" ? "Sign in to TrackProof" : "Enter your code"}
+          {step === "phone" ? "Sign in to PinProof" : "Enter your code"}
         </h1>
       </div>
 
@@ -253,7 +253,7 @@ export function LoginPage() {
 
       {authMode !== "demo" && (
         <div className="mt-6 border-t border-surface-200 pt-5">
-          <p className="text-[12px] font-semibold text-surface-500">New to TrackProof?</p>
+          <p className="text-[12px] font-semibold text-surface-500">New to PinProof?</p>
           <div className="mt-2.5 grid grid-cols-2 gap-2">
             <Link
               to={`/verify/signup${signupSuffix}`}

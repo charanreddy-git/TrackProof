@@ -93,7 +93,7 @@ export function AuthLayout() {
             <Logo size="sm" />
           </div>
           <p className="hidden text-[12px] font-semibold text-surface-500 lg:block">
-            Welcome to TrackProof
+            Welcome to PinProof
           </p>
           <Link
             to="/"

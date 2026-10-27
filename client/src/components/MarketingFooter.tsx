@@ -10,7 +10,7 @@ interface MarketingFooterProps {
 
 export function MarketingFooter({
   variant = "primary",
-  logoLabel = "TrackProof",
+  logoLabel = "PinProof",
   tagline = "Local inspectors visit your property and send back a dated, GPS-verified photo — so you can decide without making the trip.",
 }: MarketingFooterProps) {
   const footerLinks = {
@@ -72,7 +72,7 @@ export function MarketingFooter({
         </div>
 
         <div className="mt-10 flex flex-col gap-3 border-t border-surface-200 pt-5 text-[11.5px] text-surface-500 sm:flex-row sm:items-center sm:justify-between">
-          <p>&copy; {new Date().getFullYear()} TrackProof. All rights reserved.</p>
+          <p>&copy; {new Date().getFullYear()} PinProof. All rights reserved.</p>
           <p className="flex flex-wrap items-center gap-x-2 gap-y-1">
             <span>Private photo proof</span>
             <span aria-hidden="true">·</span>

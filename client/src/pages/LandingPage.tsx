@@ -29,7 +29,7 @@ const FAQS = [
   },
   {
     q: "How is this different from a photo a relative sends me?",
-    a: "The inspector takes the photo inside TrackProof. The app records the capture time, GPS location, and accuracy along with the image. The server rejects proof taken more than 100 metres from your pin, so you know it came from the property you asked about.",
+    a: "The inspector takes the photo inside PinProof. The app records the capture time, GPS location, and accuracy along with the image. The server rejects proof taken more than 100 metres from your pin, so you know it came from the property you asked about.",
   },
   {
     q: "I live outside India. Can I book a visit?",
@@ -41,7 +41,7 @@ const FAQS = [
   },
   {
     q: "Do I need to install an app?",
-    a: "No. Requesters and inspectors both use TrackProof in a mobile or desktop browser. Camera and location permissions come from your browser.",
+    a: "No. Requesters and inspectors both use PinProof in a mobile or desktop browser. Camera and location permissions come from your browser.",
   },
 ];
 
@@ -292,7 +292,7 @@ export function LandingPage() {
                 A photo is only useful if you know where it came from.
               </h2>
               <p className="mt-4 max-w-lg text-[14px] leading-[1.75] text-surface-600">
-                TrackProof checks the distance between the inspector’s photo and
+                PinProof checks the distance between the inspector’s photo and
                 your pin. If it is more than 100 metres away, the server will not
                 accept it.
               </p>
@@ -554,10 +554,10 @@ export function LandingPage() {
               <p className="mt-3 max-w-xs text-[12.5px] leading-relaxed text-surface-500">
                 Write to{" "}
                 <a
-                  href="mailto:hello@trackproof.in"
+                  href="mailto:hello@pinproof.in"
                   className="font-bold text-primary-700 underline underline-offset-4"
                 >
-                  hello@trackproof.in
+                  hello@pinproof.in
                 </a>
                 . A real person replies.
               </p>

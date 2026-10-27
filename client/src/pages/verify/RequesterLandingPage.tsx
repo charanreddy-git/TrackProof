@@ -22,7 +22,7 @@ const NAV_ITEMS = [
 const FAQS = [
   {
     q: "What does the inspector actually do?",
-    a: "The inspector travels to the exact pin you share, checks the property from the outside (and inside for a Detailed visit), takes a photo through TrackProof, and submits it. You can add specific instructions for them.",
+    a: "The inspector travels to the exact pin you share, checks the property from the outside (and inside for a Detailed visit), takes a photo through PinProof, and submits it. You can add specific instructions for them.",
   },
   {
     q: "Can I book a visit for a plot with no address?",
@@ -240,8 +240,8 @@ export function RequesterLandingPage() {
               </h2>
               <p className="mt-3 max-w-xs text-[12.5px] leading-relaxed text-surface-500">
                 Write to{" "}
-                <a href="mailto:hello@trackproof.in" className="font-bold text-primary-700 underline underline-offset-4">
-                  hello@trackproof.in
+                <a href="mailto:hello@pinproof.in" className="font-bold text-primary-700 underline underline-offset-4">
+                  hello@pinproof.in
                 </a>{" "}
                 if your question is not here.
               </p>

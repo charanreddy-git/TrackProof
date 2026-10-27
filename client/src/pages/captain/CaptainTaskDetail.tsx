@@ -458,7 +458,7 @@ export function CaptainTaskDetail() {
                   How proof is checked
                 </p>
                 <p className="mt-1 text-[11px] leading-relaxed text-warning-800/80">
-                  Capture the photo inside TrackProof, within 100 metres of the
+                  Capture the photo inside PinProof, within 100 metres of the
                   pin. A gallery upload is allowed only when the camera can’t be
                   used — the distance check still applies.
                 </p>

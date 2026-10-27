@@ -3,7 +3,7 @@ import { Logo, Button } from "../components";
 import { CompassIcon, MapPinIcon, ShieldCheckIcon } from "../components/Icons";
 
 const HELPFUL_LINKS = [
-  { label: "How TrackProof works", to: "/#how-it-works" },
+  { label: "How PinProof works", to: "/#how-it-works" },
   { label: "Pricing", to: "/pricing" },
   { label: "For inspectors", to: "/captain" },
   { label: "Sign in", to: "/login" },

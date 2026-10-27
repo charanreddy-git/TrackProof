@@ -54,7 +54,7 @@ function Mark({
 export function Logo({
   size = "md",
   variant = "primary",
-  label = "TrackProof",
+  label = "PinProof",
   to = "/",
 }: LogoProps) {
   const s = sizeConfig[size];

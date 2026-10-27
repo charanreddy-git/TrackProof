@@ -61,7 +61,7 @@ const STEPS = [
   {
     icon: CameraIcon,
     title: "Take the proof photo",
-    desc: "Capture it inside TrackProof, within 100 m of the pin. Location and time attach automatically.",
+    desc: "Capture it inside PinProof, within 100 m of the pin. Location and time attach automatically.",
   },
   {
     icon: CheckIcon,
@@ -92,7 +92,7 @@ const FAQS = [
   },
   {
     q: "What do I need to start?",
-    a: "A smartphone with a working camera and GPS, mobile data, and a bike, scooter, or car to reach the property. TrackProof works in your browser — no app download is required.",
+    a: "A smartphone with a working camera and GPS, mobile data, and a bike, scooter, or car to reach the property. PinProof works in your browser — no app download is required.",
   },
   {
     q: "Do I have to accept every visit?",
@@ -366,7 +366,7 @@ export function CaptainLandingPage() {
                 </div>
               ))}
               <p className="sm:col-span-2 rounded-xl bg-primary-50 px-3.5 py-3 text-[11.5px] font-medium leading-relaxed text-primary-800">
-                TrackProof runs in the browser · no install required
+                PinProof runs in the browser · no install required
               </p>
             </div>
           </div>
@@ -382,8 +382,8 @@ export function CaptainLandingPage() {
               </h2>
               <p className="mt-3 max-w-xs text-[12.5px] leading-relaxed text-surface-500">
                 Still unsure? Write to{" "}
-                <a href="mailto:field@trackproof.in" className="font-bold text-primary-700 underline underline-offset-4">
-                  field@trackproof.in
+                <a href="mailto:field@pinproof.in" className="font-bold text-primary-700 underline underline-offset-4">
+                  field@pinproof.in
                 </a>
                 .
               </p>

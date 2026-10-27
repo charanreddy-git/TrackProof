@@ -1,6 +1,6 @@
-# TrackProof
+# PinProof
 
-**Property verification without the travel.** TrackProof connects property owners,
+**Property verification without the travel.** PinProof connects property owners,
 buyers, and NRI families with local inspectors who visit a pinned location, capture
 GPS-verified photos, and send back proof — so you can check a property from anywhere.
 
@@ -91,7 +91,7 @@ for a separately hosted API.
 ## Project structure
 
 ```
-trackproof/
+pinproof/
 ├── client/
 │   ├── src/
 │   │   ├── components/      # UI primitives, layout, map, task components
@@ -353,7 +353,7 @@ request and verify endpoints.
 The `webhook` SMS provider receives:
 
 ```json
-{ "phone": "+919876543210", "code": "123456", "message": "Your TrackProof verification code is …" }
+{ "phone": "+919876543210", "code": "123456", "message": "Your PinProof verification code is …" }
 ```
 
 ### Tasks
